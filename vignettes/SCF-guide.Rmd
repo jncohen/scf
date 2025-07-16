@@ -1,0 +1,146 @@
+---
+title: "SCF Guide: Analyzing the Survey of Consumer Finances"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SCF-guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
+)
+
+library(scf)
+library(dplyr)
+```
+
+# Introduction
+
+# Introduction
+
+The **Survey of Consumer Finances (SCF)** is a triennial survey of U.S. household finances conducted by the Federal Reserve Board. It is among the most detailed and methodologically sophisticated data sources on U.S. households' personal finances. 
+
+To ensure valid estimation and inference, the SCF incorporates two key methodological features:
+
+1. **Complex Survey Design**: The SCF uses a dual frame design with a geographic national sample and list sample of wealthy people selected from IRS records. Each implicate includes 999 replicate weights constructed via balanced repeated replication (BRR), which enable design-consistent estimation of variance.
+2. **Multiple Imputation**: The SCF addresses item nonresponse through multiple imputation. Each release includes five implicates—plausible, complete versions of the dataset with different imputed values for missing items.
+
+These design features demand appropriate statistical handling. Analysts unfamiliar with replicate weighting and imputation pooling may inadvertently produce biased or misleading results. In practice, these barriers have discouraged even quantitatively competent researchers from working directly with SCF microdata.
+
+The `scf` package aims to reduce this friction. It provides a structured and reproducible R interface for downloading, transforming, and analyzing SCF data using methods appropriate to its design. The package handles replicate weights and Rubin’s Rules transparently and consistently across descriptive statistics, hypothesis testing, regression modeling, and visualization.
+
+This vignette introduces the core analytic workflow supported by the package. For detailed methodological discussion, see Cohen (2025a).
+
+
+# Workflow
+
+## 1. Downloading and Loading the Data
+
+Download raw SCF data and load it into a valid multiply-imputed survey object using `scf_download()` and `scf_load()`. The result is an `scf_mi_survey` object that contains replicate-weighted survey designs for each implicate.
+
+```{r}
+# Using Mock data with distribution
+scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
+
+# Using real SCF data (uncomment to run)
+# scf2022 <- scf_download(2022)
+# scf2022 <- scf_load(scf2022)
+
+```
+
+## 2. Creating and Transforming Variables
+
+Before logging, you must bottom-code income and net worth at \$1 to avoid NA values due to log(0). The `scf_update()` function safely adds or modifies variables across all implicates.
+
+```{r}
+
+scf2022 <- scf_update(scf2022,
+  senior = age >= 65,
+  female = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
+  rich = networth > 1e6,
+  networth = ifelse(networth > 1, networth, 1),
+  log_networth = log(networth),
+  income = ifelse(income > 1, income, 1),
+  log_income = log(income),
+  npeople = x101
+)
+
+```
+
+Use `names(scf2022$mi_design[[1]]$variables)` to inspect variables.
+
+## 3. Univariate and Bivariate Distributions
+
+Use `scf_mean()`, `scf_median()`, and `scf_percentile()` to calculate pooled estimates with Rubin’s Rules. Use `by =` for grouped statistics.
+
+```{r}
+scf_mean(scf2022, ~networth, by = ~senior)
+scf_median(scf2022, ~income, by = ~female)
+scf_percentile(scf2022, ~networth, q = 0.9)
+scf_percentile(scf2022, ~networth, q = 0.75, by = ~female)
+```
+
+## 4. Hypothesis Tests
+
+Conduct t-tests and proportion tests on pooled SCF data. These tests return interpretable outputs with correct degrees of freedom and pooled standard errors.
+
+```{r}
+scf_ttest(scf2022, ~networth, mu = 250000)
+scf_ttest(scf2022, ~networth, group = ~senior)
+scf_prop_test(scf2022, ~senior, p = 0.25)
+scf_prop_test(scf2022, ~rich, ~female)
+```
+
+## 5. Regression Modeling
+
+Fit linear or generalized linear models with Rubin-aware pooling. Logistic models can return odds ratios if requested.
+
+```{r}
+scf_ols(scf2022, networth ~ age + log_income)
+scf_logit(scf2022, rich ~ age + log_income)
+scf_logit(scf2022, rich ~ age + log_income, odds = TRUE)
+scf_glm(scf2022, npeople ~ age + log_income, family = poisson())
+```
+
+> **Note on Warnings**  
+> When running logistic regression with `scf_logit()` or other functions that use `family = binomial()`, you may see warnings like:  
+>  
+> ```
+> `Warning: non-integer #successes in a binomial glm!`
+> ```
+>  
+> This warning is harmless. It appears because `survey::svyglm()` uses replicate weights that can lead to fractional counts. The model still estimates correctly. For more background and discussion, see [Stack Overflow thread](https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-binomial-glm-survey-packages).
+
+
+## 6. Visualization
+
+Produce publication-quality plots using multiply-imputed data. All visuals account for weights and imputations.
+
+```{r}
+scf_plot_dbar(scf2022, ~senior)
+scf_plot_bbar(scf2022, ~female, ~rich, scale = "percent")
+scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "median")
+scf_plot_dist(scf2022, ~age, bins = 10) 
+scf_plot_smooth(scf2022, ~age)
+scf_plot_hex(scf2022, ~income, ~networth)
+```
+
+## 7. Inspecting Implicates and Pooled Objects
+
+Use `scf_implicates()` to inspect individual implicate estimates for sensitivity analysis.
+
+```{r}
+freq_table <- scf_freq(scf2022, ~rich)
+scf_implicates(freq_table, long = TRUE)
+```
+
+
+# Learn More
+For more details on the SCF methodology and the `scf` package, see:
+- Cohen, Joseph N. (2025). "Analyzing the Survey of Consumer Finances: A Guide to the `scf` Package" Mimeo.
+- Federal Reserve Board. (2023). *Survey of Consumer Finances*. [https://www.federalreserve.gov/econres/scfindex.htm](https://www.federalreserve.gov/econres/scfindex.htm)

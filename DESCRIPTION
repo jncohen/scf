@@ -1,0 +1,35 @@
+Package: scf
+Title: Tools for Analyzing the Survey of Consumer Finances
+Version: 1.0
+Authors@R: 
+    person("Joseph", "Cohen", 
+           email = "joseph.cohen@qc.cuny.edu", 
+           role = c("aut", "cre"),
+           comment = c(affiliation = "Department of Sociology, CUNY Queens College"))
+Author: Joseph N. Cohen, Department of Sociology, CUNY Queens College
+Maintainer: Joseph N. Cohen <joseph.cohen@qc.cuny.edu>
+Description: 
+  This package provides a suite of functions to support analysis of the public-
+  use microdata release of the U.S. Federal Reserve's 'Survey of Consumer
+  Finances' (SCF). It wraps the SCF's multiply-imputed, replicate-weighted
+  data into a custom object class ('scf_mi_survey') and supports the estimation
+  of population-level statistics from that object, including univariate 
+  and bivariate variable distributions, hypothesis testing, data visualization, 
+  and basic regression modeling. The package is designed to make the SCF's 
+  public-use microdata accessible to analysts who are familiar with general 
+  statistical methods but have not yet specialized in the analysis of multiply-
+  imputed or complex survey data. All functions emphasize transparency, 
+  reproducibility, and pedagogical clarity to facilitate diagnostics, 
+  exploration, and learning.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 3.6)
+Imports: survey, stats, utils, ggplot2, haven, httr, rlang
+Suggests: knitr, rmarkdown, dplyr, mitools, testthat (>= 3.0.0), kableExtra, hexbin
+VignetteBuilder: knitr
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Lifecycle: stable
+Config/testthat/edition: 3
+URL: https://github.com/jncohen/scf
+BugReports: https://github.com/jncohen/scf/issues
