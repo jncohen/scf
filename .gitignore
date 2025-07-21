@@ -8,10 +8,8 @@
 *.swp
 *.tmp
 .vscode/
-
 # OAuth or local auth
 .httr-oauth
-
 # Build artifacts and outputs
 .Rcheck/
 .Rbuild/
@@ -19,13 +17,12 @@ inst/doc/
 documentation/
 doc/
 Meta/
-
 # Temporary or unneeded development files
 *_old.R
 scf_functions_*.txt
-
 # Raw data (local use only)
 data/
 data-raw/*.rds        # Allow mock script but block real .rds
 testdata/
 tests/*.rds
+scf.Rproj
