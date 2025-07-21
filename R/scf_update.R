@@ -57,62 +57,90 @@
 #'
 #' @export
 scf_update <- function(object, ...) {
+  
   if (!inherits(object, "scf_mi_survey")) {
     stop("Input must be of class 'scf_mi_survey'.")
   }
-
-  if (isTRUE(attr(object, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
-
-  dots <- substitute(list(...))[-1]
-  calling_env <- parent.frame()
-
-  updated_implicates <- vector("list", length(object$implicates))
-  updated_designs <- vector("list", length(object$implicates))
-
-  for (i in seq_along(object$implicates)) {
-    df <- object$implicates[[i]]
-    eval_env <- list2env(df, parent = calling_env)
-
-    for (varname in names(dots)) {
-      expr <- dots[[varname]]
-      value <- try(
-        if (is.function(expr)) expr(df) else eval(expr, envir = eval_env),
-        silent = TRUE
+  
+  exprs <- rlang::enquos(...)
+  
+  if (!is.null(object$implicates) && length(object$implicates) > 0) {
+    updated_implicates <- vector("list", length(object$implicates))
+    updated_designs    <- vector("list", length(object$implicates))
+    
+    for (i in seq_along(object$implicates)) {
+      df <- object$implicates[[i]]
+      
+      for (j in seq_along(exprs)) {
+        varname <- names(exprs)[j]
+        try({
+          df[[varname]] <- rlang::eval_tidy(exprs[[j]], data = df)
+        }, silent = TRUE)
+      }
+      
+      rep_cols <- grep("^wt1b", names(df), value = TRUE)
+      svy <- survey::svrepdesign(
+        weights = ~wgt,
+        repweights = as.matrix(df[, rep_cols]),
+        data = df,
+        type = "other",
+        scale = 1,
+        rscales = rep(1 / 998, 999),
+        mse = TRUE,
+        combined.weights = TRUE
       )
-
-
-      if (inherits(value, "try-error")) {
-        stop(sprintf("Failed to evaluate expression for '%s': %s", varname, value))
-      }
-      if (!is.null(value) && length(value) != nrow(df)) {
-        stop(sprintf("Length mismatch for '%s': got %d, expected %d", varname, length(value), nrow(df)))
-      }
-
-      df[[varname]] <- value
-      assign(varname, value, envir = eval_env)
-
-      if (all(is.na(value))) {
-        warning(sprintf("Variable '%s' is all NA. Check logic or input references.", varname))
-      }
+      
+      updated_implicates[[i]] <- df
+      updated_designs[[i]]    <- svy
     }
-
-    updated_implicates[[i]] <- df
-
-    rep_cols <- grep("^wt1b", names(df), value = TRUE)
-    updated_designs[[i]] <- survey::svrepdesign(
-      weights = ~wgt,
-      repweights = df[, rep_cols],
-      data = df,
-      type = "BRR",
-      fay.rho = 0.5,
-      mse = TRUE,
-      combined.weights = TRUE
-    )
+    
+    object$implicates <- updated_implicates
+    object$mi_design  <- updated_designs
+    
+  } else if (!is.null(object$mi_design) && length(object$mi_design) > 0) {
+    # No implicates, but mi_designs are present
+    # warning("Implicates are missing; updating only mi_design objects.")
+    
+    updated_designs <- vector("list", length(object$mi_design))
+    
+    for (i in seq_along(object$mi_design)) {
+      df <- object$mi_design[[i]]$variables
+      
+      for (j in seq_along(exprs)) {
+        varname <- names(exprs)[j]
+        try({
+          df[[varname]] <- rlang::eval_tidy(exprs[[j]], data = df)
+        }, silent = TRUE)
+      }
+      
+      # Rebuild design
+      rep_cols <- grep("^wt1b", names(df), value = TRUE)
+      svy <- survey::svrepdesign(
+        weights = ~wgt,
+        repweights = as.matrix(df[, rep_cols]),
+        data = df,
+        type = "other",
+        scale = 1,
+        rscales = rep(1 / 998, 999),
+        mse = TRUE,
+        combined.weights = TRUE
+      )
+      
+      updated_designs[[i]] <- svy
+    }
+    
+    object$mi_design <- updated_designs
+    
+  } else {
+    stop("Both implicates and mi_design are empty — cannot apply update.")
   }
-
-  object$implicates <- updated_implicates
-  object$mi_design <- updated_designs
+  
+  if (!inherits(object, "scf_mi_survey")) {
+    class(object) <- "scf_mi_survey"
+  }
+  if (is.null(attr(object, "mock"))) {
+    attr(object, "mock") <- FALSE
+  }
+  
   return(object)
 }

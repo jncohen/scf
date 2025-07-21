@@ -70,11 +70,12 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
 
   varname <- all.vars(var)[1]
   byname <- if (!is.null(by)) all.vars(by)[1] else NULL
-  nimp <- length(scf$implicates)
-
+  nimp <- length(scf$mi_design)
   imp_results <- vector("list", nimp)
+  
   for (i in seq_len(nimp)) {
-    df <- scf$implicates[[i]]
+    df <- scf$mi_design[[i]]$variables
+    
     weights <- df$wgt
     values <- df[[varname]]
     if (is.null(byname)) {
