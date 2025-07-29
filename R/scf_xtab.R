@@ -58,8 +58,8 @@ scf_xtab <- function(scf, rowvar, colvar, scale = "cell") {
   imp_tables <- vector("list", nimp)
   row_levels <- NULL
   col_levels <- NULL
-  row_label <- attr(scf$data[[rowname]], "label") %||% rowname
-  col_label <- attr(scf$data[[colname]], "label") %||% colname
+  row_label <- if (!is.null(attr(scf$data[[rowname]], "label"))) attr(scf$data[[rowname]], "label") else rowname
+  col_label <- if (!is.null(attr(scf$data[[colname]], "label"))) attr(scf$data[[colname]], "label") else colname
 
   for (i in seq_len(nimp)) {
     d <- designs[[i]]
