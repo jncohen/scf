@@ -5,7 +5,7 @@
 #' value (one-sample), or whether group means differ across a binary factor
 #' (two-sample). Estimates and standard errors are computed using `svymean()`
 #' within each implicate, then pooled using Rubin’s Rules.  Use this function
-#' to test hypotheses about means in the SCF microdata.
+#' to test hypotheses about means in the SCF microdata. 
 #'
 #' @param design A `scf_mi_survey` object created by [scf_load()].
 #' @param var A one-sided formula specifying a numeric variable (e.g., `~income`).

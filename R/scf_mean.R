@@ -21,7 +21,7 @@
 #' \describe{
 #'   \item{results}{Pooled estimates with standard errors and range across implicates. One row per group, or one row total.}
 #'   \item{imps}{A named list of implicate-level estimates.}
-#'   \item{aux}{Variable and group metadata.}
+#'   \item{aux}{Variable and group metadata.} 
 #' }
 #'
 #' @examples

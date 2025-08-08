@@ -25,7 +25,7 @@
 #' @param var1 One-sided formula specifying the first variable
 #' @param var2 One-sided formula specifying the second variable
 #'
-#' @return An object of class `scf_corr`, containing:
+#' @return An object of class `scf_corr`, containing: 
 #' \describe{
 #'   \item{results}{Data frame with pooled correlation, standard error, t-statistic, degrees of freedom, p-value, and implicate range}
 #'   \item{imps}{Named vector of implicate-level correlations}

@@ -2,9 +2,9 @@
 % Please edit documentation in R/scf_load.R
 \name{scf_load}
 \alias{scf_load}
-\title{Load SCF Data as Multiply-Imputed Survey Designs.}
+\title{Load SCF Data as Multiply-Imputed Survey Designs}
 \usage{
-scf_load(min_year, max_year = min_year, data_directory = ".", light = TRUE)
+scf_load(min_year, max_year = min_year, data_directory = ".")
 }
 \arguments{
 \item{min_year}{Integer. First SCF year to load (must be in 1989–2022 and divisible by 3).}
@@ -12,16 +12,19 @@ scf_load(min_year, max_year = min_year, data_directory = ".", light = TRUE)
 \item{max_year}{Integer. Last SCF year to load. Defaults to \code{min_year}.}
 
 \item{data_directory}{Character. Path to directory containing \code{.rds} files. Default is the current working directory.}
-
-\item{light}{Logical. If \code{TRUE} (default), return a memory-efficient object containing only the survey designs. If \code{FALSE}, also include raw implicates and pooled long-format data.}
 }
 \value{
 Invisibly returns a \code{scf_mi_survey} object (or a named list of them if multiple years are loaded).
-Assign the result to a variable (e.g., \code{scf2022 <- scf_load(2022)}) to access the object.
+The object contains:
 \itemize{
-\item \code{mi_design}: A list of five \code{svyrep.design} replicate-weighted survey objects.
-\item \code{implicates}: \emph{(Optional)} A list of raw implicate data frames.
-\item \code{data}: \emph{(Optional)} A pooled long-format data frame combining all five implicates, with an \code{implicate} column.
+\item \code{mi_design}: A list of five \code{svyrep.design} replicate-weighted survey objects (one per implicate).
+}
+
+Attributes may include:
+\itemize{
+\item \code{mock}: Logical flag indicating if the data is a small-set for functional testing and not for analytical results.
+\item \code{year}: SCF survey year.
+\item \code{n_households}: Population estimate for that year.
 }
 }
 \description{
@@ -33,18 +36,19 @@ analysis, plotting, testing, and modeling.
 \section{Implementation}{
 
 Specify a year or range of SCF years and provide a directory containing
-the \code{.rds} files created by \code{\link[=scf_download]{scf_download()}}. Files are loaded into a list
-of five implicate-level data frames, each converted into a replicate-weighted
-survey object using \code{\link[survey:svrepdesign]{survey::svrepdesign()}}. The final object is constructed
-using \code{\link[=scf_design]{scf_design()}}.
+the \code{.rds} files created by \code{\link[=scf_download]{scf_download()}}. Each file should contain five
+implicate-level data frames. These are converted into replicate-weighted survey
+designs using \code{\link[survey:svrepdesign]{survey::svrepdesign()}} and wrapped into an \code{scf_mi_survey} object
+using \code{\link[=scf_design]{scf_design()}}. Only the survey designs (\code{mi_design}) are retained to ensure
+efficiency and prevent duplication of large data structures.
 }
 
-\section{Memory Usage}{
+\section{Storage}{
 
-By default, the returned object includes only the list of survey designs
-(\code{mi_design}). To reduce memory footprint, \code{light = TRUE} excludes the raw
-implicate data (\code{implicates}) and long-format pooled data (\code{data}). Set
-\code{light = FALSE} to include these optional components.
+To conserve memory and promote efficient operations, \code{scf_mi_survey} objects
+do not retain raw implicates or pooled data by default. If needed, users can
+extract implicate-level data from the survey designs using a helper function
+such as \code{scf_extract_implicates()} (to be provided).
 }
 
 \examples{

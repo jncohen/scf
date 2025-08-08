@@ -14,7 +14,7 @@
 #' between a continuous outcome and one or more predictor variables. Each
 #' coefficient represents the expected change in the outcome for a one-unit
 #' increase in the corresponding predictor, holding all other predictors
-#' constant.
+#' constant. 
 #'
 #' Use this function to model associations between SCF variables while
 #' accounting for complex survey design and multiple imputation.

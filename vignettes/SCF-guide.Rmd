@@ -15,11 +15,16 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
-library(scf)
-library(dplyr)
-```
+if (requireNamespace("dplyr", quietly = TRUE)) {
+  library(dplyr)
+} else {
+  knitr::opts_chunk$set(eval = FALSE)
+  message("dplyr not available; vignette chunks disabled.")
+}
 
-# Introduction
+library(scf)
+
+```
 
 # Introduction
 

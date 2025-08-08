@@ -68,10 +68,9 @@ involved in these functions' formulation, see Cohen (2025).
 
 This suite of functions operate from a custom object class, \code{scf_mi_survey},
 which is created by \code{\link[=scf_design]{scf_design()}} via \code{\link[=scf_load]{scf_load()}}.  Specifically, the
-object is a structured list containing four elements:
+object is a structured list containing the elements:
 \itemize{
 \item \code{mi_design}: A list of five \code{survey::svrep.design} objects (one per implicate)
-\item \code{implicates}: Optional raw implicate-level data frames
 \item \code{year}: Year of survey
 \item \code{n_households}: Estimated number of U.S. households in that year, per data from the Federal Reserve Economic Data (FRED) series TTLHH, accessed 6/17/2025.
 }
@@ -88,6 +87,18 @@ in both model parameters and residuals, and generates five independent
 estimates for each missing value. These completed data sets—called
 \emph{implicates}—reflect both observed relationships and the uncertainty in
 estimating them. See \code{\link[=scf_MIcombine]{scf_MIcombine()}} for details.
+}
+
+\section{Mock Data for Testing}{
+
+
+A mock SCF dataset (\code{mock_scf2022.rds}) is bundled in \verb{inst/extdata/} for
+internal testing purposes. It is a structurally valid \code{scf_mi_survey} object
+created by retaining only the first 75 rows per implicate and only variables
+used in testing operations.
+
+This object is intended solely for package development and documentation rendering.
+It is \strong{not suitable for analytical use or valid statistical inference.}
 }
 
 \section{Theming and Visual Style}{

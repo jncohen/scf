@@ -22,7 +22,7 @@ Meta/
 scf_functions_*.txt
 # Raw data (local use only)
 data/
-data-raw/*.rds        # Allow mock script but block real .rds
+mock-data/*.rds
 testdata/
 tests/*.rds
 scf.Rproj

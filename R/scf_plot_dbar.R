@@ -26,7 +26,7 @@
 #'
 #' @return A `ggplot2` object representing the pooled bar chart.
 #'
-#' @section Dependencies:
+#' @section Dependencies: 
 #' Requires the `ggplot2` package.
 #'
 #' @seealso [scf_freq()], [scf_plot_bbar()], [scf_xtab()]

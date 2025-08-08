@@ -7,72 +7,67 @@
 scf_update_by_implicate(object, f)
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object (from \code{\link[=scf_load]{scf_load()}}) containing SCF implicates.}
+\item{object}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{f}{A function that takes a data frame as input and returns a modified data frame.
-This function will be applied to each implicate separately.}
+This function will be applied independently to each implicate.}
 }
 \value{
-A modified \code{scf_mi_survey} object, with updated implicates and survey designs.
+A modified \code{scf_mi_survey} object with updated implicate-level designs.
 }
 \description{
-In the SCF, each household is represented by five slightly different
-"implicates" — five versions of the data that reflect uncertainty in the
-imputation process. Most of the time, you can modify SCF data using
-\code{\link[=scf_update]{scf_update()}}, which lets you define new variables the usual way:
-for example, \code{rich = networth > 1e6} or \code{log_income = log(income)}.
+Each household in SCF data is represented by five \emph{implicates}, which reflect
+uncertainty from the imputation process. Most transformations — such as computing
+log income or assigning categorical bins — can be applied uniformly across implicates
+using \code{\link[=scf_update]{scf_update()}}. However, some operations depend on the \emph{internal distribution}
+of variables within each implicate. For those, you need to modify each one separately.
 
-But sometimes, what you want to compute depends on values that vary
-from one implicate to another — like computing the 90th percentile
-within each implicate, or ranking households by income separately in
-each version. In those cases, \code{scf_update()} won’t work correctly,
-because it assumes that your transformation is the same across implicates.
-
-\code{scf_update_by_implicate()} solves this by letting you write a function
-that operates directly on each implicate's data frame. You give it a
-function that takes a data frame as input and returns a modified version.
-That function is applied to all five implicates separately.
+This function extracts each implicate from the replicate-weighted survey design,
+applies your transformation, and rebuilds the survey design objects accordingly.
 }
 \details{
-This function lets you make changes to each implicate in an SCF object by
-applying a function that modifies a full data frame. It’s useful when the
-transformation you want to make depends on values that are different in
-each implicate — for example, percentiles, ranks, or group summaries.
+Applies a user-defined transformation to each implicate's data frame separately.
+This is useful when you need to compute values that depend on the distribution
+within each implicate — such as ranks, percentiles, or groupwise comparisons —
+which cannot be computed reliably using \code{\link[=scf_update]{scf_update()}}.
 }
-\section{When to Use}{
+\section{Use This When}{
 
-Use \code{scf_update_by_implicate()} when:
 \itemize{
-\item Your transformation depends on the distribution of a variable within each implicate
-\item You want to compute a percentile, rank, z-score, or group summary
-\item You need full access to the data frame to write your logic
+\item You need implicate-specific quantiles (e.g., flag households in the top 10\% of wealth)
+\item You want to assign percentile ranks (e.g., income percentile by implicate)
+\item You are computing statistics within groups (e.g., groupwise z-scores)
+\item You need to derive a variable based on implicate-specific thresholds or bins
 }
-
-Use \code{\link[=scf_update]{scf_update()}} when:
-\itemize{
-\item You're computing something simple like a flag, a log, or a cutpoint
-\item The rule doesn't change across implicates
-}
-
-If you're not sure, start with \code{scf_update()}. If it fails, or if your
-results look wrong, try \code{scf_update_by_implicate()} instead.
 }
 
 \examples{
-# Load mock SCF data
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
+\dontrun{
+scf2022 <- scf_load(2022)
 
-# Example: Flag households in the top 10\% of net worth (separately in each implicate)
+# Example 1: Flag top 10\% of net worth within each implicate
 scf2022 <- scf_update_by_implicate(scf2022, function(df) {
-  p90 <- quantile(df$networth, 0.9, na.rm = TRUE)
-  df$top10 <- df$networth > p90
+  cutoff <- quantile(df$networth, 0.9, na.rm = TRUE)
+  df$top10 <- df$networth > cutoff
   df
 })
 
-# Check top10 flag in implicate 1
-table(scf2022$implicates[[1]]$top10, useNA = "ifany")
+# Example 2: Percentile rank of income
+scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+  df$income_pctile <- rank(df$income, na.last = "keep") / sum(!is.na(df$income))
+  df
+})
+
+# Example 3: Z-score by education group
+scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+  mu <- ave(df$income, df$edcl, FUN = mean)
+  sigma <- ave(df$income, df$edcl, FUN = sd)
+  df$z_income <- (df$income - mu) / sigma
+  df
+})
+}
 
 }
 \seealso{
-\code{\link[=scf_update]{scf_update()}}, \code{\link[=scf_load]{scf_load()}}, \code{\link[survey:svrepdesign]{survey::svrepdesign()}}
+\code{\link[=scf_update]{scf_update()}}, \code{\link[=scf_extract_implicates]{scf_extract_implicates()}}
 }

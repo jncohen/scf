@@ -71,7 +71,7 @@ scf_plot_cbar <- function(design, yvar, xvar,
   xname <- all.vars(xvar)[1]
 
   # Validate that xvar is discrete
-  xvals <- design$implicates[[1]][[xname]]
+  xvals <- design$mi_design[[1]]$variables[[xname]]
   if (is.numeric(xvals) && length(unique(xvals)) > 25) {
     stop("Grouping variable appears continuous. Please use a factor or discrete variable.")
   }

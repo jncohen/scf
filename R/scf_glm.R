@@ -4,7 +4,7 @@
 #' Estimates generalized linear models (GLMs) with SCF public-use micrtodata.
 #' Use this function when modeling outcomes that follow non-Gaussian
 #' distributions (e.g., binary or count data). Rubin's Rules are used to combine
-#' implicate-level coefficient and variance estimates.
+#' implicate-level coefficient and variance estimates. 
 #'
 #' GLMs are performed across SCF implicates using `svyglm()` and returns
 #' pooled coefficients, standard errors, z-values, p-values, and fit diagnostics

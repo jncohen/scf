@@ -59,10 +59,9 @@
 #'
 #' This suite of functions operate from a custom object class, `scf_mi_survey`,
 #' which is created by [scf_design()] via [scf_load()].  Specifically, the
-#' object is a structured list containing four elements:
+#' object is a structured list containing the elements:
 #'
 #' - `mi_design`: A list of five `survey::svrep.design` objects (one per implicate)
-#' - `implicates`: Optional raw implicate-level data frames
 #' - `year`: Year of survey
 #' - `n_households`: Estimated number of U.S. households in that year, per data from the Federal Reserve Economic Data (FRED) series TTLHH, accessed 6/17/2025.
 #'
@@ -76,6 +75,17 @@
 #' estimates for each missing value. These completed data sets—called
 #' *implicates*—reflect both observed relationships and the uncertainty in
 #' estimating them. See [scf_MIcombine()] for details.
+#' 
+#' @section Mock Data for Testing:
+#' 
+#' A mock SCF dataset (`mock_scf2022.rds`) is bundled in `inst/extdata/` for 
+#' internal testing purposes. It is a structurally valid `scf_mi_survey` object 
+#' created by retaining only the first 75 rows per implicate and only variables
+#' used in testing operations.
+#' 
+#' This object is intended solely for package development and documentation rendering. 
+#' It is **not suitable for analytical use or valid statistical inference.**
+#' 
 #'
 #' @section Theming and Visual Style:
 #' All built-in graphics follow a common aesthetic set by [scf_theme()]. Users

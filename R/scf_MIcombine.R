@@ -10,7 +10,7 @@
 #' documentation serves as the authoritative explanation of the pooling
 #' procedure and its assumptions for all SCF workflows in the package.
 #'
-#' @section Implementation:
+#' @section Implementation: 
 #' `scf_MIcombine()` pools a set of implicate-level estimates and their
 #' associated variance-covariance matrices using Rubin’s Rules.
 #'
@@ -141,7 +141,7 @@ scf_MIcombine <- function(results, variances, call = sys.call(), df.complete = I
     class = "MIresult"
   )
 }
-#' Extract standard errors from MIresult
+
 #' @export
 SE <- function(object, ...) UseMethod("SE")
 
@@ -149,3 +149,14 @@ SE <- function(object, ...) UseMethod("SE")
 SE.MIresult <- function(object, ...) {
   sqrt(diag(object$variance))
 }
+
+#' @export
+coef.MIresult <- function(object, ...) {
+  object$coefficients
+}
+
+#' @export
+vcov.MIresult <- function(object, ...) {
+  object$variance
+}
+

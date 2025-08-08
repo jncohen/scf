@@ -2,7 +2,7 @@
 
 #' @description
 #' Visualizes the bivariate relationship between two continuous SCF variables
-#' using hexagonal bins. E
+#' using hexagonal bins. 
 #'
 #' @section Implementation:
 #' The function stacks all implicates into one data frame, retains replicate weights,

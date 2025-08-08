@@ -72,7 +72,7 @@ scf_subset <- function(scf, expr) {
   }))
 
   new_implicates <- if (!is.null(scf$implicates)) {
-    lapply(scf$implicates, function(df) dplyr::filter(df, eval(expr, df, parent.frame())))
+    lapply(scf$implicates, function(df) df[eval(expr, df, parent.frame()), ])
   } else {
     NULL
   }

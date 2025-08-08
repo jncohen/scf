@@ -28,10 +28,10 @@ implicate, and then returning a new object with the new or amended variables.
 
 Most of the time, you can use \code{scf_update()} to define variables based on
 simple logical conditions, arithmetic transformations, or categorical
-binning — these rules are evaluated separately in each implicate, using the
+binning. These rules are evaluated separately in each implicate, using the
 same formula. However, if the transformation you want to apply depends on the
-distribution of the data within each implicate — such as computing an
-average percentile or ranking households across all implicates —
+distribution of the data within each implicate, such as computing an
+average percentile or ranking households across all implicates,
 this function will not suffice. In those cases, use
 \code{\link[=scf_update_by_implicate]{scf_update_by_implicate()}} to write a custom function that operates on each
 implicate individually.
@@ -49,7 +49,7 @@ statistics or running models. The function is useful when the analyst wishes to:
 
 \examples{
 \donttest{
-# Load bundled mock data (for demonstration only — not real SCF data)
+# Load bundled mock data (for demonstration only and not real SCF data)
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 
 # For real analysis, use:

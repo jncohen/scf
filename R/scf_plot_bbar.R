@@ -22,7 +22,7 @@
 #' @param row_labels Optional named vector to relabel `row` categories (x-axis).
 #' @param col_labels Optional named vector to relabel `col` categories (legend).
 #'
-#' @return A `ggplot2` object.
+#' @return A `ggplot2` object. 
 #'
 #' @examples
 #' \donttest{

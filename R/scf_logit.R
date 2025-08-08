@@ -13,7 +13,7 @@
 #' logit link.
 #'
 #' Coefficients reflect the change in log-odds associated with a one-unit change
-#' in the predictor.
+#' in the predictor. 
 #'
 #' When `odds = TRUE`, the coefficient estimates and standard errors are
 #' transformed from log-odds to odds ratios and approximate SEs.
@@ -70,12 +70,20 @@ scf_logit <- function(object, formula, odds = TRUE, ...) {
 
 
   if (odds) {
-    model$results$estimate <- exp(model$results$estimate)
-    model$results$std.error <- model$results$estimate * model$results$std.error
-    model$results$t.value <- NULL
-    model$results$z.value <- NULL
-    model$results$p.value <- NULL
-    model$results$stars <- NULL
+    logit_est  <- model$results$estimate
+    logit_se   <- model$results$std.error
+    zval       <- logit_est / logit_se
+    pval       <- 2 * pnorm(-abs(zval))
+    stars      <- cut(pval,
+                      breaks = c(-Inf, 0.001, 0.01, 0.05, 0.10, Inf),
+                      labels = c("***", "**", "*", ".", ""),
+                      right = FALSE)
+    
+    model$results$estimate   <- exp(logit_est)
+    model$results$std.error  <- model$results$estimate * logit_se
+    model$results$t.value    <- zval
+    model$results$p.value    <- pval
+    model$results$stars      <- stars
     attr(model$results, "scale") <- "odds"
   } else {
     attr(model$results, "scale") <- "logit"

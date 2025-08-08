@@ -26,7 +26,7 @@ A \code{ggplot2} object displaying a Rubin-pooled hexbin plot.
 }
 \description{
 Visualizes the bivariate relationship between two continuous SCF variables
-using hexagonal bins. E
+using hexagonal bins.
 }
 \section{Implementation}{
 

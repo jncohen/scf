@@ -249,9 +249,25 @@ the package vignettes and reference manual.
 - [SCF Homepage](https://github.com/jncohen/scf)
 - [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.pdf)
 
+## Note on Mock Data
+
+This package includes a small mock dataset (`mock_scf2022.rds`) for testing purposes.  
+It includes only 200 rows and 300 replicate weights per implicate. It is structurally valid,  
+but **not suitable for analytical use or inference**.
+
+
+## Citation
+
+If you use `scf` in published work, please cite it as:
+
+> Joseph N. Cohen (2025). *scf: Tools for Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.0. <https://github.com/jncohen/scf>
+
+Use `citation("scf")` in R for formatted references.
+
 ## Author
 
 Joseph N. Cohen  
 Department of Sociology & Program in Data Analytics  
 Queens College, City University of New York  
 <joseph.cohen@qc.cuny.edu>
+<https://jncohen.commons.gc.cuny.edu>
