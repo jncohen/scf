@@ -73,7 +73,7 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE) {
 
   # Ensure discrete variables
   check_discrete <- function(vname) {
-    v <- scf$data[[vname]]
+    v <- scf$mi_design[[1]]$variables[[vname]]
     if (is.numeric(v) && length(unique(v)) > 25) {
       stop(sprintf("Variable '%s' appears continuous. Use only discrete variables.", vname))
     }

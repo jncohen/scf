@@ -8,7 +8,7 @@
 #' @section Implementation:
 #' This function downloads from official servers three types of files for each
 #' year:
-#' - five versions of the data set with unique imputed missing values, all consolidated into one data table
+#' - five versions of the dataset (one per implicate), each stored as a separate data frame in a list
 #' - a table of replicate weights, and
 #' - a data table with official derivative variables
 #'
@@ -26,7 +26,7 @@
 #' @param overwrite Logical. If `TRUE`, re-download and overwrite existing `.rds` files. Default is `FALSE`.
 #' @param verbose Logical. If `TRUE`, display progress messages. Default is `TRUE`.
 #'
-#' @return Each year’s SCF data is saved as a standalone .rds file containing a list of five implicate-level data frames. These files are prepared for use with [scf_load()].
+#' @return These files are designed to be loaded using scf_load(), which wraps them into replicate-weighted designs.
 #'
 #' @seealso [scf_load()], [scf_design()], [scf_update()]
 #'
@@ -36,7 +36,17 @@
 #' @export
 scf_download <- function(years = seq(1989, 2022, 3), overwrite = FALSE, verbose = TRUE) {
   pkgs <- c("httr", "haven", "utils")
-  lapply(pkgs, function(p) if (!requireNamespace(p, quietly = TRUE)) install.packages(p))
+  missing <- pkgs[!vapply(pkgs, requireNamespace, FUN.VALUE = logical(1), quietly = TRUE)]
+  if (length(missing)) {
+     stop(
+       sprintf(
+             "Missing package%s: %s. Please install before using scf_download().",
+             if (length(missing) > 1) "s" else "",
+             paste(missing, collapse = ", ")
+           ),
+         call. = FALSE
+       )
+    }
 
   years <- intersect(years, seq(1989, 2022, 3))
   output_files <- character()

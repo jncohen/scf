@@ -8,10 +8,10 @@
 #'
 #' Most of the time, you can use `scf_update()` to define variables based on
 #' simple logical conditions, arithmetic transformations, or categorical
-#' binning — these rules are evaluated separately in each implicate, using the
+#' binning. These rules are evaluated separately in each implicate, using the
 #' same formula. However, if the transformation you want to apply depends on the
-#' distribution of the data within each implicate — such as computing an
-#' average percentile or ranking households across all implicates —
+#' distribution of the data within each implicate, such as computing an
+#' average percentile or ranking households across all implicates, 
 #' this function will not suffice. In those cases, use
 #' [scf_update_by_implicate()] to write a custom function that operates on each
 #' implicate individually.
@@ -36,7 +36,7 @@
 #'
 #' @examples
 #' \donttest{
-#' # Load bundled mock data (for demonstration only — not real SCF data)
+#' # Load bundled mock data (for demonstration only and not real SCF data)
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 #'
 #' # For real analysis, use:
@@ -132,7 +132,7 @@ scf_update <- function(object, ...) {
     object$mi_design <- updated_designs
     
   } else {
-    stop("Both implicates and mi_design are empty — cannot apply update.")
+    stop("Both implicates and mi_design are empty. Cannot apply update.")
   }
   
   if (!inherits(object, "scf_mi_survey")) {

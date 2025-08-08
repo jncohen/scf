@@ -14,7 +14,7 @@ scf_download(years = seq(1989, 2022, 3), overwrite = FALSE, verbose = TRUE)
 \item{verbose}{Logical. If \code{TRUE}, display progress messages. Default is \code{TRUE}.}
 }
 \value{
-Each year’s SCF data is saved as a standalone .rds file containing a list of five implicate-level data frames. These files are prepared for use with \code{\link[=scf_load]{scf_load()}}.
+These files are designed to be loaded using scf_load(), which wraps them into replicate-weighted designs.
 }
 \description{
 Downloads SCF public-use microdata from official servers.  For each year,
@@ -27,7 +27,7 @@ with \code{\link[=scf_load]{scf_load()}}.
 This function downloads from official servers three types of files for each
 year:
 \itemize{
-\item five versions of the data set with unique imputed missing values, all consolidated into one data table
+\item five versions of the dataset (one per implicate), each stored as a separate data frame in a list
 \item a table of replicate weights, and
 \item a data table with official derivative variables
 }

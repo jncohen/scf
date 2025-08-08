@@ -2,7 +2,7 @@
 #'
 #' This function formats and aligns coefficient estimates, standard errors, and
 #' significance stars from one or more SCF regression model objects
-#' (e.g., from \code{scf_ols()}, \code{scf_logit()}, or \code{scf_glm()}).
+#' (e.g., from \code{scf_ols()}, \code{scf_logit()}, or \code{scf_glm()}). 
 #'
 #' It compiles a side-by-side table with terms matched across models, appends
 #' model fit statistics (sample size N, R-squared or pseudo-R-squared, and AIC),

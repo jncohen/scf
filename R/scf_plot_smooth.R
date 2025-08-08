@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Draws a smoothed distribution plot of a continuous variable in the SCF. Use
-#' this function to visualize a single continuous variable's distribution.
+#' this function to visualize a single continuous variable's distribution. 
 #'
 #' @section Implementation:
 #' Visualizes the weighted distribution of a continuous SCF variable by stacking implicates,

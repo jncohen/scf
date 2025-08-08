@@ -16,7 +16,7 @@
 #' @section Statistical Notes:
 #' Median estimates are not pooled using Rubin’s Rules. Following SCF protocol,
 #' the function calculates the median within each implicate and averages across implicates.
-#' See the data set's official codebook.
+#' See the data set's official codebook. 
 #'
 #' @param scf A `scf_mi_survey` object created by [scf_load()]. Must contain five implicates.
 #' @param var A one-sided formula specifying the continuous variable of interest (e.g., `~networth`).

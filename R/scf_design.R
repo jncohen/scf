@@ -18,7 +18,7 @@
 #'
 #' @section Details:
 #' The object returned is a list of class `"scf_mi_survey"` with implicate-specific
-#' designs, optional raw data, survey metadata, and population totals.
+#' designs, optional raw data, survey metadata, and population totals. 
 #'
 #' @param design A list of five `svrep.design` objects (one for each implicate), created using [survey::svrepdesign()].
 #' @param implicates Optional list of five data frames, each corresponding to one implicate’s raw data.

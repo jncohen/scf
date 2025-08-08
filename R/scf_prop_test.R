@@ -3,7 +3,7 @@
 #' @description
 #' Tests a binary variable's proportion against a null hypothesis (one-sample),
 #' or compares proportions across two groups (two-sample). Supports two-sided,
-#' less-than, or greater-than alternatives.
+#' less-than, or greater-than alternatives. 
 #'
 #' @param design A `scf_mi_survey` object created by [scf_load()]. Must contain replicate-weighted implicates.
 #' @param var A one-sided formula indicating a binary variable (e.g., `~rich`).

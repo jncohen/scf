@@ -12,7 +12,7 @@
 #' This function allows users to inspect how estimates vary across the SCF’s five implicates,
 #' which is important for diagnostics, robustness checks, and transparent reporting.
 #'
-#' For example:
+#' For example: 
 #' ```r
 #' scf_implicates(scf_mean(scf2022, ~income))
 #' scf_implicates(scf_ols(scf2022, networth ~ age + income), long = TRUE)

@@ -60,13 +60,10 @@ scf_plot_dist <- function(design, variable, bins = 30,
   xlab <- xlab %||% varname
   title <- title %||% paste("Distribution of", varname)
 
-  values <- if (!is.null(design$implicates)) {
-    design$implicates[[1]][[varname]]
-  } else {
-    design$mi_design[[1]]$variables[[varname]]
-  }
+  values <- design$mi_design[[1]]$variables[[varname]]
 
-  is_discrete <- is.factor(values) || (is.numeric(values) && dplyr::n_distinct(values) <= 25)
+  n_distinct <- function(x) length(unique(x[!is.na(x)]))
+  is_discrete <- is.factor(values) || (is.numeric(values) && n_distinct(values) <= 25)
 
   if (is_discrete) {
     freq <- scf_freq(design, variable, percent = TRUE)
