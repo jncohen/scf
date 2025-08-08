@@ -252,7 +252,7 @@ the package vignettes and reference manual.
 ## Note on Mock Data
 
 This package includes a small mock dataset (`mock_scf2022.rds`) for testing purposes.  
-It includes only 200 rows and 300 replicate weights per implicate. It is structurally valid,  
+It includes only 75 rows and select variables. It is structurally valid,  
 but **not suitable for analytical use or inference**.
 
 

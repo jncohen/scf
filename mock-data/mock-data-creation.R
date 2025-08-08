@@ -22,6 +22,8 @@ library(survey)
 
 setwd("D:/Dropbox/Data/scf/mock-data")
 
+scf_download(2022)
+
 # Load full implicate set
 implicates <- readRDS("scf2022.rds")
 

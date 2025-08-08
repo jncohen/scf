@@ -63,7 +63,7 @@ scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 # scf_download(2022); scf2022 <- scf_load(2022)
 
 scf_percentile(scf2022, ~networth, q = 0.5)
-scf_percentile(scf2022, ~networth, q = 0.9, by = ~racecl)
+scf_percentile(scf2022, ~networth, q = 0.9, by = ~edcl)
 }
 
 }

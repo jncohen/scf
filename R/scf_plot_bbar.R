@@ -34,13 +34,13 @@
 #'
 #'
 #' # Stacked bar chart: education by race
-#' scf_plot_bbar(scf2022, ~edcl, ~racecl)
+#' scf_plot_bbar(scf2022, ~own, ~edcl)
 #'
 #' # Column percentages instead of total percent
-#' scf_plot_bbar(scf2022, ~edcl, ~racecl, percent_by = "col")
+#' scf_plot_bbar(scf2022, ~own, ~edcl, percent_by = "col")
 #'
 #' # Raw counts (estimated number of households)
-#' scf_plot_bbar(scf2022, ~edcl, ~racecl, scale = "count")
+#' scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
 #' }
 #'
 #' @export

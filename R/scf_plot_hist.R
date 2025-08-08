@@ -30,8 +30,7 @@
 #' @examples
 #' \donttest{
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-#' scf_plot_hist(scf2022, ~age, xlim = c(20, 80))
-#' scf_plot_hist(scf2022, ~income, bins = 40)
+#' scf_plot_hist(scf2022, ~age, bins = 10)
 #' }
 #'
 #' @seealso [scf_freq()], [scf_plot_dbar()], [scf_plot_smooth()], [scf_update_by_implicate()]
@@ -44,42 +43,43 @@ scf_plot_hist <- function(design, variable,
                           ylab = "Weighted Count",
                           fill = "#0072B2") {
   stopifnot(inherits(design, "scf_mi_survey"))
-  
   if (isTRUE(attr(design, "mock"))) {
     warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
   }
   
+  `%||%` <- function(a, b) if (!is.null(a)) a else b
   varname <- all.vars(variable)[1]
   
-  # Extract pooled nonmissing values to define range
-  all_values <- unlist(lapply(design$implicates, function(df) df[[varname]]))
+  # Pull values from mi_design (not implicates)
+  all_values <- unlist(lapply(design$mi_design, function(d) d$variables[[varname]]), use.names = FALSE)
   all_values <- all_values[is.finite(all_values)]
   if (length(all_values) == 0L) stop("No usable values found for this variable.")
   
   rng <- if (!is.null(xlim)) xlim else range(all_values, na.rm = TRUE)
   breaks <- seq(rng[1], rng[2], length.out = bins + 1)
   
-  # Clamp variable to xlim and bin
+  # Clamp and bin within each implicate
   design <- scf_update_by_implicate(design, function(df) {
-    clamped <- pmin(pmax(df[[varname]], rng[1]), rng[2])
-    df$.binvar <- cut(clamped, breaks = breaks, include.lowest = TRUE)
+    x <- df[[varname]]
+    x <- pmin(pmax(x, rng[1]), rng[2])
+    df$.binvar <- cut(x, breaks = breaks, include.lowest = TRUE, right = TRUE)
     df
   })
   
-  # Compute weighted frequencies
+  # Weighted frequencies across bins
   freq <- scf_freq(design, ~.binvar, percent = FALSE)
   
-  # Filter out NA or zero-mass bins
-  results <- freq$results[is.finite(freq$results$proportion) & freq$results$proportion > 0, ]
+  # Keep non-empty bins
+  res <- freq$results
+  res <- res[is.finite(res$proportion) & res$proportion > 0, , drop = FALSE]
   
-  # Plot histogram
-  ggplot(results, aes(x = category, y = proportion)) +
-    geom_col(fill = fill) +
-    labs(
+  ggplot2::ggplot(res, ggplot2::aes(x = .data$category, y = .data$proportion)) +
+    ggplot2::geom_col(fill = fill) +
+    ggplot2::labs(
       title = title %||% paste("Histogram of", varname),
       x = xlab %||% varname,
       y = ylab
     ) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    scf_theme() +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
 }

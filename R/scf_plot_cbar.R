@@ -44,7 +44,7 @@
 #' scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "mean")
 #'
 #' # Visualize 90th percentile of income by race
-#' scf_plot_cbar(scf2022, ~income, ~racecl, stat = 0.9, fill = "#D55E00")
+#' scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9, fill = "#D55E00")
 #' }
 #'
 #' @export

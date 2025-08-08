@@ -55,16 +55,13 @@ Unlike means or model parameters, category proportions do not use Rubin's full c
 \donttest{
 # Load bundled mock data (for demonstration only — not real SCF data)
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-# For real analysis, use:
-# scf_download(2022); scf2022 <- scf_load(2022)
 
-
-# Proportions by race
+# Proportions of homeownership
 scf_freq(scf2022, ~own)
 
-# Cross-tabulate race by homeownership
-scf_freq(scf2022, ~own, by = ~racecl)
-}
+# Cross-tabulate education by homeownership
+scf_freq(scf2022, ~own, by = ~edcl)
+#' }
 
 }
 \seealso{
