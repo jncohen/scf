@@ -1,11 +1,9 @@
 #' Extract Raw Implicates into Named Data Frames
 #'
 #' @description
-<<<<<<< HEAD
 #' Returns implicate data frames from an `scf_mi_survey` as a named list.
 #' If `object$implicates` is `NULL`, it derives implicates from `mi_design`
 #' (pulls `$variables` from each design). Optionally assigns to `.GlobalEnv`.
-=======
 #' Extracts the five implicate data frames embedded within a light `scf_mi_survey` object
 #' and places them into the global environment with numbered suffixes (e.g., `scf2022_1`,
 #' `scf2022_2`, ..., `scf2022_5`).
@@ -19,7 +17,6 @@
 #' This function is used to extract user-facing data frames from the internal
 #' `svrepdesign` objects in a light SCF object. The extracted implicates are placed
 #' in the global environment for inspection or transformation. 
->>>>>>> 6d578f8ce1e2ee3bd6d945dd6f39b6a985c7e368
 #'
 #' @param object An `scf_mi_survey` with either `implicates` (list) or
 #'   `mi_design` (list of survey designs).
@@ -30,22 +27,18 @@
 #' @examples
 #' scf2022 <- readRDS(system.file("extdata","mock_scf2022.rds",package="scf"))
 #' imps <- scf_extract_implicates(scf2022, label = "mydata")
-<<<<<<< HEAD
 #' head(imps[[1]]$income)
 #' \dontrun{
 #' scf_extract_implicates(scf2022, label="mydata", to_global=TRUE)
 #' head(mydata_1$income)
-=======
 #' scf_extract_implicates(scf2022)
 #' head(scf2022_1$income)
 #'
 #' # Custom base label
 #' scf_extract_implicates(scf2022, "imps")
 #' head(imps_1$income)
->>>>>>> 6d578f8ce1e2ee3bd6d945dd6f39b6a985c7e368
 #' }
 #' @export
-<<<<<<< HEAD
 scf_extract_implicates <- function(object, label = "scf", to_global = FALSE) {
   if (!is.list(object))
     stop("`object` must be a list-like scf_mi_survey.")
@@ -85,11 +78,3 @@ scf_extract_implicates <- function(object, label = "scf", to_global = FALSE) {
   
   imps
 }
-=======
-scf_extract_implicates <- function(object) {
-  if (!inherits(object, "scf_mi_survey")) stop("Input must be of class 'scf_mi_survey'.")
-  imps <- lapply(object$mi_design, function(d) d$variables)
-  names(imps) <- paste0("set", seq_along(imps))
-  imps
-}
->>>>>>> 6d578f8ce1e2ee3bd6d945dd6f39b6a985c7e368
