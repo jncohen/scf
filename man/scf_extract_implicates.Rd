@@ -16,27 +16,6 @@ A named list of five implicate data frames, accessible as \code{list$set1}, \cod
 Extracts the five implicate data frames embedded within an \code{scf_mi_survey} object
 and returns them as a structured list with named elements (\code{set1}, \code{set2}, ..., \code{set5}).
 }
-\details{
-This function extracts user-facing data frames from the internal
-\code{svrepdesign} objects stored in an \code{scf_mi_survey} object. It returns a structured,
-nested list suitable for inspection, transformation, or custom analysis workflows.
-}
-\examples{
-\donttest{
-# Load mock SCF data (for demonstration only)
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
-# Extract implicates as a structured list
-imps <- scf_extract_implicates(scf2022)
-
-# Access income variable from first implicate
-head(imps$set1$income)
-
-# Loop over implicates for a custom analysis
-sapply(imps, function(df) mean(df$age, na.rm = TRUE))
-}
-
-}
 \seealso{
 \code{\link[=scf_update_by_implicate]{scf_update_by_implicate()}}, \code{\link[=scf_load]{scf_load()}}
 }
