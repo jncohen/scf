@@ -56,7 +56,6 @@ designs <- lapply(implicates_small, function(df) {
 # Wrap into scf_mi_survey object
 scf2022 <- scf_design(
   design = designs,
-  implicates = NULL,
   year = 2022,
   n_households = 131202000  # Household total for 2022
 )

@@ -2,20 +2,33 @@
 % Please edit documentation in R/scf_extract_implicates.R
 \name{scf_extract_implicates}
 \alias{scf_extract_implicates}
-\title{Extract Raw Implicates into a Structured List}
+\title{Extract Raw Implicates into Named Data Frames}
 \usage{
-scf_extract_implicates(object)
+scf_extract_implicates(object, label = "scf", to_global = FALSE)
 }
 \arguments{
-\item{object}{An \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{object}{An \code{scf_mi_survey} with either \code{implicates} (list) or
+\code{mi_design} (list of survey designs).}
+
+\item{label}{Character prefix for names. Default \code{"scf"}.}
+
+\item{to_global}{Logical. If \code{TRUE}, assign each implicate into
+\code{.GlobalEnv}. Default \code{FALSE}.}
 }
 \value{
-A named list of five implicate data frames, accessible as \code{list$set1}, \code{list$set2}, etc.
+Named list of implicate data frames (length ≥ 1).
 }
 \description{
-Extracts the five implicate data frames embedded within an \code{scf_mi_survey} object
-and returns them as a structured list with named elements (\code{set1}, \code{set2}, ..., \code{set5}).
+Returns implicate data frames from an \code{scf_mi_survey} as a named list.
+If \code{object$implicates} is \code{NULL}, it derives implicates from \code{mi_design}
+(pulls \verb{$variables} from each design). Optionally assigns to \code{.GlobalEnv}.
 }
-\seealso{
-\code{\link[=scf_update_by_implicate]{scf_update_by_implicate()}}, \code{\link[=scf_load]{scf_load()}}
+\examples{
+scf2022 <- readRDS(system.file("extdata","mock_scf2022.rds",package="scf"))
+imps <- scf_extract_implicates(scf2022, label = "mydata")
+head(imps[[1]]$income)
+\dontrun{
+scf_extract_implicates(scf2022, label="mydata", to_global=TRUE)
+head(mydata_1$income)
+}
 }

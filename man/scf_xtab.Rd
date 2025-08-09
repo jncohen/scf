@@ -46,7 +46,7 @@ scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 # For real analysis, use:
 # scf_download(2022); scf2022 <- scf_load(2022)
 
-scf_xtab(scf2022, ~racecl, ~edcl, scale = "row")
+scf_xtab(scf2022, ~own, ~edcl, scale = "row")
 }
 
 }

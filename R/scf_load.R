@@ -100,7 +100,6 @@ scf_load <- function(min_year,
     
     mi_obj <- scf_design(
       design = imp_designs,
-      implicates = NULL,
       year = as.integer(year),
       n_households = target_total
     )
