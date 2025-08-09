@@ -2,6 +2,10 @@
 % Please edit documentation in R/scf_extract_implicates.R
 \name{scf_extract_implicates}
 \alias{scf_extract_implicates}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 71f218d525c427d63c21d653a6883f6858cbff86
 \title{Extract Raw Implicates into a Structured List}
 \usage{
 scf_extract_implicates(object)
@@ -34,6 +38,45 @@ head(imps$set1$income)
 
 # Loop over implicates for a custom analysis
 sapply(imps, function(df) mean(df$age, na.rm = TRUE))
+<<<<<<< HEAD
+=======
+=======
+\title{Extract Raw Implicates into Named Data Frames}
+\usage{
+scf_extract_implicates(object, label = NULL)
+}
+\arguments{
+\item{object}{An \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must be light (no \verb{$implicates}).}
+
+\item{label}{Optional base name for the output objects. Defaults to the name of \code{object}.}
+}
+\value{
+Invisibly returns a list of the five implicate data frames (invisibly).
+}
+\description{
+Extracts the five implicate data frames embedded within a light \code{scf_mi_survey} object
+and places them into the global environment with numbered suffixes (e.g., \code{scf2022_1},
+\code{scf2022_2}, ..., \code{scf2022_5}).
+}
+\details{
+This function is used to extract user-facing data frames from the internal
+\code{svrepdesign} objects in a light SCF object. The extracted implicates are placed
+in the global environment for inspection or transformation.
+}
+\examples{
+\donttest{
+# Note mock data used here is for testing purposes only.
+
+scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
+imps <- scf_extract_implicates(scf2022, label = "mydata")
+scf_extract_implicates(scf2022)
+head(scf2022_1$income)
+
+# Custom base label
+scf_extract_implicates(scf2022, "imps")
+head(imps_1$income)
+>>>>>>> 6ead2c7b9f57c6c5bf94ccc5b3845a9d6ba259c6
+>>>>>>> 71f218d525c427d63c21d653a6883f6858cbff86
 }
 
 }
