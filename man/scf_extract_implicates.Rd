@@ -18,7 +18,7 @@ scf_extract_implicates(object, label = "scf", to_global = FALSE)
 \value{
 Invisibly returns a list of the five implicate data frames (invisibly).
 
-Named list of implicate data frames (length ≥ 1).
+Named list of implicate data frames (length >= 1).
 }
 \description{
 Returns implicate data frames from an \code{scf_mi_survey} as a named list.

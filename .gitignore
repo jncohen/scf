@@ -26,3 +26,5 @@ mock-data/*.rds
 testdata/
 tests/*.rds
 scf.Rproj
+/doc/
+/Meta/

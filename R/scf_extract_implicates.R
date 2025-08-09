@@ -23,7 +23,7 @@
 #' @param label Character prefix for names. Default `"scf"`.
 #' @param to_global Logical. If `TRUE`, assign each implicate into
 #'   `.GlobalEnv`. Default `FALSE`.
-#' @return Named list of implicate data frames (length ≥ 1).
+#' @return Named list of implicate data frames (length >= 1).
 #' @examples
 #' scf2022 <- readRDS(system.file("extdata","mock_scf2022.rds",package="scf"))
 #' imps <- scf_extract_implicates(scf2022, label = "mydata")
