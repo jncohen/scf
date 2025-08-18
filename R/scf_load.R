@@ -1,17 +1,17 @@
 #' Load SCF Data as Multiply-Imputed Survey Designs
 #'
 #' @description
-#' Converts SCF `.rds` files prepared by [scf_download()] into `scf_mi_survey`
+#' Converts SCF `.rds` files prepared by `scf_download()` into `scf_mi_survey`
 #' objects. Each object wraps five implicates per year in replicate-weighted,
-#' multiply-imputed survey designs suitable for use with `scf_*` functions for
+#' multiply-imputed survey designs suitable for use with `scf_` functions for
 #' analysis, plotting, testing, and modeling.
 #'
 #' @section Implementation:
 #' Specify a year or range of SCF years and provide a directory containing
-#' the `.rds` files created by [scf_download()]. Each file should contain five
+#' the `.rds` files created by `scf_download()`. Each file should contain five
 #' implicate-level data frames. These are converted into replicate-weighted survey
-#' designs using [survey::svrepdesign()] and wrapped into an `scf_mi_survey` object
-#' using [scf_design()]. Only the survey designs (`mi_design`) are retained to ensure
+#' designs using `survey::svrepdesign()` and wrapped into an `scf_mi_survey` object
+#' using `scf_design()`. Only the survey designs (`mi_design`) are retained to ensure
 #' efficiency and prevent duplication of large data structures.
 #'
 #' @section Storage:
@@ -20,7 +20,7 @@
 #' extract implicate-level data from the survey designs using a helper function
 #' such as `scf_extract_implicates()` (to be provided).
 #'
-#' @param min_year Integer. First SCF year to load (must be in 1989–2022 and divisible by 3).
+#' @param min_year Integer. First SCF year to load (must be in 1989 to 2022 and divisible by 3).
 #' @param max_year Integer. Last SCF year to load. Defaults to `min_year`.
 #' @param data_directory Character. Path to directory containing `.rds` files. Default is the current working directory.
 #'

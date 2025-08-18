@@ -1,4 +1,4 @@
-#' Combine Estimates Across SCF Implicates Using Rubin’s Rules
+#' Combine Estimates Across SCF Implicates Using Rubin's Rules
 #'
 #' This function is the **canonical implementation** of Rubin’s Rules in the
 #' `scf` package. It defines how point estimates, standard errors, and degrees

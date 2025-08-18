@@ -7,7 +7,7 @@
 scf_load(min_year, max_year = min_year, data_directory = ".")
 }
 \arguments{
-\item{min_year}{Integer. First SCF year to load (must be in 1989–2022 and divisible by 3).}
+\item{min_year}{Integer. First SCF year to load (must be in 1989 to 2022 and divisible by 3).}
 
 \item{max_year}{Integer. Last SCF year to load. Defaults to \code{min_year}.}
 
@@ -28,18 +28,18 @@ Attributes may include:
 }
 }
 \description{
-Converts SCF \code{.rds} files prepared by \code{\link[=scf_download]{scf_download()}} into \code{scf_mi_survey}
+Converts SCF \code{.rds} files prepared by \code{scf_download()} into \code{scf_mi_survey}
 objects. Each object wraps five implicates per year in replicate-weighted,
-multiply-imputed survey designs suitable for use with \verb{scf_*} functions for
+multiply-imputed survey designs suitable for use with \code{scf_} functions for
 analysis, plotting, testing, and modeling.
 }
 \section{Implementation}{
 
 Specify a year or range of SCF years and provide a directory containing
-the \code{.rds} files created by \code{\link[=scf_download]{scf_download()}}. Each file should contain five
+the \code{.rds} files created by \code{scf_download()}. Each file should contain five
 implicate-level data frames. These are converted into replicate-weighted survey
-designs using \code{\link[survey:svrepdesign]{survey::svrepdesign()}} and wrapped into an \code{scf_mi_survey} object
-using \code{\link[=scf_design]{scf_design()}}. Only the survey designs (\code{mi_design}) are retained to ensure
+designs using \code{survey::svrepdesign()} and wrapped into an \code{scf_mi_survey} object
+using \code{scf_design()}. Only the survey designs (\code{mi_design}) are retained to ensure
 efficiency and prevent duplication of large data structures.
 }
 

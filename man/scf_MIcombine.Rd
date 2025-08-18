@@ -2,7 +2,7 @@
 % Please edit documentation in R/scf_MIcombine.R
 \name{scf_MIcombine}
 \alias{scf_MIcombine}
-\title{Combine Estimates Across SCF Implicates Using Rubin’s Rules}
+\title{Combine Estimates Across SCF Implicates Using Rubin's Rules}
 \usage{
 scf_MIcombine(results, variances, call = sys.call(), df.complete = Inf)
 }

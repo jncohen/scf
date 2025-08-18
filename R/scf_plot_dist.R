@@ -18,7 +18,7 @@
 #' @param design A `scf_mi_survey` object created by [scf_load()].
 #' @param variable A one-sided formula specifying the variable to plot.
 #' @param bins Number of bins for continuous variables. Default is 30.
-#' @param title Optional plot title. Default is "Distribution of <variable>".
+#' @param title Optional plot title. Default is "Distribution of {variable}".
 #' @param xlab Optional x-axis label.
 #' @param ylab Optional y-axis label. Default is "Percent".
 #' @param angle Angle for x-axis tick labels. Default is 30.
