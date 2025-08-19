@@ -23,7 +23,7 @@ scf_plot_dist(
 
 \item{bins}{Number of bins for continuous variables. Default is 30.}
 
-\item{title}{Optional plot title. Default is "Distribution of {variable}".}
+\item{title}{Optional plot title.}
 
 \item{xlab}{Optional x-axis label.}
 

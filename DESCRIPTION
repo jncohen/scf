@@ -1,21 +1,14 @@
 Package: scf
 Title: Tools for Analyzing the Survey of Consumer Finances
 Version: 1.0.0
-Authors@R: 
-    person("Joseph", "Cohen", , "joseph.cohen@qc.cuny.edu", role = c("aut", "cre"),
-           comment = c(affiliation = "Department of Sociology, CUNY Queens College"))
-Description: A suite of functions to support of the U.S. Federal
-    Reserve's 'Survey of Consumer Finances' (SCF) public-use microdata. 
-    It wraps the SCF's multiply-imputed, replicate-weighted data into a custom 
-    object class ('scf_mi_survey') and supports the estimation of population-level
-    statistics from that object, including univariate and bivariate
-    variable distributions, hypothesis testing, data visualization, and
-    basic regression modeling. The package is designed to make the SCF's
-    public-use microdata accessible to analysts who are familiar with
-    general statistical methods but have not yet specialized in the
-    analysis of multiply- imputed or complex survey data. All functions
-    emphasize transparency, reproducibility, and pedagogical clarity to
-    facilitate diagnostics, exploration, and learning.
+Authors@R:
+    c(person("Joseph","Cohen", role = c("aut","cre"),
+             email = "joseph.cohen@qc.cuny.edu",
+             comment = c(affiliation = "Department of Sociology, CUNY Queens College")))
+Description: Tools for working with the Survey of Consumer Finances (SCF) micro‑data.
+  Functions download prepared '.rds' files, construct replicate‑weighted
+  multiply‑imputed survey designs, compute descriptive statistics and model
+  estimates, and produce plots and tables.
 License: MIT + file LICENSE
 URL: https://github.com/jncohen/scf
 BugReports: https://github.com/jncohen/scf/issues
