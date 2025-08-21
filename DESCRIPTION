@@ -3,9 +3,8 @@ Title: Tools for Analyzing the Survey of Consumer Finances
 Version: 1.0.0
 Authors@R:
     c(person("Joseph","Cohen", role = c("aut","cre"),
-             email = "joseph.cohen@qc.cuny.edu",
-             comment = c(affiliation = "Department of Sociology, CUNY Queens College")))
-Description: Tools for working with the Survey of Consumer Finances (SCF) micro‑data.
+             email = "joseph.cohen@qc.cuny.edu"))
+Description: Tools for working with the Survey of Consumer Finances microdata.
   Functions download prepared '.rds' files, construct replicate‑weighted
   multiply‑imputed survey designs, compute descriptive statistics and model
   estimates, and produce plots and tables.
