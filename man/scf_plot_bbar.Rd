@@ -57,7 +57,6 @@ into a \code{ggplot2} stacked bar chart using pooled counts or normalized percen
 }
 
 \examples{
-\donttest{
 # Load bundled mock data (for demonstration only — not real SCF data)
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 # For real analysis, use:
@@ -72,6 +71,5 @@ scf_plot_bbar(scf2022, ~own, ~edcl, percent_by = "col")
 
 # Raw counts (estimated number of households)
 scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
-}
 
 }

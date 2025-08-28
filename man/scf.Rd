@@ -4,7 +4,7 @@
 \name{scf}
 \alias{scf-package}
 \alias{scf}
-\title{Tools for Analyzing Survey of Consumer Finances Public-Use Microdata}
+\title{Analyzing Survey of Consumer Finances Public-Use Microdata}
 \description{
 This package provides functions to analyze the U.S. Federal Reserve's
 Survey of Consumer Finances (SCF) public-use microdata. It encapsulates
@@ -52,14 +52,14 @@ This section recommends a sequence of operations enacted through the package's
 functions.  For an in-depth discussion of the methodological considerations
 involved in these functions' formulation, see Cohen (2025).
 \enumerate{
-\item \strong{Data Acquisition}:  Download the data from Federal Reserve servers to your working directory using \code{\link[=scf_download]{scf_download()}}
+\item \strong{Data Acquisition}:  Download the data from Federal Reserve servers to your working directory using \code{\link[=scf_download]{scf_download()}}.
 \item \strong{Data Loading}: Load the data into R using \code{\link[=scf_load]{scf_load()}}. This function returns an \code{scf_mi_survey} object (described below).
 \item \strong{Data Wrangling}: Use \code{\link[=scf_update]{scf_update()}} to modify the data, or \code{\link[=scf_subset]{scf_subset()}} to filter it. These functions return new \code{scf_mi_survey} objects.
 \item \strong{Descriptive Statistics}: Compute univariate and bivariate statistics using functions like \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}}, \code{\link[=scf_percentile]{scf_percentile()}}, \code{\link[=scf_freq]{scf_freq()}}, \code{\link[=scf_xtab]{scf_xtab()}}, and \code{\link[=scf_corr]{scf_corr()}}.
 \item \strong{Basic Inferential Tests}: Conduct hypothesis tests using \code{\link[=scf_ttest]{scf_ttest()}} for means and \code{\link[=scf_prop_test]{scf_prop_test()}} for proportions.
 \item \strong{Regression Modeling}: Fit regression models using \code{\link[=scf_ols]{scf_ols()}} for linear regression, \code{\link[=scf_logit]{scf_logit()}} for logistic regression, and \code{\link[=scf_glm]{scf_glm()}} for generalized linear models.
 \item \strong{Data Visualization}: Create informative visualizations using \code{\link[=scf_plot_dist]{scf_plot_dist()}} for distributions, \code{\link[=scf_plot_cbar]{scf_plot_cbar()}} and \code{\link[=scf_plot_bbar]{scf_plot_bbar()}} for categorical data, \code{\link[=scf_plot_smooth]{scf_plot_smooth()}} for smoothers, and \code{\link[=scf_plot_hex]{scf_plot_hex()}} for hexbin plots.
-\item \strong{Diagnostics and Infrastructure}: Use \code{\link[=scf_MIcombine]{scf_MIcombine()}} to pool results across implicates, and \code{\link[=scf_implicates]{scf_implicates()}} to access raw implicate data.
+\item \strong{Diagnostics and Infrastructure}: Use \code{\link[=scf_MIcombine]{scf_MIcombine()}} to pool results across implicates.
 }
 }
 
@@ -70,7 +70,7 @@ This suite of functions operate from a custom object class, \code{scf_mi_survey}
 which is created by \code{\link[=scf_design]{scf_design()}} via \code{\link[=scf_load]{scf_load()}}.  Specifically, the
 object is a structured list containing the elements:
 \itemize{
-\item \code{mi_design}: A list of five \code{survey::svrep.design} objects (one per implicate)
+\item \code{mi_design}: A list of five \code{survey::svrepdesign()} objects (one per implicate)
 \item \code{year}: Year of survey
 \item \code{n_households}: Estimated number of U.S. households in that year, per data from the Federal Reserve Economic Data (FRED) series TTLHH, accessed 6/17/2025.
 }
@@ -116,7 +116,7 @@ on complex survey analysis and missing data. It promotes pedagogical
 transparency through several features:
 \itemize{
 \item Each implicate’s design object is accessible via \code{scf_mi_survey$mi_design[[i]]}
-\item Raw implicate-level data can be viewed directly through \code{scf_mi_survey$implicates[[i]]}
+\item Raw implicate-level data can be viewed directly through \code{scf_mi_survey$mi_design[[i]]$variables}
 \item Users can execute analyses on individual implicates or combine them using Rubin’s Rules
 \item Key functions implement design-based estimation strategies explicitly, such as replicate-weight variance estimation
 \item Minimal abstraction is used, so each step remains visible and tractable

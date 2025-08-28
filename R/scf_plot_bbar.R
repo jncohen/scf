@@ -25,7 +25,6 @@
 #' @return A `ggplot2` object. 
 #'
 #' @examples
-#' \donttest{
 #' # Load bundled mock data (for demonstration only — not real SCF data)
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 
@@ -41,7 +40,6 @@
 #'
 #' # Raw counts (estimated number of households)
 #' scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
-#' }
 #'
 #' @export
 scf_plot_bbar <- function(design, rowvar, colvar,

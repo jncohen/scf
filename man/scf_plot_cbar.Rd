@@ -61,7 +61,6 @@ color, angles).
 
 \examples{
 # Load SCF data
-\donttest{
 # Load bundled mock data (for demonstration only — not real SCF data)
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 # For real analysis, use:
@@ -72,7 +71,7 @@ scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "mean")
 
 # Visualize 90th percentile of income by race
 scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9, fill = "#D55E00")
-}
+
 
 }
 \seealso{

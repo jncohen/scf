@@ -1,4 +1,4 @@
-#' Tools for Analyzing Survey of Consumer Finances Public-Use Microdata
+#' Analyzing Survey of Consumer Finances Public-Use Microdata
 #'
 #' @author Joseph N. Cohen, CUNY Queens College
 #'
@@ -46,14 +46,14 @@
 #' functions.  For an in-depth discussion of the methodological considerations
 #' involved in these functions' formulation, see Cohen (2025).
 #'
-#' 1. **Data Acquisition**:  Download the data from Federal Reserve servers to your working directory using [scf_download()]
+#' 1. **Data Acquisition**:  Download the data from Federal Reserve servers to your working directory using [scf_download()].
 #' 2. **Data Loading**: Load the data into R using [scf_load()]. This function returns an `scf_mi_survey` object (described below).
 #' 3. **Data Wrangling**: Use [scf_update()] to modify the data, or [scf_subset()] to filter it. These functions return new `scf_mi_survey` objects.
 #' 4. **Descriptive Statistics**: Compute univariate and bivariate statistics using functions like [scf_mean()], [scf_median()], [scf_percentile()], [scf_freq()], [scf_xtab()], and [scf_corr()].
 #' 5. **Basic Inferential Tests**: Conduct hypothesis tests using [scf_ttest()] for means and [scf_prop_test()] for proportions.
 #' 6. **Regression Modeling**: Fit regression models using [scf_ols()] for linear regression, [scf_logit()] for logistic regression, and [scf_glm()] for generalized linear models.
 #' 7. **Data Visualization**: Create informative visualizations using [scf_plot_dist()] for distributions, [scf_plot_cbar()] and [scf_plot_bbar()] for categorical data, [scf_plot_smooth()] for smoothers, and [scf_plot_hex()] for hexbin plots.
-#' 8. **Diagnostics and Infrastructure**: Use [scf_MIcombine()] to pool results across implicates, and [scf_implicates()] to access raw implicate data.
+#' 8. **Diagnostics and Infrastructure**: Use [scf_MIcombine()] to pool results across implicates.
 #'
 #' @section Core Data Object and Its Structure:
 #'
@@ -61,7 +61,7 @@
 #' which is created by [scf_design()] via [scf_load()].  Specifically, the
 #' object is a structured list containing the elements:
 #'
-#' - `mi_design`: A list of five `survey::svrep.design` objects (one per implicate)
+#' - `mi_design`: A list of five `survey::svrepdesign()` objects (one per implicate)
 #' - `year`: Year of survey
 #' - `n_households`: Estimated number of U.S. households in that year, per data from the Federal Reserve Economic Data (FRED) series TTLHH, accessed 6/17/2025.
 #'
@@ -99,7 +99,7 @@
 #' transparency through several features:
 #'
 #' - Each implicate’s design object is accessible via `scf_mi_survey$mi_design[[i]]`
-#' - Raw implicate-level data can be viewed directly through `scf_mi_survey$implicates[[i]]`
+#' - Raw implicate-level data can be viewed directly through `scf_mi_survey$mi_design[[i]]$variables`
 #' - Users can execute analyses on individual implicates or combine them using Rubin’s Rules
 #' - Key functions implement design-based estimation strategies explicitly, such as replicate-weight variance estimation
 #' - Minimal abstraction is used, so each step remains visible and tractable

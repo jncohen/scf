@@ -6,7 +6,10 @@
 \usage{
 scf_activate_theme()
 }
+\value{
+No return value, called for side effects.
+}
 \description{
-Sets the default \code{ggplot2} theme to \code{scf_theme()}.
-Call this function manually in your session or script to apply the style globally.
+Sets the default \code{ggplot2} theme to \code{scf_theme()}. Call this function
+manually in your session or script to apply the style globally.
 }

@@ -28,10 +28,8 @@
 #' @return A `ggplot2` object representing the Rubin-pooled histogram.
 #'
 #' @examples
-#' \donttest{
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 #' scf_plot_hist(scf2022, ~age, bins = 10)
-#' }
 #'
 #' @seealso [scf_freq()], [scf_plot_dbar()], [scf_plot_smooth()], [scf_update_by_implicate()]
 #' @export
@@ -76,9 +74,9 @@ scf_plot_hist <- function(design, variable,
   ggplot2::ggplot(res, ggplot2::aes(x = .data$category, y = .data$proportion)) +
     ggplot2::geom_col(fill = fill) +
     ggplot2::labs(
-      title = title %||% paste("Histogram of", varname),
-      x = xlab %||% varname,
-      y = ylab
+      title = if (is.null(title)) paste("Histogram of", varname) else title,
+      x     = if (is.null(xlab))  varname                      else xlab,
+      y     = ylab
     ) +
     scf_theme() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))

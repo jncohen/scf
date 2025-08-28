@@ -27,7 +27,6 @@
 #' For technical details on pooling logic, see [scf_MIcombine()] or the SCF package manual.
 #'
 #' @examples
-#' \donttest{
 #' # Load bundled mock data (for demonstration only — not real SCF data)
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 
@@ -35,7 +34,6 @@
 #' # scf_download(2022); scf2022 <- scf_load(2022)
 #'
 #' scf_xtab(scf2022, ~own, ~edcl, scale = "row")
-#' }
 #'
 #' @importFrom stats as.formula ave
 #' @export

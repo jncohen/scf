@@ -54,7 +54,6 @@ Requires the \pkg{hexbin} package. The function will stop with an error if it is
 }
 
 \examples{
-\donttest{
 # Load bundled mock data (for demonstration only — not real SCF data)
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 # For real analysis, use:
@@ -63,7 +62,6 @@ scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 
 # Visualize the joint distribution of income and net worth
 scf_plot_hex(scf2022, ~income, ~networth)
-}
 
 }
 \seealso{

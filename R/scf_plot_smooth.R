@@ -29,7 +29,6 @@
 #' @seealso [scf_theme()], [scf_plot_dist()]
 #'
 #' @examples
-#' \donttest{
 #' # Load bundled mock data (for demonstration only — not real SCF data)
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 
@@ -37,7 +36,7 @@
 #' # scf_download(2022); scf2022 <- scf_load(2022)
 #'
 #' scf_plot_smooth(scf2022, ~networth, xlim = c(0, 2e6), method = "loess", span = 0.25)
-#' }
+#' 
 #'
 #' @export
 scf_plot_smooth <- function(design,

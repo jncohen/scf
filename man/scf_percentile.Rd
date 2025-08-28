@@ -56,7 +56,6 @@ official percentile macro (see Kennickell 1998; per Federal Reserve Board's
 }
 
 \examples{
-\donttest{
 # Load bundled mock data (for demonstration only — not real SCF data)
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 # For real analysis, use:
@@ -64,7 +63,6 @@ scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 
 scf_percentile(scf2022, ~networth, q = 0.5)
 scf_percentile(scf2022, ~networth, q = 0.9, by = ~edcl)
-}
 
 }
 \references{

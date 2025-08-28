@@ -1,13 +1,22 @@
 Package: scf
-Title: Tools for Analyzing the Survey of Consumer Finances
-Version: 1.0.0
+Title: Analyzing the Survey of Consumer Finances
+Version: 1.0.1
 Authors@R:
     c(person("Joseph","Cohen", role = c("aut","cre"),
              email = "joseph.cohen@qc.cuny.edu"))
-Description: Tools for working with the Survey of Consumer Finances microdata.
-  Functions download prepared '.rds' files, construct replicate‑weighted
-  multiply‑imputed survey designs, compute descriptive statistics and model
-  estimates, and produce plots and tables.
+Description: Analyze Survey of Consumer Finances (SCF) public-use microdata. 
+  Functions download prepared '.rds' files, construct replicate-weighted 
+  multiply-imputed survey designs, compute descriptive statistics and model 
+  estimates, and produce plots and tables. Methods build on design-based 
+  inference for complex surveys and multiple imputation pooling. Key references 
+  include: Rubin (1987) "Statistical Analysis with Missing Data" 
+  <ISBN:9780470526798>; Barnard and Rubin (1999) "Small-sample degrees of 
+  freedom with multiple imputation" <doi:10.1093/biomet/86.4.948>; Lumley 
+  (2004) "Analysis of Complex Survey Samples" <doi:10.18637/jss.v009.i08>; 
+  Lumley (2011) "Complex Surveys: A Guide to Analysis Using R" 
+  <ISBN:9781118210932>; U.S. Federal Reserve (2023) "Survey of Consumer 
+  Finances: Codebook" 
+  <https://www.federalreserve.gov/econres/files/codebk2022.txt>.
 License: MIT + file LICENSE
 URL: https://github.com/jncohen/scf
 BugReports: https://github.com/jncohen/scf/issues

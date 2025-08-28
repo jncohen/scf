@@ -138,7 +138,7 @@ scf_MIcombine <- function(results, variances, call = sys.call(), df.complete = I
       df = df,
       missinfo = missinfo
     ),
-    class = "MIresult"
+    class = "scf_MIresult"
   )
 }
 
@@ -146,17 +146,17 @@ scf_MIcombine <- function(results, variances, call = sys.call(), df.complete = I
 SE <- function(object, ...) UseMethod("SE")
 
 #' @export
-SE.MIresult <- function(object, ...) {
+SE.scf_MIresult <- function(object, ...) {
   sqrt(diag(object$variance))
 }
 
 #' @export
-coef.MIresult <- function(object, ...) {
+coef.scf_MIresult <- function(object, ...) {
   object$coefficients
 }
 
 #' @export
-vcov.MIresult <- function(object, ...) {
+vcov.scf_MIresult <- function(object, ...) {
   object$variance
 }
 

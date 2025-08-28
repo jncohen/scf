@@ -22,7 +22,6 @@
 #' }
 #'
 #' @examples
-#' \donttest{
 #' # Load bundled mock data (for demonstration only — not real SCF data)
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 
@@ -39,7 +38,6 @@
 #'
 #' # Two-sample test
 #' scf_ttest(scf2022, ~income, group = ~female)
-#' }
 #'
 #' @seealso [scf_prop_test()], [scf_mean()], [scf_MIcombine()]
 #' @export
