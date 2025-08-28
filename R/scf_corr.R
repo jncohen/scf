@@ -43,15 +43,13 @@
 #' @seealso [scf_plot_hex()], [scf_ols()]
 #'
 #' @examples
-#' \donttest{
 #' # Load bundled mock data (for demonstration only — not real SCF data)
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
+#' 
 #' # For real analysis, use:
 #' # scf_download(2022); scf2022 <- scf_load(2022)
 #'
 #' scf_corr(scf2022, ~income, ~networth)
-#' }
 #'
 #' @export
 scf_corr <- function(scf, var1, var2) {

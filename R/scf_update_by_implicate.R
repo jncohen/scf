@@ -15,7 +15,7 @@
 #' This function extracts each implicate from the replicate-weighted survey design,
 #' applies your transformation, and rebuilds the survey design objects accordingly.
 #'
-#' @section Use This When:
+#' @section Use this When:
 #' - You need implicate-specific quantiles (e.g., flag households in the top 10% of wealth)
 #' - You want to assign percentile ranks (e.g., income percentile by implicate)
 #' - You are computing statistics within groups (e.g., groupwise z-scores)
@@ -53,7 +53,7 @@
 #' })
 #' }
 #'
-#' @seealso [scf_update()], [scf_extract_implicates()]
+#' @seealso [scf_update()]
 #' @export
 scf_update_by_implicate <- function(object, f) {
   if (!inherits(object, "scf_mi_survey")) {

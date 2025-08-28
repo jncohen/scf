@@ -42,7 +42,6 @@ within each implicate, then pooled using Rubin’s Rules.  Use this function
 to test hypotheses about means in the SCF microdata.
 }
 \examples{
-\donttest{
 # Load bundled mock data (for demonstration only — not real SCF data)
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 # For real analysis, use:
@@ -58,7 +57,6 @@ scf_ttest(scf2022, ~income, mu = 75000)
 
 # Two-sample test
 scf_ttest(scf2022, ~income, group = ~female)
-}
 
 }
 \seealso{

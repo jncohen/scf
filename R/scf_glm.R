@@ -1,7 +1,7 @@
 #' Estimate Generalized Linear Model from SCF Microdata
 #'
 #' @description
-#' Estimates generalized linear models (GLMs) with SCF public-use micrtodata.
+#' Estimates generalized linear models (GLMs) with SCF public-use microdata.
 #' Use this function when modeling outcomes that follow non-Gaussian
 #' distributions (e.g., binary or count data). Rubin's Rules are used to combine
 #' implicate-level coefficient and variance estimates. 

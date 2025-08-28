@@ -5,7 +5,7 @@ bibentry(
   title = "scf: Tools for Analyzing the Survey of Consumer Finances",
   author = person("Joseph", "Cohen"),
   year = "2025",
-  note = "R package version 1.0.0",
-  url = "https://CRAN.R-project.org/package=scf",
+  note = "R package version 1.0.1",
+  url = "https://github.com/jncohen/scf",
   textVersion = citation_text
 )

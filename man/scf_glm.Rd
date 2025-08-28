@@ -23,7 +23,7 @@ An object of class \code{"scf_glm"} and \code{"scf_model_result"} with:
 }
 }
 \description{
-Estimates generalized linear models (GLMs) with SCF public-use micrtodata.
+Estimates generalized linear models (GLMs) with SCF public-use microdata.
 Use this function when modeling outcomes that follow non-Gaussian
 distributions (e.g., binary or count data). Rubin's Rules are used to combine
 implicate-level coefficient and variance estimates.

@@ -10,7 +10,7 @@ SE(object, ...)
 \method{SE}{MIresult}(object, ...)
 }
 \arguments{
-\item{object}{An object of class \code{"MIresult"} created by \code{\link[=scf_MIcombine]{scf_MIcombine()}}.}
+\item{object}{An object of class \code{"scf_MIresult"} created by \code{\link[=scf_MIcombine]{scf_MIcombine()}}.}
 
 \item{...}{Passed to method (not used).}
 }
@@ -19,6 +19,6 @@ A numeric vector of standard errors corresponding to each coefficient.
 }
 \description{
 Generic method to extract standard errors from multiply-imputed
-Rubin-pooled model output of class \code{"MIresult"}.
+Rubin-pooled model output of class \code{"scf_MIresult"}.
 }
 \keyword{internal}

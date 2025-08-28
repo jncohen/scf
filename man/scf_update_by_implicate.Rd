@@ -31,7 +31,7 @@ This is useful when you need to compute values that depend on the distribution
 within each implicate — such as ranks, percentiles, or groupwise comparisons —
 which cannot be computed reliably using \code{\link[=scf_update]{scf_update()}}.
 }
-\section{Use This When}{
+\section{Use this When}{
 
 \itemize{
 \item You need implicate-specific quantiles (e.g., flag households in the top 10\% of wealth)
@@ -69,5 +69,5 @@ scf2022 <- scf_update_by_implicate(scf2022, function(df) {
 
 }
 \seealso{
-\code{\link[=scf_update]{scf_update()}}, \code{\link[=scf_extract_implicates]{scf_extract_implicates()}}
+\code{\link[=scf_update]{scf_update()}}
 }

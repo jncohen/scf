@@ -40,7 +40,6 @@
 #' @seealso [scf_xtab()], [scf_plot_dist()]]
 #'
 #' @examples
-#' \donttest{
 #' # Load bundled mock data (for demonstration only — not real SCF data)
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 #' 
@@ -49,7 +48,7 @@
 #' 
 #' # Cross-tabulate education by homeownership
 #' scf_freq(scf2022, ~own, by = ~edcl)
-#' #' }
+#' 
 #'
 #' @export
 scf_freq <- function(scf, var, by = NULL, percent = TRUE) {

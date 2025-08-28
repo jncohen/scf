@@ -54,10 +54,8 @@ and stable pooled estimation in the presence of multiply-imputed microdata.
 }
 
 \examples{
-\donttest{
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 scf_plot_hist(scf2022, ~age, bins = 10)
-}
 
 }
 \seealso{

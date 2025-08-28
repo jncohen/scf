@@ -36,7 +36,6 @@
 #' }
 #'
 #' @examples
-#' \donttest{
 #' # Load bundled mock data (for demonstration only — not real SCF data)
 #' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 
@@ -46,7 +45,7 @@
 #' model <- scf_ols(scf2022, networth ~ income + age)
 #' print(model)
 #' summary(model)
-#' }
+#' 
 #'
 #' @seealso [scf_glm()], [scf_logit()], [scf_MIcombine()]
 #' @importFrom stats coef vcov pt sd AIC deviance

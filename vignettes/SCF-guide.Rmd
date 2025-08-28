@@ -1,8 +1,8 @@
 ---
-title: "SCF Guide: Analyzing the Survey of Consumer Finances"
+title: "scf: Analyzing the Survey of Consumer Finances"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{SCF-guide}
+  %\VignetteIndexEntry{scf: Analyzing the Survey of Consumer Finances}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,13 +15,7 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
-if (requireNamespace("dplyr", quietly = TRUE)) {
-  library(dplyr)
-} else {
-  knitr::opts_chunk$set(eval = FALSE)
-  message("dplyr not available; vignette chunks disabled.")
-}
-
+library(dplyr)
 library(scf)
 
 ```

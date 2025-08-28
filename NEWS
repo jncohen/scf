@@ -1,3 +1,8 @@
+# scf 1.0.1
+* Minor nonfunctional changes to conform to CRAN submission standards
+* Fixed `scf_load()` to expunge non-functioning deprecated artifacts
+* removed scf_extract_implicates() as it lost utility in `scf_load()` rebuild
+
 # scf 1.0.0
 
 * Initial release of the `scf` package.
