@@ -76,7 +76,6 @@ https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-
 }
 
 \examples{
-\donttest{
 # Load bundled mock data (for demonstration only — not real SCF data)
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 # For real analysis, use:
@@ -85,7 +84,6 @@ scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
 model <- scf_glm(scf2022, own ~ age + factor(edcl), family = binomial())
 print(model)
 summary(model$models[[1]])
-}
 
 }
 \seealso{
