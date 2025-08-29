@@ -31,7 +31,8 @@
 #' @seealso [scf_load()], [scf_design()], [scf_update()]
 #'
 #' @references
-#' Federal Reserve Board (2022). *Survey of Consumer Finances* <https://www.federalreserve.gov/econres/scfindex.htm>
+#' U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
+#'   https://www.federalreserve.gov/econres/scfindex.htm
 #'
 #' @export
 scf_download <- function(years = seq(1989, 2022, 3), overwrite = FALSE, verbose = TRUE) {

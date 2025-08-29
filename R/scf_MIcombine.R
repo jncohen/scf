@@ -97,14 +97,15 @@
 #'
 #' @references
 #'
-#' Barnard, John and Donald B. Rubin (1999) "Miscellanea. Small-Sample Degrees of Freedom with Multiple Imputation" *Biometrika*
-#'
-#' Cohen, Joseph N. (2025) "The `scf` Package: Analyzing the Survey of Consumer Finances in R". Manuscript in Review.
-#'
-#' Little, Roderick J. A. and Donald B. Rubin (1987) *Statistical Analysis with Missing Data.* Wiley.
-#'
-#' U.S. Federal Reserve (2023) *Codebook for 2022 Survey of Consumer Finances* <https://www.federalreserve.gov/econres/files/codebk2022.txt>
-#'
+#' Barnard J, Rubin DB. Small-sample degrees of freedom with multiple imputation.
+#'   \doi{10.1093/biomet/86.4.948}.
+#'   
+#' Little RJA, Rubin DB. Statistical analysis with missing data.
+#'   ISBN: 9780470526798.
+#'   
+#' U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
+#'   https://www.federalreserve.gov/econres/scfindex.htm
+#'   
 #' @export
 scf_MIcombine <- function(results, variances, call = sys.call(), df.complete = Inf) {
   m <- length(results)

@@ -46,7 +46,8 @@ using \code{\link[=scf_load]{scf_load()}}, \code{\link[=scf_design]{scf_design()
 }
 
 \references{
-Federal Reserve Board (2022). \emph{Survey of Consumer Finances} \url{https://www.federalreserve.gov/econres/scfindex.htm}
+U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
+https://www.federalreserve.gov/econres/scfindex.htm
 }
 \seealso{
 \code{\link[=scf_load]{scf_load()}}, \code{\link[=scf_design]{scf_design()}}, \code{\link[=scf_update]{scf_update()}}

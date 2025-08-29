@@ -129,25 +129,34 @@ transparent, inspectable code and data structures.
 }
 
 \references{
-Barnard, J., & Rubin, D. B. (1999). "Small-sample degrees of freedom with multiple imputation." \emph{Biometrika}, 86(4), 948–955.
+Barnard J, Rubin DB. Small-sample degrees of freedom with multiple imputation.
+\doi{10.1093/biomet/86.4.948}.
 
-Bricker, Jesse, Alice M. Henriques, and Kevin B. Moore. 2017. Updates to the Sampling of Wealthy Families in the Survey of Consumer Finances. 2017–114. Finance and Economics Discussion Series. https://www.federalreserve.gov/econres/feds/updates-to-the-sampling-of-wealthy-families-in-the-survey-of-consumer-finances.htm.
+Bricker J, Henriques AM, Moore KB. Updates to the sampling of wealthy families in the Survey of Consumer Finances.
+Finance and Economics Discussion Series 2017-114.
+https://www.federalreserve.gov/econres/scfindex.htm
 
-Cohen, Joseph N. (2025) "The \code{scf} Package: Analyzing the Survey of Consumer Finances in R". Manuscript in Review.
+Kennickell AB, McManus DA, Woodburn RL. Weighting design for the 1992 Survey of Consumer Finances.
+U.S. Federal Reserve.
+\url{https://www.federalreserve.gov/Pubs/OSS/oss2/papers/weight92.pdf}
 
-Kennickell, Arthur B., Douglas A. McManus, and R. Louise Woodburn. 1996. Weighting Design for the 1992 Survey of Consumer Finances. U.S. Federal Reserve. https://www.federalreserve.gov/Pubs/OSS/oss2/papers/weight92.pdf.
+Kennickell AB. Multiple imputation in the Survey of Consumer Finances.
+Statistical Journal of the IAOS 33(1):143-151.
+\doi{10.3233/SJI-160278}.
 
-Kennickell, Arthur B. (2017). “Multiple Imputation in the Survey of Consumer Finances.” Statistical Journal of the IAOS 33(1):143–51. doi:10.3233/SJI-160278.
+Little RJA, Rubin DB. Statistical analysis with missing data.
+ISBN: 9780470526798.
 
-Little, Roderick J. A. and Donald B. Rubin (1987) \emph{Statistical Analysis with Missing Data.} Wiley.
+Lumley T. survey: Analysis of complex survey samples. R package version 4.1-1.
+\url{https://CRAN.R-project.org/package=survey}
 
-Lumley, Thomas (2023). \code{survey}: Analysis of Complex Survey Samples. R package version 4.1-1. https://CRAN.R-project.org/package=survey
+Lumley T. Analysis of complex survey samples.
+\doi{10.18637/jss.v009.i08}.
 
-Lumley, Thomas (2004). "Analysis of Complex Survey Samples". \emph{Journal of Statistical Software}, 9 (8), 1–19.
+Lumley T. Complex surveys: A guide to analysis using R. ISBN: 9781118210932.
 
-Lumley, Thomas (2011) "Complex Surveys: A Guide to Analysis Using R". \emph{Wiley}.
-
-U.S. Federal Reserve (2023) \emph{Codebook for 2022 Survey of Consumer Finances} \url{https://www.federalreserve.gov/econres/files/codebk2022.txt}
+U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
+https://www.federalreserve.gov/econres/scfindex.htm
 }
 \seealso{
 Useful links:

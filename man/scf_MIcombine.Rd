@@ -116,13 +116,14 @@ summary(pooled)
 
 }
 \references{
-Barnard, John and Donald B. Rubin (1999) "Miscellanea. Small-Sample Degrees of Freedom with Multiple Imputation" \emph{Biometrika}
+Barnard J, Rubin DB. Small-sample degrees of freedom with multiple imputation.
+\doi{10.1093/biomet/86.4.948}.
 
-Cohen, Joseph N. (2025) "The \code{scf} Package: Analyzing the Survey of Consumer Finances in R". Manuscript in Review.
+Little RJA, Rubin DB. Statistical analysis with missing data.
+ISBN: 9780470526798.
 
-Little, Roderick J. A. and Donald B. Rubin (1987) \emph{Statistical Analysis with Missing Data.} Wiley.
-
-U.S. Federal Reserve (2023) \emph{Codebook for 2022 Survey of Consumer Finances} \url{https://www.federalreserve.gov/econres/files/codebk2022.txt}
+U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
+https://www.federalreserve.gov/econres/scfindex.htm
 }
 \seealso{
 \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, \code{\link[=scf_logit]{scf_logit()}}

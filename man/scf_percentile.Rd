@@ -66,9 +66,12 @@ scf_percentile(scf2022, ~networth, q = 0.9, by = ~edcl)
 
 }
 \references{
-Kennickell, Arthur B. (2017). "Multiple Imputation in the Survey of Consumer Finances." \emph{Statistical Journal of the IAOS}, 33(1).
+Kennickell AB, McManus DA, Woodburn RL. Weighting design for the 1992 Survey of Consumer Finances.
+U.S. Federal Reserve.
+\url{https://www.federalreserve.gov/Pubs/OSS/oss2/papers/weight92.pdf}
 
-U.S. Federal Reserve (2023) \emph{Codebook for 2022 Survey of Consumer Finances} \url{https://www.federalreserve.gov/econres/files/codebk2022.txt}
+U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
+https://www.federalreserve.gov/econres/scfindex.htm
 }
 \seealso{
 \code{\link[=scf_median]{scf_median()}}

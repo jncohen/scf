@@ -1,13 +1,14 @@
 ---
-title: "scf: Analyzing the Survey of Consumer Finances"
+title: "Analyzing the Survey of Consumer Finances"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{scf: Analyzing the Survey of Consumer Finances}
+  %\VignetteIndexEntry{Analyzing the Survey of Consumer Finances}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include = FALSE}
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -141,5 +142,5 @@ scf_implicates(freq_table, long = TRUE)
 
 # Learn More
 For more details on the SCF methodology and the `scf` package, see:
-- Cohen, Joseph N. (2025). "Analyzing the Survey of Consumer Finances: A Guide to the `scf` Package" Mimeo.
-- Federal Reserve Board. (2023). *Survey of Consumer Finances*. [https://www.federalreserve.gov/econres/scfindex.htm](https://www.federalreserve.gov/econres/scfindex.htm)
+
+- Federal Reserve Board. (2023). *Survey of Consumer Finances*. [https://www.federalreserve.gov/econres/aboutscf.htm](https://www.federalreserve.gov/econres/aboutscf.htm)
