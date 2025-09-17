@@ -54,11 +54,17 @@ Requires the \pkg{hexbin} package. The function will stop with an error if it is
 }
 
 \examples{
-# Load bundled mock data (for demonstration only — not real SCF data)
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-# For real analysis, use:
-# scf_download(2022); scf2022 <- scf_load(2022)
+# Mock workflow for CRAN (demo only — not real SCF data)
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_raw_mock.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
 
+unlink("scf2022.rds", force = TRUE)
+
+# For real analysis, use:
+# scf_download(2022)
+# scf2022 <- scf_load(2022)
 
 # Visualize the joint distribution of income and net worth
 scf_plot_hex(scf2022, ~income, ~networth)

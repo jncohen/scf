@@ -22,22 +22,36 @@
 #' }
 #'
 #' @examples
-#' # Load bundled mock data (for demonstration only — not real SCF data)
-#' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
-#' # For real analysis, use:
-#' # scf_download(2022); scf2022 <- scf_load(2022)
+#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
 #'
+#' # Derive analysis vars
 #' scf2022 <- scf_update(scf2022,
-#'   female = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
+#'   female = factor(hhsex, levels = 1:2, labels = c("Male","Female")),
 #'   over50 = age > 50
 #' )
 #'
-#' # One-sample test
+#' # One-sample t-test
 #' scf_ttest(scf2022, ~income, mu = 75000)
 #'
-#' # Two-sample test
+#' # Two-sample t-test
 #' scf_ttest(scf2022, ~income, group = ~female)
+#' 
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # scf2022 <- scf_update(scf2022,
+#' #   female = factor(hhsex, levels = 1:2, labels = c("Male","Female")),
+#' #   over50 = age > 50
+#' # )
+#' # scf_ttest(scf2022, ~income, group = ~female)
+#' }
 #'
 #' @seealso [scf_prop_test()], [scf_mean()], [scf_MIcombine()]
 #' @export

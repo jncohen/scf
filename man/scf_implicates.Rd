@@ -32,9 +32,23 @@ scf_implicates(scf_ols(scf2022, networth ~ age + income), long = TRUE)
 }
 
 \examples{
-\dontrun{
-scf2022 <- scf_load(2022)
-scf_implicates(scf_freq(scf2022, ~own), long = TRUE)
+# Mock workflow for CRAN (demo only — not real SCF data)
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
+
+out <- scf_freq(scf2022, ~own)
+scf_implicates(out, long = TRUE)
+
+unlink("scf2022.rds", force = TRUE)
+
+\donttest{
+# Real workflow
+# scf_download(2022)
+# scf2022 <- scf_load(2022)
+# out <- scf_freq(scf2022, ~own)
+# scf_implicates(out, long = TRUE)
 }
 
 }

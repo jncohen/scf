@@ -27,13 +27,24 @@
 #' For technical details on pooling logic, see [scf_MIcombine()] or the SCF package manual.
 #'
 #' @examples
-#' # Load bundled mock data (for demonstration only — not real SCF data)
-#' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
-#' # For real analysis, use:
-#' # scf_download(2022); scf2022 <- scf_load(2022)
+#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
 #'
+#' # Cross-tabulate ownership by education
 #' scf_xtab(scf2022, ~own, ~edcl, scale = "row")
+#' 
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' rm(scf2022)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # scf_xtab(scf2022, ~own, ~edcl, scale = "row")
+#' }
 #'
 #' @importFrom stats as.formula ave
 #' @export

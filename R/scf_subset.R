@@ -32,16 +32,24 @@
 #' @return A new `scf_mi_survey` object (see [scf_design()])
 #'
 #' @examples
-#' \donttest{
-#' # Load bundled mock data (for demonstration only — not real SCF data)
-#' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
-#' # For real analysis, use:
-#' # scf_download(2022); scf2022 <- scf_load(2022)
+#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Filter for working-age households with positive net worth
 #' scf_sub <- scf_subset(scf2022, age < 65 & networth > 0)
 #' scf_mean(scf_sub, ~income)
+#' 
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # scf_sub  <- scf_subset(scf2022, age < 65 & networth > 0)
+#' # scf_mean(scf_sub, ~income)
 #' }
 #'
 #' @seealso [scf_load()], [scf_update()]

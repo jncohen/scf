@@ -57,10 +57,24 @@ It avoids external dependencies by using base R formatting and simple text or
 Markdown output.
 }
 \examples{
-\dontrun{
-scf_regtable(model_a, model_b, digits = 2, output = "console")
-scf_regtable(list(model_a, model_b), output = "markdown")
-scf_regtable(model_a, output = "csv", file = "results.csv")
+# Mock workflow for CRAN (demo only — not real SCF data)
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
+m1 <- scf_ols(scf2022, income ~ age)
+
+# Print regression results as a console table
+scf_regtable(m1, digits = 2)
+
+unlink("scf2022.rds", force = TRUE)
+
+\donttest{
+# Real workflow
+# scf_download(2022)
+# scf2022 <- scf_load(2022)
+# m1 <- scf_ols(scf2022, income ~ age)
+# scf_regtable(m1, digits = 2)
 }
 
 }

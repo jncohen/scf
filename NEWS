@@ -1,3 +1,7 @@
+# scf 1.0.3
+
+* Created new mock data object for CRAN compliance.  Required altered testing across package.
+
 # scf 1.0.2
 
 * Minor nonfunctional error corrections to ensure CRAN compliance

@@ -9,15 +9,21 @@
 test_that("scf_logit runs and returns expected structure (with known warning)", {
   skip_on_cran()
 
-  scf <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-  scf <- scf_update(scf,
+  td  <- tempdir()
+  src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+  file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+  scf2022 <- scf_load(2022, data_directory = td)
+  
+  scf2022 <- scf_update(scf2022,
                     rich = as.integer(networth > 1e6),
                     log_income = log(pmax(income, 1)))
 
-  model <- suppressWarnings(scf_logit(scf, rich ~ age + log_income))
+  model <- suppressWarnings(scf_logit(scf2022, rich ~ age + log_income))
 
   expect_s3_class(model, "scf_logit")
   expect_true("results" %in% names(model))
   expect_true(is.data.frame(model$results))
   expect_true(all(c("term", "estimate", "std.error") %in% names(model$results)))
+  
+  unlink(file.path(td, "scf2022.rds"), force = TRUE)
 })

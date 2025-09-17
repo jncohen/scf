@@ -46,20 +46,37 @@ Rubin’s Rules are applied to pool point estimates and standard errors. For poo
 }
 
 \examples{
-\donttest{
-# Load bundled mock data (for demonstration only — not real SCF data)
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-# For real analysis, use:
-# scf_download(2022); scf2022 <- scf_load(2022)
+# Mock workflow for CRAN (demo only — not real SCF data)
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
 
+# Derive analysis vars
 scf2022 <- scf_update(scf2022,
-  rich = networth > 1e6,
-  female = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
+  rich   = networth > 1e6,
+  female = factor(hhsex, levels = 1:2, labels = c("Male","Female")),
   over50 = age > 50
 )
-scf_prop_test(scf2022, ~rich, p = 0.10)  # One-sample
-scf_prop_test(scf2022, ~rich, ~female, alternative = "less")  # Two-sample
+
+# One-sample test
+scf_prop_test(scf2022, ~rich, p = 0.10)
+
+# Two-sample test
+scf_prop_test(scf2022, ~rich, ~female, alternative = "less")
+
+unlink("scf2022.rds", force = TRUE)
+
+\donttest{
+# Real workflow
+# scf_download(2022)
+# scf2022 <- scf_load(2022)
+# scf2022 <- scf_update(scf2022, rich = networth > 1e6,
+#                       female = factor(hhsex, levels = 1:2,
+#                                       labels = c("Male","Female")))
+# scf_prop_test(scf2022, ~rich, ~female)
 }
+
 }
 \seealso{
 \code{\link[=scf_ttest]{scf_ttest()}}, \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_MIcombine]{scf_MIcombine()}}

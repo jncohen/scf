@@ -3,43 +3,59 @@
 #' @description
 #' Converts SCF `.rds` files prepared by `scf_download()` into `scf_mi_survey`
 #' objects. Each object wraps five implicates per year in replicate-weighted,
-#' multiply-imputed survey designs suitable for use with `scf_` functions for
-#' analysis, plotting, testing, and modeling.
+#' multiply-imputed survey designs suitable for use with `scf_` functions.
 #'
 #' @section Implementation:
-#' Specify a year or range of SCF years and provide a directory containing
-#' the `.rds` files created by `scf_download()`. Each file should contain five
-#' implicate-level data frames. These are converted into replicate-weighted survey
-#' designs using `survey::svrepdesign()` and wrapped into an `scf_mi_survey` object
-#' using `scf_design()`. Only the survey designs (`mi_design`) are retained to ensure
-#' efficiency and prevent duplication of large data structures.
+#' Provide a year or range and either (1) a directory containing `scf<year>.rds`
+#' files, or (2) a full path to a single `.rds` file. Files must contain five
+#' implicate data frames with columns `wgt` and `wt1b1..wt1bK` (typically K=999).
 #'
-#' @section Storage:
-#' To conserve memory and promote efficient operations, `scf_mi_survey` objects
-#' do not retain raw implicates or pooled data by default. If needed, users can
-#' extract implicate-level data from the survey designs using a helper function
-#' such as `scf_extract_implicates()` (to be provided).
-#'
-#' @param min_year Integer. First SCF year to load (must be in 1989 to 2022 and divisible by 3).
+#' @param min_year Integer. First SCF year to load (1989–2022, divisible by 3).
 #' @param max_year Integer. Last SCF year to load. Defaults to `min_year`.
-#' @param data_directory Character. Path to directory containing `.rds` files. Default is the current working directory.
+#' @param data_directory Character. A directory containing `.rds` files **or**
+#'   a full path to a single `.rds` file. Default: `"."`.
 #'
-#' @return Invisibly returns a `scf_mi_survey` object (or a named list of them if multiple years are loaded).
-#' The object contains:
-#' - `mi_design`: A list of five `svyrep.design` replicate-weighted survey objects (one per implicate).
-#' 
-#' Attributes may include:
-#' - `mock`: Logical flag indicating if the data is a small-set for functional testing and not for analytical results.
-#' - `year`: SCF survey year.
-#' - `n_households`: Population estimate for that year.
-#' 
-#' @seealso [scf_download()], [scf_design()], [scf_update()], [scf_subset()], [survey::svrepdesign()]
+#' @return Invisibly returns a `scf_mi_survey` (or named list if multiple years).
+#' Attributes: `mock` (logical), `year`, `n_households`.
+#'
+#' @seealso [scf_download()], [scf_design()], [scf_update()], [survey::svrepdesign()]
+#'
+#' Load SCF Data as Multiply-Imputed Survey Designs
+#'
+#' @description
+#' Converts SCF `.rds` files prepared by `scf_download()` into `scf_mi_survey`
+#' objects. Each object wraps five implicates per year in replicate-weighted,
+#' multiply-imputed survey designs suitable for use with `scf_` functions.
+#'
+#' @section Implementation:
+#' Provide a year or range and either (1) a directory containing `scf<year>.rds`
+#' files, or (2) a full path to a single `.rds` file. Files must contain five
+#' implicate data frames with columns `wgt` and `wt1b1..wt1bK` (typically K=999).
+#'
+#' @param min_year Integer. First SCF year to load (1989–2022, divisible by 3).
+#' @param max_year Integer. Last SCF year to load. Defaults to `min_year`.
+#' @param data_directory Character. Directory containing `.rds` files or a 
+#'   full path to a single `.rds` file. Defaults to the current working directory `"."`.
+#'   For examples and tests, use `tempdir()` to avoid leaving files behind.
+#'
+#' @return Invisibly returns a `scf_mi_survey` (or named list if multiple years).
+#' Attributes: `mock` (logical), `year`, `n_households`.
+#'
+#' @seealso [scf_download()], [scf_design()], [scf_update()], [survey::svrepdesign()]
 #'
 #' @examples
-#' \dontrun{
-#' # Download SCF data and load it into a replicate-weighted MI survey object
-#' scf_download(2022)
-#' scf2022 <- scf_load(2022)
+#' # Load bundled raw mock implicates (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' ex <- scf_load(2022, data_directory = td)
+#' isTRUE(inherits(ex, "scf_mi_survey"))
+#' unlink("scf2022.rds", force = TRUE)
+#' 
+#' \donttest{
+#' # Real workflow (downloads and processes actual SCF data)
+#' # scf_download(2022)
+#' # real <- scf_load(2022)
 #' }
 #'
 #' @export
@@ -116,3 +132,4 @@ scf_load <- function(min_year,
     invisible(results)
   }
 }
+

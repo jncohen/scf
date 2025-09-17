@@ -71,7 +71,7 @@
 #' @param df.complete Optional degrees of freedom for the complete-data model. Used for small-sample
 #' corrections. Defaults to `Inf`, assuming large-sample asymptotics.
 #'
-#' @return An object of class `"MIresult"` with components:
+#' @return An object of class `"scf_MIresult"` with components:
 #' \describe{
 #'   \item{coefficients}{Pooled point estimates across implicates.}
 #'   \item{variance}{Pooled variance-covariance matrix.}
@@ -87,12 +87,25 @@
 #' [scf_mean()], [scf_ols()], [scf_glm()], [scf_logit()]
 #'
 #' @examples
-#' \dontrun{
-#' # Not for general use — shown for internal method developers only:
-#' design <- scf_load(2022)
-#' outlist <- lapply(design$mi_design, function(d) survey::svymean(~I(age >= 65), d))
-#' pooled <- scf_MIcombine(outlist)
-#' summary(pooled)
+#' # Example: Pool a simple survey mean on the bundled mock data
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
+#'
+#' outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
+#' pooled  <- scf_MIcombine(outlist)     # vcov/coef extracted automatically
+#' SE(pooled); coef(pooled)
+#' 
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
+#' # pooled  <- scf_MIcombine(outlist)
+#' # SE(pooled); coef(pooled)
 #' }
 #'
 #' @references

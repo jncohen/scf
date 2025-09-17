@@ -33,15 +33,11 @@
 #'
 #' @examples
 #' \donttest{
-#' # Load bundled mock data (for demonstration only — not real SCF data)
-#' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
-#' # For real analysis, use:
-#' # scf_download(2022); scf2022 <- scf_load(2022)
-#'
-#' scf2022 <- scf_update(scf2022, rich = as.integer(networth > 1e6))
-#' model <- scf_logit(scf2022, rich ~ age + factor(edcl), odds = TRUE)
-#' print(model)
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # model <- scf_logit(scf2022, own ~ age)
+#' # summary(model)
 #' }
 #'
 #' @section Warning:

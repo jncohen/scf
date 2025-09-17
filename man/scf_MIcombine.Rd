@@ -18,7 +18,7 @@ or an object with methods for \code{coef()} and \code{vcov()}. Typically generat
 corrections. Defaults to \code{Inf}, assuming large-sample asymptotics.}
 }
 \value{
-An object of class \code{"MIresult"} with components:
+An object of class \code{"scf_MIresult"} with components:
 \describe{
 \item{coefficients}{Pooled point estimates across implicates.}
 \item{variance}{Pooled variance-covariance matrix.}
@@ -106,12 +106,25 @@ See \code{\link[=scf_MIcombine]{scf_MIcombine()}} for full implementation detail
 }
 
 \examples{
-\dontrun{
-# Not for general use — shown for internal method developers only:
-design <- scf_load(2022)
-outlist <- lapply(design$mi_design, function(d) survey::svymean(~I(age >= 65), d))
-pooled <- scf_MIcombine(outlist)
-summary(pooled)
+# Example: Pool a simple survey mean on the bundled mock data
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
+
+outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
+pooled  <- scf_MIcombine(outlist)     # vcov/coef extracted automatically
+SE(pooled); coef(pooled)
+
+unlink("scf2022.rds", force = TRUE)
+
+\donttest{
+# Real workflow
+# scf_download(2022)
+# scf2022 <- scf_load(2022)
+# outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
+# pooled  <- scf_MIcombine(outlist)
+# SE(pooled); coef(pooled)
 }
 
 }

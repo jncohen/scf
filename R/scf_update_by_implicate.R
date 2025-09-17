@@ -28,29 +28,30 @@
 #' @return A modified `scf_mi_survey` object with updated implicate-level designs.
 #'
 #' @examples
-#' \dontrun{
-#' scf2022 <- scf_load(2022)
+#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Example 1: Flag top 10% of net worth within each implicate
+#' # Example: compute implicate-specific z-scores of income
 #' scf2022 <- scf_update_by_implicate(scf2022, function(df) {
-#'   cutoff <- quantile(df$networth, 0.9, na.rm = TRUE)
-#'   df$top10 <- df$networth > cutoff
-#'   df
-#' })
-#'
-#' # Example 2: Percentile rank of income
-#' scf2022 <- scf_update_by_implicate(scf2022, function(df) {
-#'   df$income_pctile <- rank(df$income, na.last = "keep") / sum(!is.na(df$income))
-#'   df
-#' })
-#'
-#' # Example 3: Z-score by education group
-#' scf2022 <- scf_update_by_implicate(scf2022, function(df) {
-#'   mu <- ave(df$income, df$edcl, FUN = mean)
-#'   sigma <- ave(df$income, df$edcl, FUN = sd)
+#'   mu <- mean(df$income, na.rm = TRUE)
+#'   sigma <- sd(df$income, na.rm = TRUE)
 #'   df$z_income <- (df$income - mu) / sigma
 #'   df
 #' })
+#'
+#' # Verify new variable exists
+#' head(scf2022$mi_design[[1]]$variables$z_income)
+#' 
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # scf2022 <- scf_update_by_implicate(scf2022, function(df) { ... })
 #' }
 #'
 #' @seealso [scf_update()]

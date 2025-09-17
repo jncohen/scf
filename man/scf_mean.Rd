@@ -38,13 +38,24 @@ Use this function to describe the “typical” value of a continuous variable i
 }
 
 \examples{
-# Load bundled mock data (for demonstration only — not real SCF data)
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-# For real analysis, use:
-# scf_download(2022); scf2022 <- scf_load(2022)
+# Mock workflow for CRAN (demo only — not real SCF data)
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
 
 scf_mean(scf2022, ~networth)
 scf_mean(scf2022, ~networth, by = ~edcl)
+
+unlink("scf2022.rds", force = TRUE)
+
+\donttest{
+# Real workflow
+# scf_download(2022)
+# scf2022 <- scf_load(2022)
+# scf_mean(scf2022, ~networth)
+# scf_mean(scf2022, ~networth, by = ~edcl)
+}
 
 
 }

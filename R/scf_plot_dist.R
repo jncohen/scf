@@ -30,17 +30,24 @@
 #' @seealso [scf_theme()]
 #'
 #' @examples
-#' \donttest{
-#' # Load bundled mock data (for demonstration only — not real SCF data)
-#' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
-#' # For real analysis, use:
-#' # scf_download(2022); scf2022 <- scf_load(2022)
+#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' scf_plot_dist(scf2022, ~own)
 #' scf_plot_dist(scf2022, ~age, bins = 10)
+#' 
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # scf_plot_dist(scf2022, ~own)
+#' # scf_plot_dist(scf2022, ~age, bins = 10)
 #' }
-
 #'
 #' @export
 scf_plot_dist <- function(design, variable, bins = 30,

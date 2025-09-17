@@ -16,9 +16,10 @@ scf_corr(scf, var1, var2)
 \value{
 An object of class \code{scf_corr}, containing:
 \describe{
-\item{results}{Data frame with pooled correlation, standard error, t-statistic, degrees of freedom, p-value, and implicate range}
-\item{imps}{Named vector of implicate-level correlations}
-\item{aux}{Variable names used in the estimation}
+\item{results}{Data frame with pooled correlation estimate, standard error,
+t-statistic, degrees of freedom, p-value, and minimum/maximum values across implicates.}
+\item{imps}{Named vector of implicate-level correlations.}
+\item{aux}{Variable names used in the estimation.}
 }
 }
 \description{
@@ -30,6 +31,11 @@ pooled across implicates to account for imputation uncertainty.
 Computes the Pearson correlation coefficient between two continuous variables using
 multiply-imputed, replicate-weighted SCF data. Returns pooled estimates and standard errors
 using Rubin’s Rules.
+}
+\note{
+Degrees of freedom are approximated using a simplified Barnard–Rubin
+adjustment, since correlation is a scalar quantity. Interpret cautiously with
+few implicates.
 }
 \section{Implementation}{
 
@@ -60,13 +66,22 @@ scalar statistics like correlation coefficients.
 }
 
 \examples{
-# Load bundled mock data (for demonstration only — not real SCF data)
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
+# Mock workflow for CRAN (demo only — not real SCF data)
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
+corr <- scf_corr(scf2022, ~income, ~networth)
+print(corr)
+summary(corr)
+unlink("scf2022.rds", force = TRUE)
 
-# For real analysis, use:
-# scf_download(2022); scf2022 <- scf_load(2022)
-
-scf_corr(scf2022, ~income, ~networth)
+\donttest{
+# Real workflow
+# scf_download(2022)
+# scf2022 <- scf_load(2022)
+# scf_corr(scf2022, ~income, ~networth)
+}
 
 }
 \seealso{

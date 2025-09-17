@@ -25,12 +25,6 @@
 #' @param var1 One-sided formula specifying the first variable
 #' @param var2 One-sided formula specifying the second variable
 #'
-#' @return An object of class `scf_corr`, containing: 
-#' \describe{
-#'   \item{results}{Data frame with pooled correlation, standard error, t-statistic, degrees of freedom, p-value, and implicate range}
-#'   \item{imps}{Named vector of implicate-level correlations}
-#'   \item{aux}{Variable names used in the estimation}
-#' }
 #'
 #' @section Statistical Notes:
 #' Correlation is computed within each implicate using complete cases. Rubin’s
@@ -42,15 +36,36 @@
 #'
 #' @seealso [scf_plot_hex()], [scf_ols()]
 #'
+#' @return An object of class `scf_corr`, containing: 
+#' \describe{
+#'   \item{results}{Data frame with pooled correlation estimate, standard error, 
+#'     t-statistic, degrees of freedom, p-value, and minimum/maximum values across implicates.}
+#'   \item{imps}{Named vector of implicate-level correlations.}
+#'   \item{aux}{Variable names used in the estimation.}
+#' }
+#'
+#' @note Degrees of freedom are approximated using a simplified Barnard–Rubin 
+#' adjustment, since correlation is a scalar quantity. Interpret cautiously with 
+#' few implicates.
+#'
 #' @examples
-#' # Load bundled mock data (for demonstration only — not real SCF data)
-#' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
+#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
+#' corr <- scf_corr(scf2022, ~income, ~networth)
+#' print(corr)
+#' summary(corr)
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # scf_corr(scf2022, ~income, ~networth)
+#' }
 #' 
-#' # For real analysis, use:
-#' # scf_download(2022); scf2022 <- scf_load(2022)
-#'
-#' scf_corr(scf2022, ~income, ~networth)
-#'
 #' @export
 scf_corr <- function(scf, var1, var2) {
   if (isTRUE(attr(scf, "mock"))) {

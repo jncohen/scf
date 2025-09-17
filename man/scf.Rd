@@ -92,10 +92,10 @@ estimating them. See \code{\link[=scf_MIcombine]{scf_MIcombine()}} for details.
 \section{Mock Data for Testing}{
 
 
-A mock SCF dataset (\code{mock_scf2022.rds}) is bundled in \verb{inst/extdata/} for
+A mock SCF dataset (\code{scf2022_mock_raw.rds}) is bundled in \verb{inst/extdata/} for
 internal testing purposes. It is a structurally valid \code{scf_mi_survey} object
-created by retaining only the first 75 rows per implicate and only variables
-used in testing operations.
+created by retaining only the first ~200 rows per implicate and only variables
+used in examples and tests.
 
 This object is intended solely for package development and documentation rendering.
 It is \strong{not suitable for analytical use or valid statistical inference.}

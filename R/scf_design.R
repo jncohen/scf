@@ -19,12 +19,30 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
+#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
 #' obj <- scf_design(
-#'   design = list(imp1, imp2, imp3, imp4, imp5),
+#'   design = scf2022$mi_design,
 #'   year = 2022,
-#'   n_households = 131202000
+#'   n_households = attr(scf2022, "n_households")
 #' )
+#' class(obj)
+#' length(obj$mi_design)
+#' 
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf2022 <- scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # obj <- scf_design(
+#' #   design = scf2022$mi_design,
+#' #   year = 2022,
+#' #   n_households = attr(scf2022, "n_households")
+#' # )
 #' }
 #'
 #' @seealso [scf_load()], [scf_update()]

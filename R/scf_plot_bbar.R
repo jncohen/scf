@@ -26,13 +26,12 @@
 #'
 #' @examples
 #' # Load bundled mock data (for demonstration only — not real SCF data)
-#' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
-#' # For real analysis, use:
-#' # scf_download(2022); scf2022 <- scf_load(2022)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#'
-#' # Stacked bar chart: education by race
+#' # Stacked bar chart: education by ownership
 #' scf_plot_bbar(scf2022, ~own, ~edcl)
 #'
 #' # Column percentages instead of total percent
@@ -40,6 +39,15 @@
 #'
 #' # Raw counts (estimated number of households)
 #' scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
+#' 
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # scf_plot_bbar(scf2022, ~own, ~edcl)
+#' }
 #'
 #' @export
 scf_plot_bbar <- function(design, rowvar, colvar,

@@ -9,14 +9,21 @@
 test_that("scf_glm runs with binomial family (with known warning)", {
   skip_on_cran()
 
-  scf <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-  scf <- scf_update(scf,
+  td  <- tempdir()
+  src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+  file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+  scf2022 <- scf_load(2022, data_directory = td)
+  
+  
+  scf2022 <- scf_update(scf2022,
                     log_income = log(pmax(income, 1)))
 
-  model <- suppressWarnings(scf_glm(scf, own ~ age + log_income, family = binomial()))
+  model <- suppressWarnings(scf_glm(scf2022, own ~ age + log_income, family = binomial()))
 
   expect_s3_class(model, "scf_glm")
   expect_true("results" %in% names(model))
   expect_true(is.data.frame(model$results))
   expect_true(all(c("term", "estimate", "std.error") %in% names(model$results)))
+  
+  unlink("scf2022.rds", force = TRUE)
 })

@@ -45,7 +45,10 @@ Download raw SCF data and load it into a valid multiply-imputed survey object us
 
 ```{r}
 # Using Mock data with distribution
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
 
 # Using real SCF data (uncomment to run)
 # scf2022 <- scf_download(2022)
@@ -104,7 +107,7 @@ Fit linear or generalized linear models with Rubin-aware pooling. Logistic model
 scf_ols(scf2022, networth ~ age + log_income)
 scf_logit(scf2022, rich ~ age + log_income)
 scf_logit(scf2022, rich ~ age + log_income, odds = TRUE)
-scf_glm(scf2022, npeople ~ age + log_income, family = poisson())
+scf_glm(scf2022, own ~ age , family = binomial())
 ```
 
 > **Note on Warnings**  
@@ -144,3 +147,9 @@ scf_implicates(freq_table, long = TRUE)
 For more details on the SCF methodology and the `scf` package, see:
 
 - Federal Reserve Board. (2023). *Survey of Consumer Finances*. [https://www.federalreserve.gov/econres/aboutscf.htm](https://www.federalreserve.gov/econres/aboutscf.htm)
+
+```{r, include = F}
+# Cleanup to avoid NOTE about leftover files
+if (exists("scf2022")) rm(scf2022)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
+```

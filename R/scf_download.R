@@ -29,7 +29,17 @@
 #' @return These files are designed to be loaded using scf_load(), which wraps them into replicate-weighted designs.
 #'
 #' @seealso [scf_load()], [scf_design()], [scf_update()]
+#' 
+#' @examples
+#' \donttest{
+#' # Download and prepare SCF data for 2022
+#' scf_download(2022)
 #'
+#' # Load into a survey design object
+#' scf2022 <- scf_load(2022)
+#' }
+
+#' 
 #' @references
 #' U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
 #'   https://www.federalreserve.gov/econres/scfindex.htm

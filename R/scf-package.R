@@ -78,10 +78,10 @@
 #' 
 #' @section Mock Data for Testing:
 #' 
-#' A mock SCF dataset (`mock_scf2022.rds`) is bundled in `inst/extdata/` for 
+#' A mock SCF dataset (`scf2022_mock_raw.rds`) is bundled in `inst/extdata/` for 
 #' internal testing purposes. It is a structurally valid `scf_mi_survey` object 
-#' created by retaining only the first 75 rows per implicate and only variables
-#' used in testing operations.
+#' created by retaining only the first ~200 rows per implicate and only variables
+#' used in examples and tests.
 #' 
 #' This object is intended solely for package development and documentation rendering. 
 #' It is **not suitable for analytical use or valid statistical inference.**

@@ -7,58 +7,62 @@
 scf_load(min_year, max_year = min_year, data_directory = ".")
 }
 \arguments{
-\item{min_year}{Integer. First SCF year to load (must be in 1989 to 2022 and divisible by 3).}
+\item{min_year}{Integer. First SCF year to load (1989–2022, divisible by 3).}
 
 \item{max_year}{Integer. Last SCF year to load. Defaults to \code{min_year}.}
 
-\item{data_directory}{Character. Path to directory containing \code{.rds} files. Default is the current working directory.}
+\item{data_directory}{Character. Directory containing \code{.rds} files or a
+full path to a single \code{.rds} file. Defaults to the current working directory \code{"."}.
+For examples and tests, use \code{tempdir()} to avoid leaving files behind.}
 }
 \value{
-Invisibly returns a \code{scf_mi_survey} object (or a named list of them if multiple years are loaded).
-The object contains:
-\itemize{
-\item \code{mi_design}: A list of five \code{svyrep.design} replicate-weighted survey objects (one per implicate).
-}
+Invisibly returns a \code{scf_mi_survey} (or named list if multiple years).
+Attributes: \code{mock} (logical), \code{year}, \code{n_households}.
 
-Attributes may include:
-\itemize{
-\item \code{mock}: Logical flag indicating if the data is a small-set for functional testing and not for analytical results.
-\item \code{year}: SCF survey year.
-\item \code{n_households}: Population estimate for that year.
-}
+Invisibly returns a \code{scf_mi_survey} (or named list if multiple years).
+Attributes: \code{mock} (logical), \code{year}, \code{n_households}.
 }
 \description{
 Converts SCF \code{.rds} files prepared by \code{scf_download()} into \code{scf_mi_survey}
 objects. Each object wraps five implicates per year in replicate-weighted,
-multiply-imputed survey designs suitable for use with \code{scf_} functions for
-analysis, plotting, testing, and modeling.
+multiply-imputed survey designs suitable for use with \code{scf_} functions.
+
+Converts SCF \code{.rds} files prepared by \code{scf_download()} into \code{scf_mi_survey}
+objects. Each object wraps five implicates per year in replicate-weighted,
+multiply-imputed survey designs suitable for use with \code{scf_} functions.
 }
 \section{Implementation}{
 
-Specify a year or range of SCF years and provide a directory containing
-the \code{.rds} files created by \code{scf_download()}. Each file should contain five
-implicate-level data frames. These are converted into replicate-weighted survey
-designs using \code{survey::svrepdesign()} and wrapped into an \code{scf_mi_survey} object
-using \code{scf_design()}. Only the survey designs (\code{mi_design}) are retained to ensure
-efficiency and prevent duplication of large data structures.
-}
+Provide a year or range and either (1) a directory containing \verb{scf<year>.rds}
+files, or (2) a full path to a single \code{.rds} file. Files must contain five
+implicate data frames with columns \code{wgt} and \code{wt1b1..wt1bK} (typically K=999).
 
-\section{Storage}{
 
-To conserve memory and promote efficient operations, \code{scf_mi_survey} objects
-do not retain raw implicates or pooled data by default. If needed, users can
-extract implicate-level data from the survey designs using a helper function
-such as \code{scf_extract_implicates()} (to be provided).
+Provide a year or range and either (1) a directory containing \verb{scf<year>.rds}
+files, or (2) a full path to a single \code{.rds} file. Files must contain five
+implicate data frames with columns \code{wgt} and \code{wt1b1..wt1bK} (typically K=999).
 }
 
 \examples{
-\dontrun{
-# Download SCF data and load it into a replicate-weighted MI survey object
-scf_download(2022)
-scf2022 <- scf_load(2022)
+# Load bundled raw mock implicates (demo only — not real SCF data)
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+ex <- scf_load(2022, data_directory = td)
+isTRUE(inherits(ex, "scf_mi_survey"))
+unlink("scf2022.rds", force = TRUE)
+
+\donttest{
+# Real workflow (downloads and processes actual SCF data)
+# scf_download(2022)
+# real <- scf_load(2022)
 }
 
 }
 \seealso{
-\code{\link[=scf_download]{scf_download()}}, \code{\link[=scf_design]{scf_design()}}, \code{\link[=scf_update]{scf_update()}}, \code{\link[=scf_subset]{scf_subset()}}, \code{\link[survey:svrepdesign]{survey::svrepdesign()}}
+\code{\link[=scf_download]{scf_download()}}, \code{\link[=scf_design]{scf_design()}}, \code{\link[=scf_update]{scf_update()}}, \code{\link[survey:svrepdesign]{survey::svrepdesign()}}
+
+Load SCF Data as Multiply-Imputed Survey Designs
+
+\code{\link[=scf_download]{scf_download()}}, \code{\link[=scf_design]{scf_design()}}, \code{\link[=scf_update]{scf_update()}}, \code{\link[survey:svrepdesign]{survey::svrepdesign()}}
 }

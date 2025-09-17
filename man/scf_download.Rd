@@ -45,6 +45,16 @@ all implicates are downloaded, merged, and prepared for downstream analysis
 using \code{\link[=scf_load]{scf_load()}}, \code{\link[=scf_design]{scf_design()}}, and the \code{scf} workflow.
 }
 
+\examples{
+\donttest{
+# Download and prepare SCF data for 2022
+scf_download(2022)
+
+# Load into a survey design object
+scf2022 <- scf_load(2022)
+}
+
+}
 \references{
 U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
 https://www.federalreserve.gov/econres/scfindex.htm

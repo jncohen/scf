@@ -48,12 +48,11 @@ statistics or running models. The function is useful when the analyst wishes to:
 }
 
 \examples{
-\donttest{
-# Load bundled mock data (for demonstration only and not real SCF data)
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-
-# For real analysis, use:
-# scf_download(2022); scf2022 <- scf_load(2022)
+# Mock workflow for CRAN (demo only — not real SCF data)
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
 
 # Create a binary indicator for being over age 50
 scf2022 <- scf_update(scf2022,
@@ -64,6 +63,17 @@ scf2022 <- scf_update(scf2022,
 scf2022 <- scf_update(scf2022,
   log_income = log(income + 1)
 )
+
+unlink("scf2022.rds", force = TRUE)
+
+\donttest{
+# Real workflow
+# scf_download(2022)
+# scf2022 <- scf_load(2022)
+# scf2022 <- scf_update(scf2022,
+#   over50 = age > 50,
+#   log_income = log(income + 1)
+# )
 }
 
 }

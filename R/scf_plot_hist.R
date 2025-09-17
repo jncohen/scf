@@ -28,8 +28,22 @@
 #' @return A `ggplot2` object representing the Rubin-pooled histogram.
 #'
 #' @examples
-#' scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
+#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
+#'
 #' scf_plot_hist(scf2022, ~age, bins = 10)
+#' 
+#' unlink("scf2022.rds", force = TRUE)
+#'
+#' \donttest{
+#' # Real workflow
+#' # scf_download(2022)
+#' # scf2022 <- scf_load(2022)
+#' # scf_plot_hist(scf2022, ~age, bins = 10)
+#' }
 #'
 #' @seealso [scf_freq()], [scf_plot_dbar()], [scf_plot_smooth()], [scf_update_by_implicate()]
 #' @export
