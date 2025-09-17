@@ -246,7 +246,7 @@ For detailed examples, function documentation, and usage guides, consult
 the package vignettes and reference manual.
 
 - [SCF Homepage](https://github.com/jncohen/scf)
-- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.2.pdf)
+- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.3.pdf)
 
 ## Note on Mock Data
 
@@ -259,7 +259,7 @@ but **not suitable for analytical use or inference**.
 
 If you use `scf` in published work, please cite it as:
 
-> Joseph N. Cohen (2025). *scf: Tools for Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.2. <https://github.com/jncohen/scf>
+> Joseph N. Cohen (2025). *scf: Tools for Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.3. <https://github.com/jncohen/scf>
 
 Use `citation("scf")` in R for formatted references.
 
