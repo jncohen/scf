@@ -66,7 +66,6 @@ scalar statistics like correlation coefficients.
 }
 
 \examples{
-# Mock workflow for CRAN (demo only — not real SCF data)
 td  <- tempdir()
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
@@ -76,11 +75,15 @@ print(corr)
 summary(corr)
 unlink("scf2022.rds", force = TRUE)
 
+
 \donttest{
-# Real workflow
-# scf_download(2022)
-# scf2022 <- scf_load(2022)
-# scf_corr(scf2022, ~income, ~networth)
+# Real workflow:
+scf_download(2022)
+scf2022 <- scf_load(2022)
+scf_corr(scf2022, ~income, ~networth)
+
+# Clean up
+unlink("scf2022.rds", force = TRUE)
 }
 
 }

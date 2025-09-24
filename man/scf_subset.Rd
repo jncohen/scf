@@ -60,10 +60,13 @@ unlink("scf2022.rds", force = TRUE)
 
 \donttest{
 # Real workflow
-# scf_download(2022)
-# scf2022 <- scf_load(2022)
-# scf_sub  <- scf_subset(scf2022, age < 65 & networth > 0)
-# scf_mean(scf_sub, ~income)
+scf_download(2022)
+scf2022 <- scf_load(2022)
+scf_sub  <- scf_subset(scf2022, age < 65 & networth > 0)
+scf_mean(scf_sub, ~income)
+
+# Clean up
+unlink("scf2022.rds", force = TRUE)
 }
 
 }

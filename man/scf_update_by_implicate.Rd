@@ -62,11 +62,19 @@ head(scf2022$mi_design[[1]]$variables$z_income)
 unlink("scf2022.rds", force = TRUE)
 
 \donttest{
-# Real workflow
-# scf_download(2022)
-# scf2022 <- scf_load(2022)
-# scf2022 <- scf_update_by_implicate(scf2022, function(df) { ... })
-}
+# Real workflow (requires download of full SCF data)
+scf_download(2022)
+scf2022 <- scf_load(2022)
+scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+  mu <- mean(df$income, na.rm = TRUE)
+    sigma <- sd(df$income, na.rm = TRUE)
+    df$z_income <- (df$income - mu) / sigma
+      df
+      })
+      
+ # Clean up
+ unlink("scf2022.rds", force = TRUE)
+ }
 
 }
 \seealso{

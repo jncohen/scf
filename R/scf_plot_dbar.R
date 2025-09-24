@@ -45,9 +45,13 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # scf_plot_dbar(scf2022, ~edcl)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' scf_plot_dbar(scf2022, ~edcl)
+#' 
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @export

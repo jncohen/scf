@@ -54,8 +54,11 @@ unlink("scf2022.rds", force = TRUE)
 
 \donttest{
 # Real workflow (downloads and processes actual SCF data)
-# scf_download(2022)
-# real <- scf_load(2022)
+scf_download(2022)
+real <- scf_load(2022)
+
+# Clean up
+unlink("scf2022.rds", force = TRUE)
 }
 
 }

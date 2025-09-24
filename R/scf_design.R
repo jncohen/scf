@@ -36,13 +36,16 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf2022 <- scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # obj <- scf_design(
-#' #   design = scf2022$mi_design,
-#' #   year = 2022,
-#' #   n_households = attr(scf2022, "n_households")
-#' # )
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' obj <- scf_design(
+#'   design = scf2022$mi_design,
+#'    year = 2022,
+#'    n_households = attr(scf2022, "n_households")
+#'    )
+#'    
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @seealso [scf_load()], [scf_update()]

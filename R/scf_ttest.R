@@ -44,13 +44,16 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # scf2022 <- scf_update(scf2022,
-#' #   female = factor(hhsex, levels = 1:2, labels = c("Male","Female")),
-#' #   over50 = age > 50
-#' # )
-#' # scf_ttest(scf2022, ~income, group = ~female)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' scf2022 <- scf_update(scf2022,
+#'   female = factor(hhsex, levels = 1:2, labels = c("Male","Female")),
+#'   over50 = age > 50
+#' )
+#' scf_ttest(scf2022, ~income, group = ~female)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @seealso [scf_prop_test()], [scf_mean()], [scf_MIcombine()]

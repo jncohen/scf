@@ -101,11 +101,13 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
-#' # pooled  <- scf_MIcombine(outlist)
-#' # SE(pooled); coef(pooled)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
+#' pooled  <- scf_MIcombine(outlist)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @references

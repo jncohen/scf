@@ -38,10 +38,13 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # scf_mean(scf2022, ~networth)
-#' # scf_mean(scf2022, ~networth, by = ~edcl)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' scf_mean(scf2022, ~networth)
+#' scf_mean(scf2022, ~networth, by = ~edcl)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #' 
 #'

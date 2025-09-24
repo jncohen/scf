@@ -76,10 +76,13 @@ unlink("scf2022.rds", force = TRUE)
 
 \donttest{
 # Real workflow
-# scf_download(2022)
-# scf2022 <- scf_load(2022)
-# scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "mean")
-# scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9)
+scf_download(2022)
+scf2022 <- scf_load(2022)
+scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "mean")
+scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9)
+
+# Clean up
+unlink("scf2022.rds", force = TRUE)
 }
 
 

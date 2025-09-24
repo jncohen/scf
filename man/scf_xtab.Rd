@@ -54,9 +54,12 @@ rm(scf2022)
 
 \donttest{
 # Real workflow
-# scf_download(2022)
-# scf2022 <- scf_load(2022)
-# scf_xtab(scf2022, ~own, ~edcl, scale = "row")
+scf_download(2022)
+scf2022 <- scf_load(2022)
+scf_xtab(scf2022, ~own, ~edcl, scale = "row")
+
+# Clean up
+unlink("scf2022.rds", force = TRUE)
 }
 
 }

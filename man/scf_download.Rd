@@ -52,6 +52,9 @@ scf_download(2022)
 
 # Load into a survey design object
 scf2022 <- scf_load(2022)
+
+# Clean up
+unlink("scf2022.rds", force = TRUE)
 }
 
 }

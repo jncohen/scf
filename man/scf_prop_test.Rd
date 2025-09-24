@@ -69,12 +69,15 @@ unlink("scf2022.rds", force = TRUE)
 
 \donttest{
 # Real workflow
-# scf_download(2022)
-# scf2022 <- scf_load(2022)
-# scf2022 <- scf_update(scf2022, rich = networth > 1e6,
-#                       female = factor(hhsex, levels = 1:2,
-#                                       labels = c("Male","Female")))
-# scf_prop_test(scf2022, ~rich, ~female)
+scf_download(2022)
+scf2022 <- scf_load(2022)
+scf2022 <- scf_update(scf2022, rich = networth > 1e6,
+                      female = factor(hhsex, levels = 1:2,
+                                      labels = c("Male","Female")))
+scf_prop_test(scf2022, ~rich, ~female)
+
+# Clean up
+unlink("scf2022.rds", force = TRUE)
 }
 
 }

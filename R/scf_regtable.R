@@ -48,10 +48,13 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # m1 <- scf_ols(scf2022, income ~ age)
-#' # scf_regtable(m1, digits = 2)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' m1 <- scf_ols(scf2022, income ~ age)
+#' scf_regtable(m1, digits = 2)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @export

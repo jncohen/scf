@@ -43,10 +43,13 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # scf_plot_dist(scf2022, ~own)
-#' # scf_plot_dist(scf2022, ~age, bins = 10)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' scf_plot_dist(scf2022, ~own)
+#' scf_plot_dist(scf2022, ~age, bins = 10)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @export

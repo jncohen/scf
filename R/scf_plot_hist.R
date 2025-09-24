@@ -40,9 +40,12 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # scf_plot_hist(scf2022, ~age, bins = 10)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' scf_plot_hist(scf2022, ~age, bins = 10)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @seealso [scf_freq()], [scf_plot_dbar()], [scf_plot_smooth()], [scf_update_by_implicate()]

@@ -33,10 +33,13 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # out <- scf_freq(scf2022, ~own)
-#' # scf_implicates(out, long = TRUE)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' out <- scf_freq(scf2022, ~own)
+#' scf_implicates(out, long = TRUE)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @importFrom stats coef vcov confint

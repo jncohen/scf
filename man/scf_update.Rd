@@ -68,12 +68,15 @@ unlink("scf2022.rds", force = TRUE)
 
 \donttest{
 # Real workflow
-# scf_download(2022)
-# scf2022 <- scf_load(2022)
-# scf2022 <- scf_update(scf2022,
-#   over50 = age > 50,
-#   log_income = log(income + 1)
-# )
+scf_download(2022)
+scf2022 <- scf_load(2022)
+scf2022 <- scf_update(scf2022,
+  over50 = age > 50,
+  log_income = log(income + 1)
+)
+
+# Clean up
+unlink("scf2022.rds", force = TRUE)
 }
 
 }

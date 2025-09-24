@@ -43,9 +43,12 @@
 #'
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # scf_plot_smooth(scf2022, ~networth, xlim = c(0, 2e6))
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' scf_plot_smooth(scf2022, ~networth, xlim = c(0, 2e6))
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #' 
 #'

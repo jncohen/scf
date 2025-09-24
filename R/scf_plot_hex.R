@@ -40,15 +40,17 @@
 #' src <- system.file("extdata", "scf2022_raw_mock.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
-#' 
 #' unlink("scf2022.rds", force = TRUE)
 #'
-#' # For real analysis, use:
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#'
-#' # Visualize the joint distribution of income and net worth
+#' \donttest{
+#' # Real workflow:
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
 #' scf_plot_hex(scf2022, ~income, ~networth)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
+#' }
 #'
 #' @seealso [scf_corr()], [scf_plot_smooth()], [scf_theme()]
 #'

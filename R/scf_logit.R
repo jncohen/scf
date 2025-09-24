@@ -34,10 +34,13 @@
 #' @examples
 #' \donttest{
 #' # Real workflow
-#' # scf_download(2022)
-#' # scf2022 <- scf_load(2022)
-#' # model <- scf_logit(scf2022, own ~ age)
-#' # summary(model)
+#' scf_download(2022)
+#' scf2022 <- scf_load(2022)
+#' model <- scf_logit(scf2022, own ~ age)
+#' summary(model)
+#' 
+#' # Clean up
+#' unlink("scf2022.rds", force = TRUE)
 #' }
 #'
 #' @section Warning:
