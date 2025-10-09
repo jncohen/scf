@@ -9,7 +9,7 @@ Description: Analyze public-use micro data from the Survey of Consumer Finances.
   multiply imputed survey designs, compute descriptive statistics and model
   estimates, and produce plots and tables. Methods follow design-based inference
   for complex surveys and pooling across multiple imputations. See the package
-  website and the codebook for background.
+  website and the code book for background.
 License: MIT + file LICENSE
 URL: https://github.com/jncohen/scf
 BugReports: https://github.com/jncohen/scf/issues

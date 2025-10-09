@@ -32,17 +32,26 @@
 #' }
 #'
 #' @examples
+#' # --- CRAN-safe demo using package mock data ---
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
+#'
+#' model <- scf_logit(scf2022, own ~ age)
+#' summary(model)
+#'
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#'
+#' # --- Real workflow (not run on CRAN) ---
 #' \donttest{
-#' # Real workflow
 #' scf_download(2022)
 #' scf2022 <- scf_load(2022)
 #' model <- scf_logit(scf2022, own ~ age)
 #' summary(model)
-#' 
-#' # Clean up
 #' unlink("scf2022.rds", force = TRUE)
 #' }
-#'
+#' 
 #' @section Warning:
 #' When modeling binary outcomes using survey-weighted logistic regression,
 #' users may encounter the warning:
