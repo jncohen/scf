@@ -35,36 +35,25 @@
 #' }
 #'
 #' @examples
-#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' # Do not implement these lines in real analysis:
+#' # Use functions `scf_download()` and `scf_load()`
 #' td  <- tempdir()
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Create a binary indicator for being over age 50
+#' # Example for real analysis: Create a binary indicator for being over age 50
 #' scf2022 <- scf_update(scf2022,
 #'   over50 = age > 50
 #' )
 #'
-#' # Create a log-transformed income variable
+#' # Example: Create a log-transformed income variable
 #' scf2022 <- scf_update(scf2022,
 #'   log_income = log(income + 1)
 #' )
 #' 
+#' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink("scf2022.rds", force = TRUE)
-#'
-#' \donttest{
-#' # Real workflow
-#' scf_download(2022)
-#' scf2022 <- scf_load(2022)
-#' scf2022 <- scf_update(scf2022,
-#'   over50 = age > 50,
-#'   log_income = log(income + 1)
-#' )
-#' 
-#' # Clean up
-#' unlink("scf2022.rds", force = TRUE)
-#' }
 #'
 #' @seealso [scf_load()], [scf_update_by_implicate()], [survey::svrepdesign()]
 #'

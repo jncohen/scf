@@ -57,31 +57,23 @@ into a \code{ggplot2} stacked bar chart using pooled counts or normalized percen
 }
 
 \examples{
-# Load bundled mock data (for demonstration only — not real SCF data)
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td  <- tempdir()
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Stacked bar chart: education by ownership
+# Example for real analysis: Stacked bar chart: education by ownership
 scf_plot_bbar(scf2022, ~own, ~edcl)
 
-# Column percentages instead of total percent
+# Example for real analysis: Column percentages instead of total percent
 scf_plot_bbar(scf2022, ~own, ~edcl, percent_by = "col")
 
-# Raw counts (estimated number of households)
+# Example for real analysis: Raw counts (estimated number of households)
 scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
 
+# Do not implement these lines in real analysis: Cleanup for package check
 unlink("scf2022.rds", force = TRUE)
-
-\donttest{
-# Real workflow
-scf_download(2022)
-scf2022 <- scf_load(2022)
-scf_plot_bbar(scf2022, ~own, ~edcl)
-
-# Clean up
-unlink("scf2022.rds", force = TRUE)
-}
 
 }

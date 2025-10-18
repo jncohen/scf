@@ -42,13 +42,14 @@ which cannot be computed reliably using \code{\link[=scf_update]{scf_update()}}.
 }
 
 \examples{
-# Mock workflow for CRAN (demo only — not real SCF data)
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td  <- tempdir()
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Example: compute implicate-specific z-scores of income
+# Example for real analysis: compute implicate-specific z-scores of income
 scf2022 <- scf_update_by_implicate(scf2022, function(df) {
   mu <- mean(df$income, na.rm = TRUE)
   sigma <- sd(df$income, na.rm = TRUE)
@@ -59,22 +60,8 @@ scf2022 <- scf_update_by_implicate(scf2022, function(df) {
 # Verify new variable exists
 head(scf2022$mi_design[[1]]$variables$z_income)
 
+# Do not implement these lines in real analysis: Cleanup for package check
 unlink("scf2022.rds", force = TRUE)
-
-\donttest{
-# Real workflow (requires download of full SCF data)
-scf_download(2022)
-scf2022 <- scf_load(2022)
-scf2022 <- scf_update_by_implicate(scf2022, function(df) {
-  mu <- mean(df$income, na.rm = TRUE)
-    sigma <- sd(df$income, na.rm = TRUE)
-    df$z_income <- (df$income - mu) / sigma
-      df
-      })
-      
- # Clean up
- unlink("scf2022.rds", force = TRUE)
- }
 
 }
 \seealso{

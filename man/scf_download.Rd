@@ -53,7 +53,7 @@ scf_download(2022)
 # Load into a survey design object
 scf2022 <- scf_load(2022)
 
-# Clean up
+# Do not implement these lines in real analysis: Cleanup for package check
 unlink("scf2022.rds", force = TRUE)
 }
 

@@ -44,22 +44,15 @@
 #' @seealso [scf_download()], [scf_design()], [scf_update()], [survey::svrepdesign()]
 #'
 #' @examples
-#' # Load bundled raw mock implicates (demo only — not real SCF data)
+#' # Using with CRAN-compliant mock data:
+#' # Use functions `scf_download()` and `scf_load()`
 #' td  <- tempdir()
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-#' ex <- scf_load(2022, data_directory = td)
-#' isTRUE(inherits(ex, "scf_mi_survey"))
-#' unlink("scf2022.rds", force = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
 #' 
-#' \donttest{
-#' # Real workflow (downloads and processes actual SCF data)
-#' scf_download(2022)
-#' real <- scf_load(2022)
-#' 
-#' # Clean up
+#' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink("scf2022.rds", force = TRUE)
-#' }
 #'
 #' @export
 scf_load <- function(min_year,

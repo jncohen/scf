@@ -32,28 +32,19 @@
 #' @seealso [scf_freq()], [scf_plot_bbar()], [scf_xtab()]
 #'
 #' @examples
-#' # Load bundled mock data (for demonstration only — not real SCF data)
+#' # Do not implement these lines in real analysis:
+#' # Use functions `scf_download()` and `scf_load()`
 #' td  <- tempdir()
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Bar chart of education categories
+#' # Example for real analysis: Bar chart of education categories
 #' scf_plot_dbar(scf2022, ~edcl)
 #' 
+#' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink("scf2022.rds", force = TRUE)
-#'
-#' \donttest{
-#' # Real workflow
-#' scf_download(2022)
-#' scf2022 <- scf_load(2022)
-#' scf_plot_dbar(scf2022, ~edcl)
 #' 
-#' 
-#' # Clean up
-#' unlink("scf2022.rds", force = TRUE)
-#' }
-#'
 #' @export
 scf_plot_dbar <- function(design, variable,
                           title = NULL,

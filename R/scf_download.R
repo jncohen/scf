@@ -38,10 +38,9 @@
 #' # Load into a survey design object
 #' scf2022 <- scf_load(2022)
 #' 
-#' # Clean up
+#' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink("scf2022.rds", force = TRUE)
 #' }
-
 #' 
 #' @references
 #' U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.

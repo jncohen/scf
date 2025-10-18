@@ -54,25 +54,18 @@ and stable pooled estimation in the presence of multiply-imputed microdata.
 }
 
 \examples{
-# Mock workflow for CRAN (demo only — not real SCF data)
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td  <- tempdir()
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
+# Example for real analysis: Plot histogram of age
 scf_plot_hist(scf2022, ~age, bins = 10)
 
+# Do not implement these lines in real analysis: Cleanup for package check
 unlink("scf2022.rds", force = TRUE)
-
-\donttest{
-# Real workflow
-scf_download(2022)
-scf2022 <- scf_load(2022)
-scf_plot_hist(scf2022, ~age, bins = 10)
-
-# Clean up
-unlink("scf2022.rds", force = TRUE)
-}
 
 }
 \seealso{

@@ -57,27 +57,20 @@ It avoids external dependencies by using base R formatting and simple text or
 Markdown output.
 }
 \examples{
-# Mock workflow for CRAN (demo only — not real SCF data)
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td  <- tempdir()
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
+
+# Wrangle data for example:  Perform OLS regression 
 m1 <- scf_ols(scf2022, income ~ age)
 
-# Print regression results as a console table
+# Example for real analysis: Print regression results as a console table
 scf_regtable(m1, digits = 2)
 
+# Do not implement these lines in real analysis: Cleanup for package check
 unlink("scf2022.rds", force = TRUE)
-
-\donttest{
-# Real workflow
-scf_download(2022)
-scf2022 <- scf_load(2022)
-m1 <- scf_ols(scf2022, income ~ age)
-scf_regtable(m1, digits = 2)
-
-# Clean up
-unlink("scf2022.rds", force = TRUE)
-}
 
 }

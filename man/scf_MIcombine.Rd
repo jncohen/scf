@@ -106,28 +106,19 @@ See \code{\link[=scf_MIcombine]{scf_MIcombine()}} for full implementation detail
 }
 
 \examples{
-# Example: Pool a simple survey mean on the bundled mock data
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td  <- tempdir()
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
+# Example for real analysis: Pool simple survey mean for mock data
 outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
 pooled  <- scf_MIcombine(outlist)     # vcov/coef extracted automatically
 SE(pooled); coef(pooled)
 
 unlink("scf2022.rds", force = TRUE)
-
-\donttest{
-# Real workflow
-scf_download(2022)
-scf2022 <- scf_load(2022)
-outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
-pooled  <- scf_MIcombine(outlist)
-
-# Clean up
-unlink("scf2022.rds", force = TRUE)
-}
 
 }
 \references{

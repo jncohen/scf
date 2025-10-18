@@ -56,27 +56,19 @@ official percentile macro (see Kennickell 1998; per Federal Reserve Board's
 }
 
 \examples{
-# Load bundled mock data (for demonstration only — not real SCF data)
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td  <- tempdir()
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Estimate percentiles
+# Example for real analysis: Estimate percentiles
 scf_percentile(scf2022, ~networth, q = 0.5)
 scf_percentile(scf2022, ~networth, q = 0.9, by = ~edcl)
 
+# Do not implement these lines in real analysis: Cleanup for package check
 unlink("scf2022.rds", force = TRUE)
-
-\donttest{
-# Real workflow
-scf_download(2022)
-scf2022 <- scf_load(2022)
-scf_percentile(scf2022, ~networth, q = 0.5)
-
-# Clean up
-unlink("scf2022.rds", force = TRUE)
-}
 
 }
 \references{
