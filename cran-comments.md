@@ -1,27 +1,3 @@
-## Note to Reviewers
-
-I am having difficulty juggling the following:
-1. The need to use synthetic data objects to test functions. Using these 
-  synthetic objects requires slightly different code than would be used in real 
-  work.
-2. The desire to include examples of how code would be implemented in reality
-3. The prohibition on /donotrun{}
-4. The need to download large data objects (1 Gb) from the Federal Reserve to 
-  use the real functions using standard code to keep package size small.
-5. The fact that /donottest{} requires a long time to run (> 30 minutes).
-
-Are any of the following possible or advisable, given the long test times 
-incurred by my real-world examples?
-1. Can CRAN allow me to use /donotrun{} for my real-world examples?
-2. Can CRAN tolerate a 30 minute+ test time for /donottest{} to run? Or
-3. Should I get rid of real world examples in the roxygen code?
-
-I would very much prefer 1 or 2 because I believe that it will render a better 
-user experience, but either would require an exception to policy.  I can do #3 
-if such an exception is too complicated.
-
-Thank you for all your work.
-
 
 ## Test environments
 * Local: R 4.3.1 on Windows 11 x86_64

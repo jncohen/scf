@@ -246,7 +246,7 @@ For detailed examples, function documentation, and usage guides, consult
 the package vignettes and reference manual.
 
 - [SCF Homepage](https://github.com/jncohen/scf)
-- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.3.pdf)
+- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.4.pdf)
 
 ## Note on Mock Data
 
