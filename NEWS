@@ -1,3 +1,11 @@
+# scf 1.0.5
+
+* Correct error in standard error estimates for `scf_median()`, `scf_percentile()`, and `scf_mean()`
+
+# scf 1.0.4 
+
+* First version successfully published to CRAN.
+
 # scf 1.0.3
 
 * Created new mock data object for CRAN compliance.  Required altered testing across package.

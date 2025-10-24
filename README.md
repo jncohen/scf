@@ -7,6 +7,8 @@ MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/
 version](https://img.shields.io/badge/R-%3E%3D%203.6-blue.svg)](https://cran.r-project.org/)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/scf)](https://cran.r-project.org/package=scf)
 
 ## Overview
 
@@ -246,7 +248,7 @@ For detailed examples, function documentation, and usage guides, consult
 the package vignettes and reference manual.
 
 - [SCF Homepage](https://github.com/jncohen/scf)
-- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.4.pdf)
+- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.5.pdf)
 
 ## Note on Mock Data
 
@@ -259,7 +261,7 @@ but **not suitable for analytical use or inference**.
 
 If you use `scf` in published work, please cite it as:
 
-> Joseph N. Cohen (2025). *scf: Tools for Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.3. <https://github.com/jncohen/scf>
+> Joseph N. Cohen (2025). *scf: Tools for Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.5. <https://github.com/jncohen/scf>
 
 Use `citation("scf")` in R for formatted references.
 
