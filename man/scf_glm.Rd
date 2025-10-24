@@ -76,6 +76,7 @@ https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-
 }
 
 \examples{
+\donttest{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`
 td  <- tempdir()
@@ -89,6 +90,7 @@ summary(model)
 
 # Do not implement these lines in real analysis: Cleanup for package check
 unlink("scf2022.rds", force = TRUE)
+}
 
 }
 \seealso{

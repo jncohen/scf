@@ -32,6 +32,7 @@
 #' }
 #'
 #' @examples
+#' \donttest{
 #' # Do not implement these lines in real analysis:
 #' # Use functions `scf_download()` and `scf_load()`
 #' td  <- tempdir()
@@ -45,7 +46,7 @@
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(file.path(td, "scf2022.rds"), force = TRUE)
-#'
+#' }
 #' 
 #' @section Warning:
 #' When modeling binary outcomes using survey-weighted logistic regression,

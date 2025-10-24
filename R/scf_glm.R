@@ -43,6 +43,7 @@
 #' }
 #'
 #' @examples
+#' \donttest{
 #' # Do not implement these lines in real analysis:
 #' # Use functions `scf_download()` and `scf_load()`
 #' td  <- tempdir()
@@ -56,6 +57,7 @@
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink("scf2022.rds", force = TRUE)
+#' }
 #'
 #' @section Internal Suppression:
 #'
