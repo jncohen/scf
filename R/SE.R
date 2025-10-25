@@ -9,11 +9,9 @@
 #' @return A numeric vector of standard errors corresponding to each coefficient.
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 SE <- function(object, ...) UseMethod("SE")
 
-#' @rdname SE
-#' @export
 SE.MIresult <- function(object, ...) {
   sqrt(diag(object$variance))
 }
