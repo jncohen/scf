@@ -105,7 +105,7 @@ scf_load <- function(min_year,
         type = "other",
         scale = 1,
         rscales = rep(1 / 998, 999),
-        mse = TRUE,
+        mse = FALSE,
         combined.weights = TRUE
       )
     })

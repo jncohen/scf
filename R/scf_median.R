@@ -7,16 +7,26 @@
 #' outliers.
 #'
 #' @section Implementation:
-#' This function wraps [scf_percentile()] with `q = 0.5`. The user provides a
-#' `scf_mi_survey` object and a one-sided formula indicating the variable of
-#' interest. An optional grouping variable can be specified with a second
-#' formula.  Output includes pooled medians, standard errors, min/max across
-#' implicates, and implicate-level values.
-#'
+#' This function wraps [scf_percentile()] with `q = 0.5`. The user supplies a
+#' `scf_mi_survey` object and a one-sided formula for the variable of interest,
+#' with an optional grouping formula. Output includes pooled medians,
+#' standard errors, min/max across implicates, and implicate-level values.
+#' Point estimates are the mean of the five implicate medians. Standard errors
+#' are computed using the Survey of Consumer Finances convention described
+#' below, not Rubin’s Rules.
+#' 
 #' @section Statistical Notes:
-#' Median estimates are not pooled using Rubin’s Rules. Following SCF protocol,
-#' the function calculates the median within each implicate and averages across implicates.
-#' See the data set's official codebook. 
+#' Median estimates follow the Federal Reserve Board’s SCF variance convention.
+#' For each implicate, the median is computed with replicate weights via
+#' [survey::svyquantile()]. The pooled estimate is the average of the five
+#' implicate medians. The pooled variance is
+#'   V_total = V1 + ((m + 1) / m) * B,
+#' where V1 is the replicate-weight sampling variance from the first implicate
+#' and B is the between-implicate variance of the five implicate medians, with
+#' m = 5 implicates. The reported standard error is sqrt(V_total). This matches
+#' the Federal Reserve Board's published SAS macro for SCF descriptive
+#' statistics and is not Rubin’s Rules.
+
 #'
 #' @param scf A `scf_mi_survey` object created by [scf_load()]. Must contain five implicates.
 #' @param var A one-sided formula specifying the continuous variable of interest (e.g., `~networth`).
@@ -47,13 +57,13 @@
 #' @seealso [scf_percentile()], [scf_mean()]
 #'
 #' @export
-scf_median <- function(scf, var, by = NULL) {
-
-  out <- scf_percentile(scf, var, q = 0.5, by = by)
+scf_median <- function(scf, var, by = NULL, verbose = FALSE) {
+  out <- scf_percentile(scf, var, q = 0.5, by = by, verbose = verbose)
   out$aux$quantile <- NULL
   class(out) <- c("scf_median", "scf_percentile")
-  return(out)
+  out
 }
+
 
 #' @export
 print.scf_median <- function(x, ...) {

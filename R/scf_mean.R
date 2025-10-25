@@ -44,98 +44,125 @@
 #'
 #' @export
 scf_mean <- function(scf, var, by = NULL, verbose = FALSE) {
-
-  # Ensure data object is a well-formed scf_mi_survey object
-  # with a list of valid `survey` replicate designs
+  
   if (!inherits(scf, "scf_mi_survey") ||
       !is.list(scf$mi_design) ||
       !all(sapply(scf$mi_design, inherits, "svyrep.design"))) {
     stop("Input must be a 'scf_mi_survey' object with replicate-weighted implicates.")
   }
-
+  
   if (isTRUE(attr(scf, "mock"))) {
     warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
   }
-
-
-  # Focal and grouping variable names assigned to within-function objects
+  
   varname <- all.vars(var)[1]
-  byname <- if (!is.null(by)) all.vars(by)[1] else NULL
+  byname  <- if (!is.null(by)) all.vars(by)[1] else NULL
   designs <- scf$mi_design
-  nimp <- length(designs)
-
-  # For each implicate, compute replicate-weighted means using
-  # `svymean()` or `svyby()` as appropriate. Store results as a list
-  # of data frames (one per implicate).
-  imps <- lapply(seq_len(nimp), function(i) {
-    d <- designs[[i]]
-    if (!is.null(byname)) {
-      d$variables[[byname]] <- factor(d$variables[[byname]])
-      est <- survey::svyby(var, by, survey::svymean, design = d)
-      data.frame(
-        implicate = i,
-        group = est[[byname]],
-        estimate = as.numeric(est[[varname]]),
-        stringsAsFactors = FALSE
-      )
-    } else {
-      est <- survey::svymean(var, d)
-      data.frame(
-        implicate = i,
-        estimate = as.numeric(est),
-        stringsAsFactors = FALSE
-      )
-    }
-  })
-  names(imps) <- paste0("imp", seq_len(nimp))
-
-  # Combine implicate-level results into a single data frame
-  df <- do.call(rbind, imps)
-
-  # Calculate the pooled mean and standard error
+  nimp    <- length(designs)
+  
   if (is.null(byname)) {
-    x <- df$estimate
-    qbar <- mean(x)
-    b <- var(x)
-    se <- sqrt((1 + 1 / nimp) * b)
+    
+    imp_results <- lapply(seq_len(nimp), function(i) {
+      d <- designs[[i]]
+      survey::svymean(var, d)
+    })
+    
+    imp_estimates <- lapply(seq_len(nimp), function(i) {
+      est <- imp_results[[i]]
+      data.frame(
+        implicate = i,
+        group     = "All",
+        estimate  = as.numeric(coef(est)),
+        se        = sqrt(diag(vcov(est))),
+        stringsAsFactors = FALSE
+      )
+    })
+    
+    pooled <- scf_MIcombine(imp_results)
+    
+    est_pooled <- as.numeric(pooled$coefficients)
+    se_pooled  <- sqrt(diag(pooled$variance))
+    
+    x_all <- sapply(imp_results, function(obj) as.numeric(coef(obj)))
+    
     out <- data.frame(
       variable = varname,
-      estimate = qbar,
-      se = se,
-      min = min(x),
-      max = max(x),
+      estimate = est_pooled,
+      se       = se_pooled,
+      min      = min(x_all),
+      max      = max(x_all),
       stringsAsFactors = FALSE
     )
+    
   } else {
-    group_levels <- sort(unique(df$group))
-    out <- do.call(rbind, lapply(group_levels, function(g) {
-      x <- df$estimate[df$group == g]
-      qbar <- mean(x)
-      b <- var(x)
-      se <- sqrt((1 + 1 / nimp) * b)
+    
+    for (i in seq_len(nimp)) {
+      designs[[i]]$variables[[byname]] <- factor(designs[[i]]$variables[[byname]])
+    }
+    groups <- levels(designs[[1]]$variables[[byname]])
+    
+    imp_results <- lapply(seq_len(nimp), function(i) {
+      d <- designs[[i]]
+      lapply(groups, function(g) {
+        d_g <- subset(d, d$variables[[byname]] == g)
+        survey::svymean(var, d_g)
+      })
+    })
+    
+    imp_estimates <- lapply(seq_len(nimp), function(i) {
+      res_i <- imp_results[[i]]
+      do.call(rbind, lapply(seq_along(groups), function(j) {
+        est <- res_i[[j]]
+        data.frame(
+          implicate = i,
+          group     = groups[j],
+          estimate  = as.numeric(coef(est)),
+          se        = sqrt(diag(vcov(est))),
+          stringsAsFactors = FALSE
+        )
+      }))
+    })
+    
+    out <- do.call(rbind, lapply(seq_along(groups), function(j) {
+      g <- groups[j]
+      
+      res_list_g <- lapply(seq_len(nimp), function(i) {
+        imp_results[[i]][[j]]
+      })
+      
+      pooled_g <- scf_MIcombine(res_list_g)
+      
+      est_pooled_g <- as.numeric(pooled_g$coefficients)
+      se_pooled_g  <- sqrt(diag(pooled_g$variance))
+      
+      x_g <- sapply(res_list_g, function(obj) as.numeric(coef(obj)))
+      
       data.frame(
-        group = g,
+        group    = g,
         variable = varname,
-        estimate = qbar,
-        se = se,
-        min = min(x),
-        max = max(x),
+        estimate = est_pooled_g,
+        se       = se_pooled_g,
+        min      = min(x_g),
+        max      = max(x_g),
         stringsAsFactors = FALSE
       )
     }))
+    
     out <- out[, c("group", "variable", "estimate", "se", "min", "max")]
   }
-
-  # Assemble results to return
+  
+  names(imp_estimates) <- paste0("imp", seq_len(nimp))
+  
   out_obj <- list(
     results = out,
-    imps = imps,
-    aux = list(varname = varname, byname = byname),
+    imps    = imp_estimates,
+    aux     = list(varname = varname, byname = byname),
     verbose = verbose
   )
   class(out_obj) <- "scf_mean"
   return(out_obj)
 }
+
 #' @export
 print.scf_mean <- function(x, ...) {
   cat("Multiply-Imputed, Replicate-Weighted Mean Estimate\n\n")

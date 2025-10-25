@@ -1,14 +1,25 @@
 #' Combine Estimates Across SCF Implicates Using Rubin's Rules
 #'
-#' This function is the **canonical implementation** of Rubin’s Rules in the
-#' `scf` package. It defines how point estimates, standard errors, and degrees
-#' of freedom are pooled across the SCF’s multiply-imputed replicate-weighted
-#' implicates.
+#' This function implements **Rubin’s Rules** for combining multiply-imputed
+#' survey model results in the `scf` package. It pools point estimates,
+#' variance-covariance matrices, and degrees of freedom across the SCF’s
+#' five implicates.
+#' 
+#' @section Scope:
+#' `scf_MIcombine()` is used for **model-based analyses** such as
+#' [scf_ols()], [scf_glm()], and [scf_logit()], where each implicate’s model
+#' output includes both parameter estimates and replicate-weighted sampling
+#' variances.
 #'
-#' Most `scf` functions that compute descriptive statistics or model estimates
-#' internally call this function (or apply its logic). As such, this
-#' documentation serves as the authoritative explanation of the pooling
-#' procedure and its assumptions for all SCF workflows in the package.
+#' Descriptive estimators—functions such as [scf_mean()], [scf_percentile()],
+#' and [scf_median()]—do **not** apply Rubin’s Rules. They follow the Survey of
+#' Consumer Finances convention used in the Federal Reserve Board’s SAS macro,
+#' combining (i) the replicate-weight sampling variance from implicate 1 with
+#' (ii) the between-implicate variance scaled by (m + 1)/m.
+#' 
+#' This separation is intentional: descriptive statistics in `scf` aim to
+#' reproduce the Survey of Consumer Finances' published standard errors,
+#' whereas model-based functions use Rubin's Rules.
 #'
 #' @section Implementation: 
 #' `scf_MIcombine()` pools a set of implicate-level estimates and their
@@ -20,8 +31,9 @@
 #' - Degrees of freedom via Barnard-Rubin method
 #' - Fraction of missing information
 #'
-#' Inputs are typically produced by functions like `scf_mean()`, `scf_ols()`,
-#' or `scf_percentile()`.
+#' Inputs are typically produced by modeling functions such as [scf_ols()], 
+#' [scf_glm()], or [scf_logit()], which return implicate-level coefficient 
+#' vectors and variance-covariance matrices.
 #'
 #' This function is primarily used internally, but may be called directly by
 #' advanced users constructing custom estimation routines from implicate-level
@@ -62,8 +74,6 @@
 #' The fraction of missing information (FMI) is also reported:
 #' it reflects the proportion of total variance attributable to imputation uncertainty.
 #'
-#' See [scf_MIcombine()] for full implementation details.
-#'
 #' @param results A list of implicate-level model outputs. Each element must be a named numeric vector
 #' or an object with methods for `coef()` and `vcov()`. Typically generated internally by modeling functions.
 #' @param variances Optional list of variance-covariance matrices. If omitted, extracted using `vcov()`.
@@ -82,9 +92,6 @@
 #' }
 #'
 #' Supports `coef()`, [SE()], `confint()`, and `summary()` methods.
-#'
-#' @seealso
-#' [scf_mean()], [scf_ols()], [scf_glm()], [scf_logit()]
 #'
 #' @examples
 #' # Do not implement these lines in real analysis:

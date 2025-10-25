@@ -31,17 +31,29 @@ An object of class \code{"scf_MIresult"} with components:
 Supports \code{coef()}, \code{\link[=SE]{SE()}}, \code{confint()}, and \code{summary()} methods.
 }
 \description{
-This function is the \strong{canonical implementation} of Rubin’s Rules in the
-\code{scf} package. It defines how point estimates, standard errors, and degrees
-of freedom are pooled across the SCF’s multiply-imputed replicate-weighted
-implicates.
+This function implements \strong{Rubin’s Rules} for combining multiply-imputed
+survey model results in the \code{scf} package. It pools point estimates,
+variance-covariance matrices, and degrees of freedom across the SCF’s
+five implicates.
 }
-\details{
-Most \code{scf} functions that compute descriptive statistics or model estimates
-internally call this function (or apply its logic). As such, this
-documentation serves as the authoritative explanation of the pooling
-procedure and its assumptions for all SCF workflows in the package.
+\section{Scope}{
+
+\code{scf_MIcombine()} is used for \strong{model-based analyses} such as
+\code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, and \code{\link[=scf_logit]{scf_logit()}}, where each implicate’s model
+output includes both parameter estimates and replicate-weighted sampling
+variances.
+
+Descriptive estimators—functions such as \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_percentile]{scf_percentile()}},
+and \code{\link[=scf_median]{scf_median()}}—do \strong{not} apply Rubin’s Rules. They follow the Survey of
+Consumer Finances convention used in the Federal Reserve Board’s SAS macro,
+combining (i) the replicate-weight sampling variance from implicate 1 with
+(ii) the between-implicate variance scaled by (m + 1)/m.
+
+This separation is intentional: descriptive statistics in \code{scf} aim to
+reproduce the Survey of Consumer Finances' published standard errors,
+whereas model-based functions use Rubin's Rules.
 }
+
 \section{Implementation}{
 
 \code{scf_MIcombine()} pools a set of implicate-level estimates and their
@@ -55,8 +67,9 @@ This includes:
 \item Fraction of missing information
 }
 
-Inputs are typically produced by functions like \code{scf_mean()}, \code{scf_ols()},
-or \code{scf_percentile()}.
+Inputs are typically produced by modeling functions such as \code{\link[=scf_ols]{scf_ols()}},
+\code{\link[=scf_glm]{scf_glm()}}, or \code{\link[=scf_logit]{scf_logit()}}, which return implicate-level coefficient
+vectors and variance-covariance matrices.
 
 This function is primarily used internally, but may be called directly by
 advanced users constructing custom estimation routines from implicate-level
@@ -101,8 +114,6 @@ adjusted using the Barnard-Rubin method:
 
 The fraction of missing information (FMI) is also reported:
 it reflects the proportion of total variance attributable to imputation uncertainty.
-
-See \code{\link[=scf_MIcombine]{scf_MIcombine()}} for full implementation details.
 }
 
 \examples{
@@ -130,7 +141,4 @@ ISBN: 9780470526798.
 
 U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
 https://www.federalreserve.gov/econres/scfindex.htm
-}
-\seealso{
-\code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, \code{\link[=scf_logit]{scf_logit()}}
 }

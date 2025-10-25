@@ -2,83 +2,77 @@
 % Please edit documentation in R/scf_percentile.R
 \name{scf_percentile}
 \alias{scf_percentile}
-\title{Estimate Percentile in a Continuous Variable in SCF Microdata}
+\title{Estimate Percentiles in SCF Microdata}
 \usage{
 scf_percentile(scf, var, q = 0.5, by = NULL, verbose = FALSE)
 }
 \arguments{
-\item{scf}{A scf_mi_survey object created with \code{\link[=scf_load]{scf_load()}}. Must contain five implicates.}
+\item{scf}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}. Must
+contain the list of replicate-weighted designs for each implicate in
+\code{scf$mi_design}.}
 
-\item{var}{A one-sided formula identifying the continuous variable to summarize (e.g., ~networth).}
+\item{var}{A one-sided formula naming the continuous variable to
+summarize (for example \code{~networth}).}
 
-\item{q}{A quantile to estimate (between 0 and 1). Defaults to 0.5 (median).}
+\item{q}{Numeric percentile in 0 to 1. Default 0.5 (median).}
 
-\item{by}{Optional one-sided formula specifying a discrete grouping variable for stratified percentiles.}
+\item{by}{Optional one-sided formula naming a categorical grouping
+variable. If supplied, the percentile is estimated separately within
+each group.}
 
-\item{verbose}{Logical. If TRUE, include implicate-level results in print output. Default is FALSE.}
+\item{verbose}{Logical. If TRUE, include implicate-level estimates in
+the returned object for inspection. Default FALSE.}
 }
 \value{
-A list of class "scf_percentile" with:
-\describe{
-\item{results}{Pooled percentile estimates with standard errors and range across implicates. One row per group, or one row total.}
-\item{imps}{A named list of implicate-level estimates.}
-\item{aux}{Variable, group, and quantile metadata.}
+An object of class "scf_percentile" with:
+\itemize{
+\item results: data frame of pooled percentile estimates, pooled
+standard errors, and implicate min/max. One row per group or one
+row total.
+\item imps: list of implicate-level estimates and standard errors.
+\item aux: list with variable name, optional group variable name, and
+quantile requested.
+\item verbose: the \code{verbose} flag.
 }
 }
 \description{
-Calculates the percentile score of a continuous variable in the SCF microdata.
-Use this function to either (1) identify where a continuous variable's
-value stands in relation to all observed values, or (2) to discern value
-below which a user-specified percentage of households fall on
-that metric.
+This function estimates a weighted percentile of a continuous variable
+in the Survey of Consumer Finances (SCF). It reproduces the procedure used
+in the Federal Reserve Board's published SCF Bulletin SAS macro for
+distributional statistics (Federal Reserve Board 2023c). This convention is
+specific to SCF descriptive distributional statistics (quantiles,
+proportions) and differs from standard handling (i.e., using Rubin's Rule).
 }
-\section{Details}{
+\details{
+The operation to render the estimates
+\enumerate{
+\item For each implicate of the Survey, it estimates the requested percentile
+using Lumley \emph{et al.}'s \code{\link[survey:svyquantile]{survey::svyquantile()}} function:
+\code{\link[survey:svyquantile]{survey::svyquantile()}} and \code{se = TRUE}.
+\item The reported point estimate for this statistic is the mean of those
+M implicate-specific percentile estimates.
+\item The standard error follows the SCF Bulletin SAS macro convention.
+The total variance is:
 
-The percentile is a value below which a given percentage of observations
-fall.  This function estimates the desired percentile score within each
-implicate of the SCF’s  multiply-imputed dataset, and then averages them to
-generate a population estimate.
+\if{html}{\out{<div class="sourceCode">}}\preformatted{V_total = V1 + ((M + 1) / M) * B
+}\if{html}{\out{</div>}}
 
-When a grouping variable is supplied, the percentile is estimated separately
-within each group in each implicate. Group-level results are then pooled
-across implicates.
-
-Unlike \code{\link[=scf_mean]{scf_mean()}}, this function does not pool results using Rubin’s Rules.
-Instead, it follows the Federal Reserve’s practice for reporting percentiles
-in official SCF publications: compute the desired percentile separately
-within each implicate, then average the resulting values to obtain a pooled
-estimate.
-
-Standard errors are approximated using the sample standard deviation of the
-five implicate-level estimates. This method is consistent with the SCF's
-official percentile macro (see Kennickell 1998; per Federal Reserve Board's
-2022 SCF's official SAS script)
+where:
+\itemize{
+\item V1 is the replicate-weight sampling variance of the percentile
+from the first implicate only.
+\item B  is the between-implicate variance of the percentile estimates.
 }
 
-\examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td  <- tempdir()
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Estimate percentiles
-scf_percentile(scf2022, ~networth, q = 0.5)
-scf_percentile(scf2022, ~networth, q = 0.9, by = ~edcl)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
-
+The reported standard error is sqrt(V_total).
+\item If a grouping variable is supplied, the same logic is applied
+separately within each group.
+}
 }
 \references{
-Kennickell AB, McManus DA, Woodburn RL. Weighting design for the 1992 Survey of Consumer Finances.
-U.S. Federal Reserve.
-\url{https://www.federalreserve.gov/Pubs/OSS/oss2/papers/weight92.pdf}
-
-U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
-https://www.federalreserve.gov/econres/scfindex.htm
+Federal Reserve Board. 2023c. "SAS Macro: Variable Definitions."
+https://www.federalreserve.gov/econres/files/bulletin.macro.txt
 }
 \seealso{
-\code{\link[=scf_median]{scf_median()}}
+\code{\link[=scf_median]{scf_median()}}, \code{\link[=scf_mean]{scf_mean()}}
 }
