@@ -28,7 +28,7 @@ An object of class \code{"scf_MIresult"} with components:
 \item{call}{Function call recorded for reproducibility.}
 }
 
-Supports \code{coef()}, \code{\link[=SE]{SE()}}, \code{confint()}, and \code{summary()} methods.
+Supports \code{coef()}, \code{\link[survey:SE]{survey::SE()}}, \code{confint()}, and \code{summary()} methods.
 }
 \description{
 This function implements \strong{Rubin’s Rules} for combining multiply-imputed

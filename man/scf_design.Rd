@@ -23,21 +23,25 @@ An object of class "scf_mi_survey" with:
 }
 \description{
 Stores SCF microdata as five implicate-specific designs created by
-\code{\link[survey:svrepdesign]{survey::svrepdesign()}}. Raw implicate data frames are not retained.
+\code{\link[survey:svrepdesign]{survey::svrepdesign()}}.
 }
 \details{
+This is a helper function for the \code{\link[=scf_download]{scf_download()}} and \code{\link[=scf_load]{scf_load()}} functions.
 Wrap a list of replicate-weighted survey designs into an "scf_mi_survey".
-Typically called by \code{\link[=scf_load]{scf_load()}}.
+Typically called by \code{\link[=scf_load]{scf_load()}}. The function creates a complex object that
+includes the Survey's five implicates, along with the year and an
+estimate of the total U.S. households in that year.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
+# Ignore this code block.  It loads mock data for CRAN.
+# In your analysis, download and load your data using the
+# functions `scf_download()` and `scf_load()`
 td  <- tempdir()
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Example for real analysis: Construct scf_mi_survey object
+# EXAMPLE IMPLEMENTATION: Construct scf_mi_survey object
 obj <- scf_design(
   design = scf2022$mi_design,
   year = 2022,
@@ -46,7 +50,7 @@ obj <- scf_design(
 class(obj)
 length(obj$mi_design)
 
-# Do not implement these lines in real analysis: Cleanup for package check
+# Ignore the code below.  It is for CRAN:
 unlink("scf2022.rds", force = TRUE)
 
 }

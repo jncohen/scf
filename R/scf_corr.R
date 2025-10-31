@@ -48,7 +48,7 @@
 #' few implicates.
 #'
 #' @examples
-#' # Ingore this code block.  It loads mock data for CRAN.
+#' # Ignore this code block.  It loads mock data for CRAN.
 #' # In your analysis, download and load your data using the
 #' # functions `scf_download()` and `scf_load()`
 #' td  <- tempdir()
