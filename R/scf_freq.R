@@ -1,9 +1,9 @@
-#' Tabulate a Discrete Variable from SCF Microdata
+#' Estimate the Frequencies of a Discrete Variable from SCF Microdata
 #'
-#' Computes weighted proportions and standard errors for a categorical variable
+#' Computes weighted proportions and standard errors for a discrete variable
 #' in multiply-imputed SCF data, optionally stratified by a grouping variable.
-#' Proportions and standard errors are computed
-#' separately within each implicate using `svymean()`, then averaged across
+#' Proportions and standard errors are computed separately within each 
+#' implicate using `svymean()`, then averaged across
 #' implicates using SCF-recommended pooling logic. Group-wise frequencies are
 #' supported, but users may find the features of [scf_xtab()] to be more useful.
 #'
@@ -14,9 +14,11 @@
 #'
 #'
 #' @section Details:
-#' Proportions are estimated within each implicate using `survey::svymean()`, then pooled using the standard MI
-#' formula for proportions. When a grouping variable is provided via `by`, estimates are produced separately for each
-#' group-category combination. Results may be scaled to percentages using the `percent` argument.
+#' Proportions are estimated within each implicate using `survey::svymean()`, 
+#' then pooled using the standard MI formula for proportions. When a grouping 
+#' variable is provided via `by`, estimates are produced separately for each
+#' group-category combination. Results may be scaled to percentages using the 
+#' `percent` argument.
 #'
 #' Estimates are pooled using the standard formula:
 #' - The mean of implicate-level proportions is the point estimate
@@ -40,20 +42,21 @@
 #' @seealso [scf_xtab()], [scf_plot_dist()]]
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
+#' # Ignore this code block.  It loads mock data for CRAN.
+#' # In your analysis, download and load your data using the
+#' # functions `scf_download()` and `scf_load()`
 #' td  <- tempdir()
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Example for real analysis: Proportions of homeownership
+#' # EXAMPLE IMPLEMENTATION: Proportions of homeownership
 #' scf_freq(scf2022, ~own)
 #'
-#' # Example for real analysis: ross-tabulate education by homeownership
+#' # EXAMPLE IMPLEMENTATION: Cross-tabulate education by homeownership
 #' scf_freq(scf2022, ~own, by = ~edcl)
 #' 
-#' # Do not implement these lines in real analysis: Cleanup for package check
+#' # Ignore the code below.  It is for CRAN:
 #' unlink("scf2022.rds", force = TRUE)
 #'
 #' @export
