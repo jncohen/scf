@@ -14,7 +14,7 @@ contain the list of replicate-weighted designs for each implicate in
 \item{var}{A one-sided formula naming the continuous variable to
 summarize (for example \code{~networth}).}
 
-\item{q}{Numeric percentile in 0 to 1. Default 0.5 (median).}
+\item{q}{Numeric percentile in between 0 and 1. Default 0.5 (median).}
 
 \item{by}{Optional one-sided formula naming a categorical grouping
 variable. If supplied, the percentile is estimated separately within
@@ -24,15 +24,16 @@ each group.}
 the returned object for inspection. Default FALSE.}
 }
 \value{
-An object of class "scf_percentile" with:
-\itemize{
-\item results: data frame of pooled percentile estimates, pooled
-standard errors, and implicate min/max. One row per group or one
-row total.
-\item imps: list of implicate-level estimates and standard errors.
-\item aux: list with variable name, optional group variable name, and
-quantile requested.
-\item verbose: the \code{verbose} flag.
+An object of class \code{"scf_percentile"} containing:
+\describe{
+\item{results}{A data frame containing pooled percentile estimates, pooled
+standard errors, and implicate min/max values. One row per group (if
+\code{by} is supplied) or one row otherwise.}
+\item{imps}{A list of implicate-level percentile estimates and standard errors.}
+\item{aux}{A list containing the variable name, optional group variable name,
+and the quantile requested.}
+\item{verbose}{Logical flag indicating whether implicate-level estimates
+should be printed by \code{print()} or \code{summary()}.}
 }
 }
 \description{
@@ -44,15 +45,13 @@ specific to SCF descriptive distributional statistics (quantiles,
 proportions) and differs from standard handling (i.e., using Rubin's Rule).
 }
 \details{
-The operation to render the estimates
+The operation to render the estimates:
 \enumerate{
-\item For each implicate of the Survey, it estimates the requested percentile
-using Lumley \emph{et al.}'s \code{\link[survey:svyquantile]{survey::svyquantile()}} function:
-\code{\link[survey:svyquantile]{survey::svyquantile()}} and \code{se = TRUE}.
-\item The reported point estimate for this statistic is the mean of those
-M implicate-specific percentile estimates.
-\item The standard error follows the SCF Bulletin SAS macro convention.
-The total variance is:
+\item For each implicate, estimate the requested percentile using
+\code{\link[survey:svyquantile]{survey::svyquantile()}} with \code{se = TRUE}.
+\item The reported point estimate is the mean of the M implicate-specific
+percentile estimates.
+\item The standard error follows the SCF Bulletin SAS macro convention:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{V_total = V1 + ((M + 1) / M) * B
 }\if{html}{\out{</div>}}
@@ -68,6 +67,25 @@ The reported standard error is sqrt(V_total).
 \item If a grouping variable is supplied, the same logic is applied
 separately within each group.
 }
+}
+\examples{
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()` for actual SCF data
+td  <- tempdir()
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = td)
+
+# Estimate the 75th percentile of net worth
+scf_percentile(scf2022, ~networth, q = 0.75)
+
+# Estimate the median net worth by ownership group
+scf_percentile(scf2022, ~networth, q = 0.5, by = ~own)
+
+# Do not implement these lines in real analysis: Cleanup for package check
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
+rm(scf2022)
+
 }
 \references{
 Federal Reserve Board. 2023c. "SAS Macro: Variable Definitions."

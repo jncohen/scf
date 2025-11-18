@@ -67,7 +67,7 @@ scf_prop_test(scf2022, ~rich, p = 0.10)
 scf_prop_test(scf2022, ~rich, ~female, alternative = "less")
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 
 }

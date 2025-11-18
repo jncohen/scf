@@ -2,25 +2,27 @@
 ## Test environments
 * Local: R 4.3.1 on Windows 11 x86_64
 * R-hub: windows-x86_64-devel, ubuntu-gcc-release
+* Win-builder: R-devel, R-release
 
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
-## Additional comments
-* A known benign warning ("non-integer #successes in a binomial glm!") may 
+## Warnings with scf_logit() and scf_glm()
+A known benign warning ("non-integer #successes in a binomial glm!") may 
 appear when using `svyglm(family = binomial())` with replicate weights. This 
 does not affect results or inference. 
 See: https://stackoverflow.com/questions/12953045
 
 ## Mock Data
-The mock data is a truncated subset of the actual 2022 SCF public-use data. 
-It includes all five implicates and replicate weights to enable valid demonstrations of 
-multiply-imputed, replicate-weighted analysis.  It is a much reduced real-world
-object to satisfy CRAN's requirement of a package size below 5Mb, which proved 
-challenging given the 999 replicate weights.
 
-It is necessary for CRAN-safe examples using scf_*() functions, which rely on 
-the full SCF data structure. The mock data is used only in test blocks and is 
-clearly labeled in documentation and examples as not representative.  This 
-mock data generates warnings by design.
+This package includes a small mock dataset (`mock_scf2022.rds`) for testing 
+purposes. The size and complexity of this data make it difficult to produce a
+tarball under CRAN's 5Mb limit. The mock set is a truncated subset of the 
+actual 2022 SCF public-use data, which includes the first 75 observations of 
+the set, recorded in a complex data object that includes all five implicates, 
+each with 999 replicate weights. It preserves the structure of the full data, 
+allowing the `scf` functions to operate as intended. 
 
+Because the mock dataset is small by design, certain functions (especially 
+`scf_logit()` on rare outcomes) may produce warnings or fail, but this does 
+not reflect problems in the real-SCF workflow.

@@ -56,7 +56,7 @@
 #' summary(model)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #' }
 #'
 #' @section Internal Suppression:
@@ -150,7 +150,8 @@ scf_glm <- function(object, formula, family = binomial()) {
     results = coef_table,
     fit = fit_stats,
     models = models,
-    call = match.call()
+    call = match.call(),
+    formula = formula
   )
   class(out) <- c("scf_glm", "scf_model_result")
   return(out)

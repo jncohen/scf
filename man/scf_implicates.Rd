@@ -44,6 +44,6 @@ out <- scf_freq(scf2022, ~own)
 scf_implicates(out, long = TRUE)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }

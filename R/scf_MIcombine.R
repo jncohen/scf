@@ -106,7 +106,7 @@
 #' pooled  <- scf_MIcombine(outlist)     # vcov/coef extracted automatically
 #' SE(pooled); coef(pooled)
 #' 
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @references
 #'
@@ -156,9 +156,22 @@ scf_MIcombine <- function(results, variances, call = sys.call(), df.complete = I
   )
 }
 
+#' Extract Standard Errors from Pooled SCF Model Results
+#'
+#' @description
+#' Generic extractor for pooled standard errors from objects of class
+#' `"scf_MIresult"`.
+#'
+#' @param object A pooled result object of class `"scf_MIresult"`.
+#' @param ... Not used.
+#'
+#' @return A numeric vector of standard errors.
+#'
+#' @seealso scf_MIcombine
 #' @export
 SE <- function(object, ...) UseMethod("SE")
 
+#' @rdname SE
 #' @export
 SE.scf_MIresult <- function(object, ...) {
   sqrt(diag(object$variance))

@@ -52,7 +52,7 @@ file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \seealso{

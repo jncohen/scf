@@ -48,13 +48,17 @@ using \code{\link[=scf_load]{scf_load()}}, \code{\link[=scf_design]{scf_design()
 \examples{
 \donttest{
 # Download and prepare SCF data for 2022
+td <- tempdir()
+old <- getwd()
+setwd(td)
 scf_download(2022)
 
 # Load into a survey design object
-scf2022 <- scf_load(2022)
+scf2022 <- scf_load(2022, data_directory = td)
 
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+# Cleanup for package check
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
+setwd(old)
 }
 
 }

@@ -40,7 +40,7 @@
 #' length(obj$mi_design)
 #' 
 #' # Ignore the code below.  It is for CRAN:
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @seealso [scf_load()], [scf_update()]
 #' @export
@@ -49,4 +49,16 @@ scf_design <- function(design, year, n_households) {
     stop("`design` must be a list of `svrep.design` objects (one per implicate).")
   structure(list(mi_design = design, year = year, n_households = n_households),
             class = "scf_mi_survey")
+}
+
+#' @export
+print.scf_mi_survey <- function(x, ...) {
+  cat("SCF Multiply-Imputed Survey Object\n")
+  cat("----------------------------------\n")
+  cat("Year:          ", x$year, "\n", sep = "")
+  cat("Households (N):", format(x$n_households, big.mark = ","), "\n", sep = "")
+  cat("Implicates:    ", length(x$mi_design), "\n", sep = "")
+  cat("Replicate weights per implicate:",
+      ncol(x$mi_design[[1]]$repweights), "\n")
+  invisible(x)
 }

@@ -12,6 +12,8 @@ scf_median(scf, var, by = NULL, verbose = FALSE)
 \item{var}{A one-sided formula specifying the continuous variable of interest (e.g., \code{~networth}).}
 
 \item{by}{Optional one-sided formula for a categorical grouping variable.}
+
+\item{verbose}{Logical; if TRUE, show implicate-level results.}
 }
 \value{
 A list of class \code{"scf_median"} with:
@@ -65,7 +67,7 @@ scf_median(scf2022, ~networth)
 scf_median(scf2022, ~networth, by = ~edcl)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \seealso{

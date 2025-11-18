@@ -8,6 +8,7 @@
 #' @importFrom stats var pnorm qnorm qt setNames binomial family xtabs aggregate IQR weighted.mean
 #' @importFrom utils head tail unzip write.csv
 #' @importFrom rlang .data
+#' @importFrom survey SE cv
 #' @import ggplot2
 #' @name scf_imports
 NULL

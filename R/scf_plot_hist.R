@@ -39,7 +39,7 @@
 #' scf_plot_hist(scf2022, ~age, bins = 10)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @seealso [scf_freq()], [scf_plot_dbar()], [scf_plot_smooth()], [scf_update_by_implicate()]
 #' @export

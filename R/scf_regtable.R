@@ -48,7 +48,7 @@
 #' scf_regtable(m1, digits = 2)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @export
 scf_regtable <- function(...,
@@ -58,26 +58,24 @@ scf_regtable <- function(...,
                          labels = NULL,
                          output = c("console", "markdown", "csv"),
                          file = NULL) {
-
+  
   models <- list(...)
-
-  # If the user passed a single argument that is a list of models, unpack it
+  
   if (length(models) == 1 && is.list(models[[1]]) &&
-      (inherits(models[[1]][[1]], "scf_ols") || inherits(models[[1]][[1]], "scf_logit") || inherits(models[[1]][[1]], "scf_glm"))) {
+      (inherits(models[[1]][[1]], "scf_model_result"))) {
     models <- models[[1]]
   }
-
+  
   output <- match.arg(output)
   n_models <- length(models)
-
+  
   if (is.null(model.names)) model.names <- paste("Model", seq_len(n_models))
   stopifnot(length(model.names) == n_models)
-
-  # Gather all terms from all models
+  
   all_terms <- unique(unlist(lapply(models, function(m) m$results$term)))
   all_terms <- sort(all_terms)
   out <- data.frame(term = all_terms, stringsAsFactors = FALSE)
-
+  
   # Helper: format estimates with adaptive digits or fixed digits
   format_estimate <- function(est) {
     if (!auto_digits) {
@@ -97,7 +95,7 @@ scf_regtable <- function(...,
       }, USE.NAMES = FALSE)
     }
   }
-
+  
   # Fill main regression results into the output data.frame
   for (i in seq_along(models)) {
     res <- models[[i]]$results
@@ -110,9 +108,9 @@ scf_regtable <- function(...,
     vals[res$term] <- formatted
     out[[model.names[i]]] <- vals
   }
-
+  
   colnames(out)[1] <- "Term"
-
+  
   # Apply custom labels if provided
   if (!is.null(labels)) {
     if (is.function(labels)) {
@@ -121,60 +119,73 @@ scf_regtable <- function(...,
       out$Term <- sapply(out$Term, function(t) ifelse(!is.na(labels[t]), labels[t], t))
     }
   }
-
+  
   # Prepare fit statistics rows: N, R2 or pseudo-R2, AIC
   fit_terms <- c("N", "R2", "AIC")
   fit_stats_mat <- matrix("--", nrow = length(fit_terms), ncol = n_models,
                           dimnames = list(fit_terms, model.names))
-
+  
   for (i in seq_along(models)) {
     m <- models[[i]]
-
-    # Extract sample size N from implicate or model residuals
+    
+    # Fetch N
     n <- NA_integer_
-    if (!is.null(m$models) && length(m$models) > 0 && !is.null(m$models[[1]])) {
-      n <- length(stats::residuals(m$models[[1]]))
-    } else if (!is.null(m$imps) && length(m$imps) > 0 && !is.null(m$imps[[1]])) {
-      n <- length(stats::residuals(m$imps[[1]]))
-    }
-
-    # Detect binomial/logit family for pseudo-R2 usage
+    tryCatch({
+      n <- length(stats::residuals(m)) 
+    }, error = function(e) {
+      # Fallback to old, manual logic if S3 method fails (for robustness)
+      if (!is.null(m$models) && length(m$models) > 0 && !is.null(m$models[[1]])) {
+        n <<- length(stats::residuals(m$models[[1]]))
+      } else if (!is.null(m$imps) && length(m$imps) > 0 && !is.null(m$imps[[1]])) {
+        n <<- length(stats::residuals(m$imps[[1]]))
+      }
+    })
+    
+    # Fetch AIC
+    aic_val <- NA_real_
+    tryCatch({
+      aic_val <- stats::AIC(m)
+    }, error = function(e) {
+      # Fallback to old, manual logic
+      aic_val <<- if (!is.null(m$fit$AIC)) m$fit$AIC else NA_real_
+    })
+    
+    # Detect binomial/logit family for pseudo-R2 usage 
     is_binomial <- FALSE
     if (!is.null(m$family)) {
       is_binomial <- inherits(m$family, "binomial")
     }
     if (!is_binomial && !is.null(m$models) && length(m$models) > 0) {
       is_binomial <- inherits(m$models[[1]], "glm") &&
-        family(m$models[[1]])$family == "binomial"
+        stats::family(m$models[[1]])$family == "binomial"
     }
-
-    # Safely get R2 or pseudo_R2; avoid NULL by assigning NA_real_ if needed
+    
+    # Get R2 or pseudo_R2 
     r2_val <- NA_real_
     if (inherits(m, "scf_logit") || is_binomial) {
       r2_val <- if (!is.null(m$fit$pseudo_r2)) m$fit$pseudo_r2 else NA_real_
     } else {
       r2_val <- if (!is.null(m$fit$r.squared)) m$fit$r.squared else NA_real_
     }
-
-    aic_val <- if (!is.null(m$fit$AIC)) m$fit$AIC else NA_real_
-
+    
+    
     fit_stats_mat["N", i] <- if (!is.na(n)) as.character(n) else "--"
     fit_stats_mat["R2", i] <- if (!is.na(r2_val)) formatC(r2_val, digits = 3, format = "f") else "--"
     fit_stats_mat["AIC", i] <- if (!is.na(aic_val)) formatC(aic_val, digits = 0, format = "f") else "--"
   }
-
+  
   fit_stats_df <- data.frame(Term = fit_terms, fit_stats_mat, stringsAsFactors = FALSE)
-
+  
   # Convert all columns to character to safely bind
   out[] <- lapply(out, as.character)
   fit_stats_df[] <- lapply(fit_stats_df, as.character)
-
+  
   # Align column names for binding
   colnames(fit_stats_df) <- colnames(out)
-
+  
   # Append fit stats below main table
   out <- rbind(out, fit_stats_df)
-
+  
   # Output depending on user choice
   if (output == "console") {
     max_len <- max(nchar(out$Term))
@@ -186,12 +197,12 @@ scf_regtable <- function(...,
       cat("\n")
     }
     invisible(out)
-
+    
   } else if (output == "csv") {
     if (is.null(file)) stop("Please provide a file path for CSV output.")
     write.csv(out, file = file, row.names = FALSE)
     invisible(out)
-
+    
   } else if (output == "markdown") {
     header <- paste0("| ", paste(colnames(out), collapse = " | "), " |")
     separator <- paste0("|", paste(rep("---", ncol(out)), collapse = "|"), "|")

@@ -37,7 +37,7 @@
 #' scf_mean(scf2022, ~networth, by = ~edcl)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #'
 #' @seealso [scf_median()], [scf_percentile()], [scf_xtab()], [scf_plot_dist()]

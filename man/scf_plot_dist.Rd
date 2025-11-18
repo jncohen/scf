@@ -65,7 +65,7 @@ scf2022 <- scf_load(2022, data_directory = td)
 scf_plot_dist(scf2022, ~own)
 scf_plot_dist(scf2022, ~age, bins = 10)
 
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 \donttest{
 # Real workflow
@@ -75,7 +75,7 @@ scf_plot_dist(scf2022, ~own)
 scf_plot_dist(scf2022, ~age, bins = 10)
 
 # Clean up
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 }
 
 }

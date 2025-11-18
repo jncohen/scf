@@ -31,6 +31,7 @@
 #' @param scf A `scf_mi_survey` object created by [scf_load()]. Must contain five implicates.
 #' @param var A one-sided formula specifying the continuous variable of interest (e.g., `~networth`).
 #' @param by Optional one-sided formula for a categorical grouping variable.
+#' @param verbose Logical; if TRUE, show implicate-level results.
 #'
 #' @return A list of class `"scf_median"` with:
 #' \describe{
@@ -52,7 +53,7 @@
 #' scf_median(scf2022, ~networth, by = ~edcl)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @seealso [scf_percentile()], [scf_mean()]
 #'

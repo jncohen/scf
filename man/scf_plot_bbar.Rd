@@ -74,6 +74,6 @@ scf_plot_bbar(scf2022, ~own, ~edcl, percent_by = "col")
 scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }

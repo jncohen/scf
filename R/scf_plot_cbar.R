@@ -46,7 +46,7 @@
 #' scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9, fill = "#D55E00")
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @export
 scf_plot_cbar <- function(design, yvar, xvar,

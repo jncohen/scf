@@ -69,7 +69,7 @@ scf_plot_smooth(scf2022, ~networth, xlim = c(0, 2e6),
                 method = "loess", span = 0.25)
      
 # Do not implement these lines in real analysis: Cleanup for package check           
- unlink("scf2022.rds", force = TRUE)
+ unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \seealso{

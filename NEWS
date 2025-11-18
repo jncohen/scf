@@ -1,6 +1,9 @@
 # scf 1.0.5
 
 * Correct error in standard error estimates for `scf_median()`, `scf_percentile()`, and `scf_mean()`
+* Suppressed known `svyquantile()` replicate-weight warnings for cleaner output.
+* Added S3 methods for `"scf_model_result"` (`coef`, `vcov`, `predict`, `AIC`, `residuals`, `formula`) and updated model output structure accordingly.
+* Standardized temporary-directory handling and safe file cleanup across all examples.
 
 # scf 1.0.4 
 

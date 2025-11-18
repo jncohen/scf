@@ -57,7 +57,7 @@ scf_sub <- scf_subset(scf2022, age < 65 & networth > 0)
 scf_mean(scf_sub, ~income)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 
 }

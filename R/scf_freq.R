@@ -57,7 +57,7 @@
 #' scf_freq(scf2022, ~own, by = ~edcl)
 #' 
 #' # Ignore the code below.  It is for CRAN:
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @export
 scf_freq <- function(scf, var, by = NULL, percent = TRUE) {

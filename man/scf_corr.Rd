@@ -79,7 +79,7 @@ print(corr)
 summary(corr)
 
 # Ignore the code below.  It is for CRAN:
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \seealso{

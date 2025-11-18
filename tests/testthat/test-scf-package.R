@@ -47,14 +47,23 @@ test_that("Regression functions return valid model objects", {
   )
   
   model <- scf_ols(scf2022, networth ~ income + over50)
-  expect_setequal(names(model), c("results", "imps", "fit", "call"))
+  
+  # Required components exist
+  expect_true(all(c("results", "imps", "fit", "call") %in% names(model)))
+  
+  # Optional: ensure new component exists
+  expect_true("formula" %in% names(model))
+  
   expect_true("estimate" %in% names(model$results))
   
   logit <- scf_logit(scf2022, own_bin ~ over50 + log_inc)
-  expect_setequal(names(logit), c("results", "imps", "fit", "call"))
+  
+  expect_true(all(c("results", "imps", "fit", "call") %in% names(logit)))
+  expect_true("formula" %in% names(logit))
   
   unlink(file.path(td, "scf2022.rds"), force = TRUE)
 })
+
 
 test_that("Plot functions generate ggplot objects", {
   td  <- tempdir()

@@ -62,7 +62,7 @@ scf_ttest(scf2022, ~income, mu = 75000)
 scf_ttest(scf2022, ~income, group = ~female)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \seealso{

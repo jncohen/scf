@@ -47,7 +47,7 @@ modeling, and high-quality visualizations.
 - `scf_freq()`: Weighted frequency tables for categorical variables.
 - `scf_xtab()`: Cross-tabulations by row, column, or cell percentages.
 - `scf_mean()`, `scf_median()`, `scf_percentile()`: Computes groupwise
-  or overall statistics using Rubin’s Rules.
+  or overall statistics using Rubin’s Rules or a commensurate methodology.
 - `scf_corr()`: Weighted Pearson correlations.
 
 ### Statistical Inference
@@ -66,6 +66,10 @@ modeling, and high-quality visualizations.
 - `scf_glm()`: Generalized linear models (e.g., logistic, Poisson).
 - `scf_logit()`: Wrapper for logistic regression with optional odds
   ratio output.
+  
+All model functions (scf_ols, scf_glm, scf_logit) return objects of class 
+`scf_model_result`, with methods for `coef()`, `vcov()`, `predict()`, `AIC()`, 
+`residuals()`, and `summary()`.
 
 ### Visualization
 
@@ -249,7 +253,9 @@ the package vignettes and reference manual.
 
 This package includes a small mock dataset (`mock_scf2022.rds`) for testing purposes.  
 It includes only 75 rows and select variables. It is structurally valid,  
-but **not suitable for analytical use or inference**.
+but **not suitable for analytical use or inference**. Mock data objects carry a 
+"mock" = TRUE attribute and may trigger warnings in functions to discourage 
+interpretive use.
 
 
 ## Citation

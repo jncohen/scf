@@ -66,7 +66,7 @@ scf2022 <- scf_update(scf2022,
 )
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \seealso{

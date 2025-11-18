@@ -53,7 +53,7 @@
 #' )
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @seealso [scf_load()], [scf_update_by_implicate()], [survey::svrepdesign()]
 #'

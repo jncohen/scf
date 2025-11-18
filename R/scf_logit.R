@@ -97,7 +97,8 @@ scf_logit <- function(object, formula, odds = TRUE, ...) {
     results = model$results,
     imps = model$models,
     fit = model$fit,
-    call = match.call()
+    call = match.call(),
+    formula = formula
   )
   class(out) <- c("scf_logit", "scf_model_result")
   return(out)

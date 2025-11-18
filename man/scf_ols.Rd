@@ -57,11 +57,10 @@ scf2022 <- scf_load(2022, data_directory = td)
 
 # Example for real analysis: Run OLS model
 model <- scf_ols(scf2022, networth ~ income + age)
-print(model)
 summary(model)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \seealso{

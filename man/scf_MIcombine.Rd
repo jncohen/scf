@@ -28,7 +28,7 @@ An object of class \code{"scf_MIresult"} with components:
 \item{call}{Function call recorded for reproducibility.}
 }
 
-Supports \code{coef()}, \code{\link[survey:SE]{survey::SE()}}, \code{confint()}, and \code{summary()} methods.
+Supports \code{coef()}, \code{\link[=SE]{SE()}}, \code{confint()}, and \code{summary()} methods.
 }
 \description{
 This function implements \strong{Rubin’s Rules} for combining multiply-imputed
@@ -129,7 +129,7 @@ outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), 
 pooled  <- scf_MIcombine(outlist)     # vcov/coef extracted automatically
 SE(pooled); coef(pooled)
 
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \references{

@@ -7,16 +7,12 @@
 #' specific to SCF descriptive distributional statistics (quantiles, 
 #' proportions) and differs from standard handling (i.e., using Rubin's Rule).
 #'
-#' The operation to render the estimates
-#' 1. For each implicate of the Survey, it estimates the requested percentile 
-#'    using Lumley *et al.*'s [survey::svyquantile()] function:
-#'    [survey::svyquantile()] and `se = TRUE`.
-#'
-#' 2. The reported point estimate for this statistic is the mean of those 
-#'    M implicate-specific percentile estimates.
-#'
-#' 3. The standard error follows the SCF Bulletin SAS macro convention.
-#'    The total variance is:
+#' The operation to render the estimates:
+#' 1. For each implicate, estimate the requested percentile using
+#'    [survey::svyquantile()] with `se = TRUE`.
+#' 2. The reported point estimate is the mean of the M implicate-specific
+#'    percentile estimates.
+#' 3. The standard error follows the SCF Bulletin SAS macro convention:
 #'
 #'        V_total = V1 + ((M + 1) / M) * B
 #'
@@ -35,21 +31,42 @@
 #'   `scf$mi_design`.
 #' @param var A one-sided formula naming the continuous variable to
 #'   summarize (for example `~networth`).
-#' @param q Numeric percentile in 0 to 1. Default 0.5 (median).
+#' @param q Numeric percentile in between 0 and 1. Default 0.5 (median).
 #' @param by Optional one-sided formula naming a categorical grouping
 #'   variable. If supplied, the percentile is estimated separately within
 #'   each group.
 #' @param verbose Logical. If TRUE, include implicate-level estimates in
 #'   the returned object for inspection. Default FALSE.
 #'
-#' @return An object of class "scf_percentile" with:
-#'   - results: data frame of pooled percentile estimates, pooled
-#'     standard errors, and implicate min/max. One row per group or one
-#'     row total.
-#'   - imps: list of implicate-level estimates and standard errors.
-#'   - aux: list with variable name, optional group variable name, and
-#'     quantile requested.
-#'   - verbose: the `verbose` flag.
+#' @return An object of class `"scf_percentile"` containing:
+#' \describe{
+#'   \item{results}{A data frame containing pooled percentile estimates, pooled
+#'     standard errors, and implicate min/max values. One row per group (if
+#'     `by` is supplied) or one row otherwise.}
+#'   \item{imps}{A list of implicate-level percentile estimates and standard errors.}
+#'   \item{aux}{A list containing the variable name, optional group variable name,
+#'     and the quantile requested.}
+#'   \item{verbose}{Logical flag indicating whether implicate-level estimates
+#'     should be printed by `print()` or `summary()`.}
+#' }
+#'
+#' @examples
+#' # Do not implement these lines in real analysis:
+#' # Use functions `scf_download()` and `scf_load()` for actual SCF data
+#' td  <- tempdir()
+#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' scf2022 <- scf_load(2022, data_directory = td)
+#'
+#' # Estimate the 75th percentile of net worth
+#' scf_percentile(scf2022, ~networth, q = 0.75)
+#'
+#' # Estimate the median net worth by ownership group
+#' scf_percentile(scf2022, ~networth, q = 0.5, by = ~own)
+#'
+#' # Do not implement these lines in real analysis: Cleanup for package check
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' rm(scf2022)
 #'
 #' @references
 #' Federal Reserve Board. 2023c. "SAS Macro: Variable Definitions."
@@ -59,6 +76,13 @@
 #'
 #' @export
 scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
+  # Basic checks
+  if (!inherits(scf, "scf_mi_survey")) {
+    stop("`scf` must be an object of class 'scf_mi_survey'.", call. = FALSE)
+  }
+  if (!is.numeric(q) || length(q) != 1L || q < 0 || q > 1) {
+    stop("`q` must be a single numeric value in [0, 1].", call. = FALSE)
+  }
   
   # Warn if mock data is being used
   if (isTRUE(attr(scf, "mock"))) {
@@ -68,54 +92,56 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
     )
   }
   
-  # Extract variable names from formulas using base R
+  # Extract variable names from formulas
   varname <- all.vars(var)[1]
   byname  <- if (!is.null(by)) all.vars(by)[1] else NULL
   
-  # List of replicate-weighted survey designs (one per implicate)
-  # Please an object storing the number of implicates used
   designs <- scf$mi_design
   M       <- length(designs)
+  if (M < 1L) {
+    stop("`scf$mi_design` must contain at least one implicate design.", call. = FALSE)
+  }
   
-  # If grouped, coerce grouping variable in each implicate to have
-  # identical factor levels for consistent categories. This is for the 
-  # contingency that at least one, but not all, implicates registers zero 
-  # observations in one category of a multichotomous variable.
+  # If grouped, harmonize factor levels across implicates
   if (!is.null(byname)) {
     for (i in seq_len(M)) {
-      designs[[i]]$variables[[byname]] <-
-        factor(designs[[i]]$variables[[byname]])
+      designs[[i]]$variables[[byname]] <- factor(designs[[i]]$variables[[byname]])
     }
     groups <- levels(designs[[1]]$variables[[byname]])
   }
   
-  # Internal utility to estimate percentile in one survey design,
-  # optionally within one group.
+  # Internal utility: estimate percentile for one design, optional group subset,
+  # with controlled handling of the known replicate-weight warning.
   get_quantile_obj <- function(dsgn, vname, qval, g = NULL, gname = NULL) {
     if (!is.null(g)) {
-      # subset with survey::subset() to preserve replicate structure
-      dsgn <- survey::subset(dsgn, dsgn$variables[[gname]] == g)
+      dsgn <- subset(dsgn, dsgn$variables[[gname]] == g)
     }
-    survey::svyquantile(
-      stats::as.formula(paste0("~", vname)),
-      dsgn,
-      quantiles     = qval,
-      se            = TRUE,
-      interval.type = "quantile"
+    
+    form <- stats::as.formula(paste0("~", vname))
+    
+    suppressMessages(
+      suppressWarnings(
+        survey::svyquantile(
+          form,
+          dsgn,
+          quantiles     = qval,
+          se            = TRUE,
+          interval.type = "quantile"
+        )
+      )
     )
   }
   
+  
   if (is.null(byname)) {
-    # -------------------------------------------------
-    # Ungrouped case (whole population)
-    # -------------------------------------------------
+    ## -------------------------------------------------
+    ## Ungrouped case (whole population)
+    ## -------------------------------------------------
     
-    # Step 1. Estimate percentile for each implicate
     imp_objs <- lapply(seq_len(M), function(i) {
       get_quantile_obj(designs[[i]], varname, q)
     })
     
-    # Step 2. Build implicate-level table for auditing / verbose output
     imp_estimates <- lapply(seq_len(M), function(i) {
       obj_i <- imp_objs[[i]]
       data.frame(
@@ -128,24 +154,15 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
       )
     })
     
-    # Step 3. Vector of percentile estimates across implicates
     point_vec <- sapply(imp_objs, function(o) as.numeric(stats::coef(o)))
+    qbar      <- mean(point_vec)
     
-    # Step 4. Pooled point estimate = mean across implicates
-    qbar <- mean(point_vec)
+    V1 <- stats::vcov(imp_objs[[1]])      # 1 x 1
+    B  <- stats::var(point_vec)          # scalar
     
-    # Step 5. V1 = replicate-weight sampling variance from first implicate
-    V1 <- stats::vcov(imp_objs[[1]])  # 1x1 matrix
-    
-    # Step 6. Between-implicate variance of point estimates
-    B  <- stats::var(point_vec)       # scalar
-    
-    # Step 7. Total variance per SCF Bulletin SAS macro
-    # V_total = V1 + ((M + 1) / M) * B
     V_total   <- as.numeric(V1) + ((M + 1) / M) * B
     se_pooled <- sqrt(V_total)
     
-    # Step 8. Output row
     out_df <- data.frame(
       variable = varname,
       quantile = q,
@@ -157,12 +174,10 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
     )
     
   } else {
-    # -------------------------------------------------
-    # Grouped case (within each category of `by`)
-    # -------------------------------------------------
+    ## -------------------------------------------------
+    ## Grouped case (within each category of `by`)
+    ## -------------------------------------------------
     
-    # For each implicate and each group, get that group's percentile
-    # imp_objs[[i]][[j]] is svyquantile result for implicate i, group j
     imp_objs <- lapply(seq_len(M), function(i) {
       dsgn_i <- designs[[i]]
       lapply(groups, function(g) {
@@ -170,7 +185,6 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
       })
     })
     
-    # Implicate-level table for auditing / verbose output
     imp_estimates <- lapply(seq_len(M), function(i) {
       objs_i <- imp_objs[[i]]
       do.call(rbind, lapply(seq_along(groups), function(j) {
@@ -186,25 +200,14 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
       }))
     })
     
-    # Pool per group using the SCF Bulletin variance formula
     out_df <- do.call(rbind, lapply(seq_along(groups), function(j) {
-      
-      # Collect this group's objects across implicates
       group_objs <- lapply(seq_len(M), function(i) imp_objs[[i]][[j]])
+      point_vec  <- sapply(group_objs, function(o) as.numeric(stats::coef(o)))
       
-      # Vector of percentile estimates for this group across implicates
-      point_vec <- sapply(group_objs, function(o) as.numeric(stats::coef(o)))
-      
-      # Mean percentile for this group
       qbar_g <- mean(point_vec)
+      V1_g   <- stats::vcov(group_objs[[1]])
+      B_g    <- stats::var(point_vec)
       
-      # V1_g from implicate 1 for this group
-      V1_g <- stats::vcov(group_objs[[1]])
-      
-      # Between-implicate variance across implicates for this group
-      B_g <- stats::var(point_vec)
-      
-      # Total variance per SCF Bulletin SAS macro
       V_total_g   <- as.numeric(V1_g) + ((M + 1) / M) * B_g
       se_pooled_g <- sqrt(V_total_g)
       
@@ -220,12 +223,10 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
       )
     }))
     
-    # Reorder columns for readability
     out_df <- out_df[, c("group", "variable", "quantile",
                          "estimate", "se", "min", "max")]
   }
   
-  # Final return object
   names(imp_estimates) <- paste0("imp", seq_len(M))
   
   structure(

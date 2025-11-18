@@ -43,7 +43,7 @@
 #' scf_plot_dbar(scf2022, ~edcl)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #' 
 #' @export
 scf_plot_dbar <- function(design, variable,

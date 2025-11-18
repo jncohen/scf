@@ -46,7 +46,7 @@
 #' scf_plot_hex(scf2022, ~income, ~networth)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
 #'
 #' @seealso [scf_corr()], [scf_plot_smooth()], [scf_theme()]
 #'

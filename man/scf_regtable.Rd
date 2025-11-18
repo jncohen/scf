@@ -71,6 +71,6 @@ m1 <- scf_ols(scf2022, income ~ age)
 scf_regtable(m1, digits = 2)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }

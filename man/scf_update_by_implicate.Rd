@@ -61,7 +61,7 @@ scf2022 <- scf_update_by_implicate(scf2022, function(df) {
 head(scf2022$mi_design[[1]]$variables$z_income)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
 \seealso{
