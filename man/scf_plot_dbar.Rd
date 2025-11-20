@@ -62,7 +62,9 @@ Requires the \code{ggplot2} package.
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`
-td  <- tempdir()
+td <- tempfile("plot_dbar_")
+dir.create(td)
+
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
@@ -71,7 +73,7 @@ scf2022 <- scf_load(2022, data_directory = td)
 scf_plot_dbar(scf2022, ~edcl)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
+unlink(td, recursive = TRUE, force = TRUE)
 
 }
 \seealso{

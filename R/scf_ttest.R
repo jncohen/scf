@@ -14,7 +14,7 @@
 #' @param alternative Character. One of `"two.sided"` (default), `"less"`, or `"greater"`.
 #' @param conf.level Confidence level for the confidence interval. Default is `0.95`.
 #'
-#' @return An object of class `"scf_ttest"` with:
+#' @return An object of class `scf_ttest` with:
 #' \describe{
 #'   \item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, and confidence interval.}
 #'   \item{means}{Group-specific means (for two-sample tests only).}
@@ -24,7 +24,9 @@
 #' @examples
 #' # Do not implement these lines in real analysis:
 #' # Use functions `scf_download()` and `scf_load()`
-#' td  <- tempdir()
+#' td <- tempfile("ttest_")
+#' dir.create(td)
+#' 
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
@@ -42,7 +44,7 @@
 #' scf_ttest(scf2022, ~income, group = ~female)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @seealso [scf_prop_test()], [scf_mean()], [scf_MIcombine()]
 #' @export

@@ -30,7 +30,9 @@
 #' @examples
 #' # Do not implement these lines in real analysis:
 #' # Use functions `scf_download()` and `scf_load()`
-#' td  <- tempdir()
+#' td <- tempfile("plot_hist_")
+#' dir.create(td)
+#' 
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
@@ -39,7 +41,7 @@
 #' scf_plot_hist(scf2022, ~age, bins = 10)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @seealso [scf_freq()], [scf_plot_dbar()], [scf_plot_smooth()], [scf_update_by_implicate()]
 #' @export

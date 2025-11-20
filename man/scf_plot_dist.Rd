@@ -57,7 +57,9 @@ Users may supply a named vector of custom axis labels using the \code{labels} ar
 
 \examples{
 # Mock workflow for CRAN (demo only — not real SCF data)
-td  <- tempdir()
+td <- tempfile("plot_dist_")
+dir.create(td)
+
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
@@ -65,7 +67,7 @@ scf2022 <- scf_load(2022, data_directory = td)
 scf_plot_dist(scf2022, ~own)
 scf_plot_dist(scf2022, ~age, bins = 10)
 
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
+unlink(td, recursive = TRUE, force = TRUE)
 
 \donttest{
 # Real workflow

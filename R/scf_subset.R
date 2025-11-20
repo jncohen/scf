@@ -10,10 +10,10 @@
 #' @section Implementation:
 #' Use `scf_subset()` to focus analysis on analytically meaningful
 #' sub-populations. For example, to analyze only households headed by seniors:
-#'
-#' ``r
+#' 
+#' \preformatted{
 #' scf2022_seniors <- scf_subset(scf2022, age >= 65)
-#' ```
+#' }
 #'
 #' This is especially useful when analyzing populations such as renters, homeowners, specific age brackets,
 #' or any group defined by logical expressions over SCF variables.
@@ -33,7 +33,9 @@
 #'
 #' @examples
 #' # Mock workflow for CRAN (demo only — not real SCF data)
-#' td  <- tempdir()
+#' td <- tempfile("subset_")
+#' dir.create(td)
+#' 
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
@@ -43,7 +45,7 @@
 #' scf_mean(scf_sub, ~income)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #'
 #' @seealso [scf_load()], [scf_update()]

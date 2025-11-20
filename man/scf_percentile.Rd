@@ -71,7 +71,9 @@ separately within each group.
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()` for actual SCF data
-td  <- tempdir()
+td <- tempfile("percentile_")
+dir.create(td)
+
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
@@ -83,7 +85,7 @@ scf_percentile(scf2022, ~networth, q = 0.75)
 scf_percentile(scf2022, ~networth, q = 0.5, by = ~own)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
+unlink(td, recursive = TRUE, force = TRUE)
 rm(scf2022)
 
 }

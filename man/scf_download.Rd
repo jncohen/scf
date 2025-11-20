@@ -46,19 +46,21 @@ using \code{\link[=scf_load]{scf_load()}}, \code{\link[=scf_design]{scf_design()
 }
 
 \examples{
-\donttest{
-# Download and prepare SCF data for 2022
-td <- tempdir()
-old <- getwd()
-setwd(td)
-scf_download(2022)
+if (FALSE) {
+  # Download and prepare SCF data for 2022
+  td <- tempfile("download_")
+  dir.create(td)
 
-# Load into a survey design object
-scf2022 <- scf_load(2022, data_directory = td)
+  old <- getwd()
+  setwd(td)
+  scf_download(2022)
 
-# Cleanup for package check
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
-setwd(old)
+  # Load into a survey design object
+  scf2022 <- scf_load(2022, data_directory = td)
+
+  # Cleanup for package check
+  unlink(td, recursive = TRUE, force = TRUE)
+  setwd(old)
 }
 
 }
