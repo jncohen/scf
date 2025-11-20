@@ -51,7 +51,9 @@
 #' # Ignore this code block.  It loads mock data for CRAN.
 #' # In your analysis, download and load your data using the
 #' # functions `scf_download()` and `scf_load()`
-#' td  <- tempdir()
+#' td <- tempfile("corr_")
+#' dir.create(td)
+#' 
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
@@ -62,7 +64,7 @@
 #' summary(corr)
 #' 
 #' # Ignore the code below.  It is for CRAN:
-#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' unlink(td, recursive = TRUE, force = TRUE)
 #' 
 #' @export
 scf_corr <- function(scf, var1, var2) {

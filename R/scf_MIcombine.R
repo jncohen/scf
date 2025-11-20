@@ -96,7 +96,9 @@
 #' @examples
 #' # Do not implement these lines in real analysis:
 #' # Use functions `scf_download()` and `scf_load()`
-#' td  <- tempdir()
+#' td <- tempfile("MIcombine_")
+#' dir.create(td)
+#' 
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
@@ -106,7 +108,7 @@
 #' pooled  <- scf_MIcombine(outlist)     # vcov/coef extracted automatically
 #' SE(pooled); coef(pooled)
 #' 
-#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @references
 #'
