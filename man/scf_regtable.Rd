@@ -59,7 +59,9 @@ Markdown output.
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`
-td  <- tempdir()
+td <- tempfile("regtable_")
+dir.create(td)
+
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
@@ -71,6 +73,6 @@ m1 <- scf_ols(scf2022, income ~ age)
 scf_regtable(m1, digits = 2)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
+unlink(td, recursive = TRUE, force = TRUE)
 
 }

@@ -27,7 +27,7 @@ scf_ttest(
 \item{conf.level}{Confidence level for the confidence interval. Default is \code{0.95}.}
 }
 \value{
-An object of class \code{"scf_ttest"} with:
+An object of class \code{scf_ttest} with:
 \describe{
 \item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, and confidence interval.}
 \item{means}{Group-specific means (for two-sample tests only).}
@@ -44,7 +44,9 @@ to test hypotheses about means in the SCF microdata.
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`
-td  <- tempdir()
+td <- tempfile("ttest_")
+dir.create(td)
+
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
@@ -62,7 +64,7 @@ scf_ttest(scf2022, ~income, mu = 75000)
 scf_ttest(scf2022, ~income, group = ~female)
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
+unlink(td, recursive = TRUE, force = TRUE)
 
 }
 \seealso{

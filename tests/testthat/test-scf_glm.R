@@ -25,5 +25,6 @@ test_that("scf_glm runs with binomial family (with known warning)", {
   expect_true(is.data.frame(model$results))
   expect_true(all(c("term", "estimate", "std.error") %in% names(model$results)))
   
-  unlink("scf2022.rds", force = TRUE)
+  unlink(file.path(td, "scf2022.rds"), force = TRUE)
+  
 })

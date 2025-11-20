@@ -43,16 +43,19 @@ This vignette introduces the core analytic workflow supported by the package. Fo
 
 Download raw SCF data and load it into a valid multiply-imputed survey object using `scf_download()` and `scf_load()`. The result is an `scf_mi_survey` object that contains replicate-weighted survey designs for each implicate.
 
-```{r}
+```{r, include = F}
 # Using Mock data with distribution
-td  <- tempdir()
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-scf2022 <- scf_load(2022, data_directory = td)
+vtd <- file.path(tempdir(), "scf_vig")
+dir.create(vtd, showWarnings = FALSE)
 
-# Using real SCF data (uncomment to run)
-# scf2022 <- scf_download(2022)
-# scf2022 <- scf_load(scf2022)
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(vtd, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = vtd)
+```
+
+```{r, eval = F}
+scf2022 <- scf_download(2022)
+scf2022 <- scf_load(scf2022)
 
 ```
 
@@ -150,6 +153,7 @@ For more details on the SCF methodology and the `scf` package, see:
 
 ```{r, include = F}
 # Cleanup to avoid NOTE about leftover files
-if (exists("scf2022")) rm(scf2022)
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
+try(unlink(file.path(vtd, "scf2022.rds"), force=TRUE), silent=TRUE)
+try(unlink(vtd, recursive=TRUE, force=TRUE), silent=TRUE)
+rm(vtd)
 ```

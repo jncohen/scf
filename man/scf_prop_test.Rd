@@ -48,7 +48,9 @@ Rubin’s Rules are applied to pool point estimates and standard errors. For poo
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`
-td  <- tempdir()
+td <- tempfile("proptest_")
+dir.create(td)
+
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
@@ -67,7 +69,7 @@ scf_prop_test(scf2022, ~rich, p = 0.10)
 scf_prop_test(scf2022, ~rich, ~female, alternative = "less")
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
+unlink(td, recursive = TRUE, force = TRUE)
 
 
 }
