@@ -20,7 +20,7 @@ Meta/
 # Temporary or unneeded development files
 *_old.R
 scf_functions_*.txt
-data/
+local-data/
 mock-data/*.rds
 testdata/
 tests/*.rds
