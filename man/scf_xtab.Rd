@@ -53,6 +53,6 @@ scf2022 <- scf_load(2022, data_directory = td)
 scf_xtab(scf2022, ~own, ~edcl, scale = "row")
 
 # Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+unlink(file.path(td, "scf2022.rds"), force = TRUE)
 
 }
