@@ -1,3 +1,7 @@
+# scf 1.0.6
+
+* New version in development following 1.0.5 CRAN release and OSF archive.
+
 # scf 1.0.5
 
 * Correct error in standard error estimates for `scf_median()`, `scf_percentile()`, and `scf_mean()`
