@@ -1,3 +1,23 @@
+---
+title: 'scf: An R package for analysis of Survey of Consumer Finances public-use microdata'
+tags:
+  - R
+  - survey methodology
+  - household finance
+  - Survey of Consumer Finances
+  - multiple imputation
+  - complex surveys
+authors:
+  - name: Joseph N. Cohen
+    orcid: 0000-0002-6197-4453
+    affiliation: 1
+affiliations:
+  - name: Queens College, City University of New York, Queens, New York, USA
+    index: 1
+date: 20 March 2026
+bibliography: paper.bib
+---
+
 # Summary
 
 The *Survey of Consumer Finances* (SCF) is a triennial national survey
@@ -13,7 +33,7 @@ of multiple imputation to handle missing values. These features require
 specialized workflows to obtain valid estimates and uncertainty
 measures.
 
-The R package `scf` (**Cohen2025?**) provides a unified framework for
+The R package `scf` (Cohen 2025) provides a unified framework for
 acquiring, preparing, analyzing, and visualizing SCF public-use
 microdata. It encodes standard practices for handling the survey’s
 design, automates implicate-level estimation and pooling, and reduces
@@ -145,6 +165,10 @@ The package builds on the `survey` package and on publicly available SCF
 documentation and example workflows.
 
 # References
+
+Cohen, Joseph. 2025. *Scf: Analyzing the Survey of Consumer Finances*.
+V. 1.0.5. Released November 20.
+<https://cran.r-project.org/web/packages/scf/index.html>.
 
 Damico, Anthony. 2026. *Ajdamico/Asdfree*. Released March 16.
 <https://github.com/ajdamico/asdfree>.

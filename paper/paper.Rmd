@@ -32,9 +32,17 @@ The valid analysis of SCF microdata requires a multi-step workflow that combines
 
 In R, this workflow is typically implemented using the `survey` package [@Lumley2011] along with imputed data handling tools like `mitools` [@Lumley2019] or custom scripts. These tools are flexible and methodologically appropriate but require users to manually coordinate design specification, implicate iteration, and pooling. As a result, even simple analyses involve substantial custom code, and correct implementation depends on careful adherence to SCF-specific conventions.
 
-Existing reference workflows, such as those provided by Damico [@Damico2026], demonstrate correct implementation but are not packaged as reusable abstractions. Users must adapt and reimplement these procedures for each analysis task.
+Existing reference workflows, such as those provided by @Damico2026, demonstrate correct implementation but are not packaged as reusable abstractions. Users must adapt and reimplement these procedures for each analysis task. 
 
 The `scf` package addresses this gap by formalizing SCF-specific best practices in a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, along with a set of functions that automate estimation and pooling. The package attempts a grammar and output format that reduces that amount of custom code required for common tasks, reducing the barrier to entry for valid SCF analysis while preserving transparency and flexibility for advanced users.
+
+# State of the Field
+
+There are well-developed R packages to perform discrete elements of the workflow required to analyze SCF microdata. For the analysis of complex survey data, the `survey` package [@Lumley2004; @Lumley2011] is an authoritative tool in the R ecosystem.  It is a general purpose survey analysis package that allows users to generate population-level inferences that correctly account for the design features of the survey in question. Using this package requires that understand the details of sampling and weighting methodology, such that they can correctly specify the survey design object required to make these functions work. For the SCF, its `survey::svrepdesign()` function supports the construction of replicate-weighted survey designs, required in this use-case.
+
+The Federal Reserve distributes its microdata with missing data imputations, as five discrete data tables generated via multiple imputation with randomness.  The R ecosystem offers tools for handling such data, like the `mitools` package [@Lumley2019] and the `mice` package [@vanBuuren2025]. Typically, though not always, these tools combine the results of individual imputations using Rubin-style combining rules [@Rubin1987].  Here, familiarity with missing data imputation can prove a barrier to entry in analyzing SCF microdata.
+
+The situation leaves users needing to use two tools that handle relatively advanced methodological operations: complex survey analysis and missing data imputation.  
 
 # Package overview
 
@@ -56,7 +64,7 @@ Most `scf` functions follow the same internal pattern:
 2. apply the corresponding estimation routine to each implicate  
 3. combine results into a pooled estimate and associated uncertainty measure  
 
-For model-based and many descriptive quantities, pooling uses Rubin-style combining rules [@Rubin1987]. For some statistics such as percentiles and proportions, the package uses appropriate implicate-aggregation strategies implemented in the workflow. The result is a consistent user interface across common SCF tasks without requiring users to manage the imputation and replicate-weight logic manually.
+For model-based and many descriptive quantities, pooling uses Rubin-style combining rules [@Rubin1987]. For some statistics such as percentiles and proportions, the package uses  implicate-aggregation strategies implemented in official SCF documentation. The result is a consistent user interface across common SCF tasks without requiring users to manage the imputation and replicate-weight logic manually.
 
 ## Functional coverage
 
@@ -111,5 +119,3 @@ Source code, examples, and package documentation are available in the associated
 The package builds on the `survey` package and on publicly available SCF documentation and example workflows. 
 
 # References
-
-

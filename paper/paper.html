@@ -391,11 +391,12 @@ but complicate analysis, including replicate-weighted sampling and the
 use of multiple imputation to handle missing values. These features
 require specialized workflows to obtain valid estimates and uncertainty
 measures.</p>
-<p>The R package <code>scf</code> <span class="citation">(<strong>Cohen2025?</strong>)</span> provides a unified
-framework for acquiring, preparing, analyzing, and visualizing SCF
-public-use microdata. It encodes standard practices for handling the
-survey’s design, automates implicate-level estimation and pooling, and
-reduces implementation complexity for common analytical tasks.</p>
+<p>The R package <code>scf</code> <span class="citation">(Cohen
+2025)</span> provides a unified framework for acquiring, preparing,
+analyzing, and visualizing SCF public-use microdata. It encodes standard
+practices for handling the survey’s design, automates implicate-level
+estimation and pooling, and reduces implementation complexity for common
+analytical tasks.</p>
 </div>
 <div id="statement-of-need" class="section level1">
 <h1>Statement of Need</h1>
@@ -416,13 +417,13 @@ conventions.</p>
 implementation but are not packaged as reusable abstractions. Users must
 adapt and reimplement these procedures for each analysis task.</p>
 <p>The <code>scf</code> package addresses this gap by formalizing
-SCF-specific best practices in a standardized functional grammar. It
+SCF-specific best practices in a standardized functional interface. It
 provides a unified data object that encodes the replicate-weighted
 design across implicates, along with a set of functions that automate
 estimation and pooling. The package attempts a grammar and output format
-that is friendly to both new and experienced users, reducing the barrier
-to entry for valid SCF analysis while preserving transparency and
-flexibility for advanced users.</p>
+that reduces that amount of custom code required for common tasks,
+reducing the barrier to entry for valid SCF analysis while preserving
+transparency and flexibility for advanced users.</p>
 </div>
 <div id="package-overview" class="section level1">
 <h1>Package overview</h1>
@@ -534,6 +535,11 @@ available SCF documentation and example workflows.</p>
 <div id="references" class="section level1 unnumbered">
 <h1 class="unnumbered">References</h1>
 <div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Cohen2025" class="csl-entry">
+Cohen, Joseph. 2025. <em>Scf: <span>Analyzing</span> the
+<span>Survey</span> of <span>Consumer Finances</span></em>. V. 1.0.5.
+Released November 20. <a href="https://cran.r-project.org/web/packages/scf/index.html">https://cran.r-project.org/web/packages/scf/index.html</a>.
+</div>
 <div id="ref-Damico2026" class="csl-entry">
 Damico, Anthony. 2026. <em>Ajdamico/Asdfree</em>. Released March 16. <a href="https://github.com/ajdamico/asdfree">https://github.com/ajdamico/asdfree</a>.
 </div>

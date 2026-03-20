@@ -1,0 +1,382 @@
+\documentclass[12pt]{article}
+
+% =======================================================
+% 1. ENGINE + TYPOGRAPHY
+% =======================================================
+\usepackage{iftex}
+
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage{mathpazo}
+\else
+  \usepackage{fontspec}
+  \IfFontExistsTF{TeX Gyre Pagella}{
+    \setmainfont{TeX Gyre Pagella}
+  }{
+    \setmainfont{Latin Modern Roman}
+  }
+\fi
+
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\providecommand{\citeproc}[2]{#2}
+
+% =======================================================
+% 2. PAGE LAYOUT
+% =======================================================
+\usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
+\usepackage{setspace}
+
+$if(doublespace)$
+\doublespacing
+$else$
+\onehalfspacing
+$endif$
+
+\setlength{\parindent}{15pt}
+\setlength{\parskip}{0pt}
+
+% =======================================================
+% 3. GRAPHICS + FLOATS
+% =======================================================
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{longtable,booktabs}
+\usepackage{array}
+\usepackage{caption}
+
+\captionsetup{
+  font=small,
+  labelfont=bf
+}
+
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{3}
+
+\renewcommand{\arraystretch}{1.1}
+
+% More deterministic float spacing
+\setlength{\intextsep}{0.75\baselineskip}
+\setlength{\textfloatsep}{1.25\baselineskip}
+
+% --- Auto-scale images ---
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+% =======================================================
+% 4. TABLE AUTOMATION (Pandoc longtable)
+% =======================================================
+\usepackage{etoolbox}
+
+\AtBeginEnvironment{longtable}{
+  \footnotesize
+  \singlespacing
+  \setlength{\LTleft}{0pt}
+  \setlength{\LTright}{0pt}
+  \setlength{\LTcapwidth}{\textwidth}
+}
+
+% =======================================================
+% 5. SECTION FORMATTING + NUMBERING TOGGLE
+% =======================================================
+\usepackage{titlesec}
+
+$if(numbersections)$
+  \setcounter{secnumdepth}{3}
+  \setcounter{tocdepth}{3}
+
+  \titleformat{\section}
+    {\large\bfseries}
+    {\thesection}{1em}{}
+
+  \titleformat{\subsection}
+    {\normalsize\bfseries}
+    {\thesubsection}{1em}{}
+
+  \titleformat{\subsubsection}
+    {\normalsize\bfseries\itshape}
+    {\thesubsubsection}{1em}{}
+$else$
+  \setcounter{secnumdepth}{0}
+  \setcounter{tocdepth}{0}
+
+  \titleformat{\section}
+    {\large\bfseries}
+    {}{0pt}{}
+
+  \titleformat{\subsection}
+    {\normalsize\bfseries}
+    {}{0pt}{}
+
+  \titleformat{\subsubsection}
+    {\normalsize\bfseries\itshape}
+    {}{0pt}{}
+$endif$
+
+% =======================================================
+% 6. HYPERREF + HEADERS/FOOTERS
+% =======================================================
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+
+% =======================================================
+% 7. OPTIONAL MODES
+% =======================================================
+\newif\ifjncanon
+$if(anonymize)$
+\jncanontrue
+$else$
+\jncanonfalse
+$endif$
+
+$if(maincolumns)$
+\newcommand{\jncmaincolumns}{$maincolumns$}
+$else$
+\newcommand{\jncmaincolumns}{1}
+$endif$
+
+$if(linenumbers)$
+\usepackage{lineno}
+\linenumbers
+$endif$
+
+% =======================================================
+% 8. PANDOC SUPPORT
+% =======================================================
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parskip}{0pt}%
+}
+
+\providecommand{\pandocbounded}[1]{#1}
+
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+$header-includes$
+
+% --- Pandoc table width arithmetic support ---
+\usepackage{calc}
+\providecommand{\real}[1]{#1}
+
+% =======================================================
+% RUNNING TITLE + PAGESTYLE
+% =======================================================
+\pagestyle{fancy}
+\setlength{\headheight}{14.5pt}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+
+% Ensure "plain" pages (e.g., first page after \section in some classes) match
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+}
+
+$if(surname)$
+$if(runningtitle)$
+\fancyhead[R]{\small\itshape $surname$: $runningtitle$}
+$else$
+\fancyhead[R]{\small\itshape $surname$}
+$endif$
+$else$
+$if(runningtitle)$
+\fancyhead[R]{\small\itshape $runningtitle$}
+$else$
+\fancyhead[R]{\small\itshape $title$}
+$endif$
+$endif$
+
+% =======================================================
+% 9. CSL REFERENCES (Pandoc)
+% =======================================================
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+
+\providecommand{\citeproctext}{}
+
+\newenvironment{CSLReferences}[2]
+ {%
+  \section*{References}
+  \begin{list}{}{%
+   \setlength{\itemindent}{0pt}
+   \setlength{\leftmargin}{0pt}
+   \setlength{\parsep}{0pt}
+   \ifodd #1
+    \setlength{\leftmargin}{\cslhangindent}
+    \setlength{\itemindent}{-\cslhangindent}
+   \fi
+   \ifnum #2 > 0
+    \setlength{\itemsep}{#2\baselineskip}
+   \else
+    \setlength{\itemsep}{0pt}
+   \fi
+  }%
+  \renewcommand{\bibitem}[2][]{\item}
+ }
+ {\end{list}}
+
+% =======================================================
+% 10. R / SOFTWARE MACROS
+% =======================================================
+\newcommand{\pkg}[1]{\texttt{#1}}
+\newcommand{\CRANpkg}[1]{\texttt{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+% =======================================================
+% BEGIN DOCUMENT
+% =======================================================
+\begin{document}
+
+% -----------------------------
+% TITLE PAGE (robust to author formats)
+% -----------------------------
+\begin{titlepage}
+\thispagestyle{empty}
+
+\vspace*{0.06\textheight}
+\begin{center}
+
+{\setstretch{0.9}\LARGE\bfseries $title$\par}
+
+$if(subtitle)$
+\vspace{0.25em}
+{\large $subtitle$\par}
+$endif$
+
+\vspace{2em}
+
+\begin{singlespace}
+{\normalsize
+
+% --- AUTHOR BLOCK (suppressed in anonymize mode) ---
+$if(author)$
+\ifjncanon
+% suppressed
+\else
+$for(author)$
+
+% Case 1: structured author item (has .name)
+$if(author.name)$
+\textbf{$author.name$}\par
+$if(author.department)$
+$author.department$\par
+$endif$
+$if(author.institution)$
+$author.institution$\par
+$endif$
+$if(author.affiliation)$
+$author.affiliation$\par
+$endif$
+$if(author.address)$
+$author.address$\par
+$endif$
+$if(author.city)$
+$author.city$$if(author.zip)$, $author.zip$$endif$$if(author.country)$, $author.country$$endif$\par
+$endif$
+$if(author.email)$
+\texttt{$author.email$}\par
+$endif$
+$if(author.web)$
+$author.web$\par
+$endif$
+$if(author.orcid)$
+ORCID: $author.orcid$\par
+$endif$
+
+% Case 2: scalar author item (just prints the value)
+$else$
+\textbf{$author$}\par
+$endif$
+
+\vspace{0.75em}
+$endfor$
+\fi
+$endif$
+
+% --- DATE (optional; suppressed in anonymize mode) ---
+$if(date)$
+\ifjncanon
+% suppressed
+\else
+\vspace{0.5em}
+\textit{$date$}\par
+\fi
+$endif$
+
+}
+\end{singlespace}
+
+\vfill
+
+% --- ABSTRACT ---
+$if(abstract)$
+\begin{minipage}{0.8\textwidth}
+\small
+\singlespacing
+\textbf{Abstract}\par
+\vspace{0.25em}
+$abstract$
+$if(keywords)$
+
+\vspace{1em}
+\noindent\textbf{Keywords: }$for(keywords)$$keywords$$sep$, $endfor$
+$endif$
+\end{minipage}
+$endif$
+
+\vfill
+
+% --- ACKNOWLEDGEMENTS (suppressed in anonymize mode) ---
+$if(acknowledgements)$
+\ifjncanon
+% suppressed
+\else
+\begin{minipage}{0.8\textwidth}
+\footnotesize
+\singlespacing
+\noindent\rule{0.3\textwidth}{0.4pt}\par
+\textbf{Acknowledgements}\par
+$acknowledgements$
+\end{minipage}
+\fi
+$endif$
+
+\end{center}
+\end{titlepage}
+
+\clearpage
+\setcounter{page}{1}
+
+% =======================================================
+% MAIN BODY
+% =======================================================
+
+% Main text column layout toggle
+\ifnum\jncmaincolumns=2\relax
+  \twocolumn
+\fi
+
+\ifjncanon
+\begingroup
+\small
+\noindent\textit{This manuscript is set to anonymous mode. Identifying metadata fields are suppressed on the title page.}\par
+\endgroup
+\vspace{1em}
+\fi
+
+$body$
+
+% =======================================================
+% REFERENCES
+% =======================================================
+$if(bibliography)$
+\clearpage
+$endif$
+
+\end{document}
