@@ -117,6 +117,3 @@ The package builds on the `survey` package and on publicly available SCF documen
 
 Generative AI tools were used as assistive aids in coding, debugging, and drafting portions of the documentation and manuscript. Their use occurred within a human-directed workflow in which the author determined all substantive content and structure. AI-generated outputs were treated as provisional and subject to review and revision. The conceptual design, methodology, and implementation were developed by the author. The author has reviewed and validated all material and retains full responsibility for the work.
 
-# References
-
-
