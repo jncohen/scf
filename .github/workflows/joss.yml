@@ -17,7 +17,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build paper PDF
-        uses: openjournals/openjournals-draft-action@v1
+        uses: openjournals/openjournals-draft-action@v2
+        with:
+          journal: joss
+          paper-path: paper/paper.md
 
       - name: Verify PDF exists
         run: |
