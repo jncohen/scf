@@ -19,9 +19,6 @@ jobs:
       - name: Build paper PDF
         uses: openjournals/openjournals-draft-action@v1
 
-      - name: List files
-        run: ls -R
-
       - name: Verify PDF exists
         run: |
           if [ ! -f paper/paper.pdf ]; then
