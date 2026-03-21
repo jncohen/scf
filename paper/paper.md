@@ -75,49 +75,42 @@ implicate-level survey designs for advanced use.
 ## Core object
 
 The central object in the package is `scf_mi_survey`, a structured
-container representing one SCF wave. It stores:
-
-- `mi_design`: a list of five `survey::svrepdesign` objects, one for
-  each implicate
-- `year`: the survey year
-- `n_households`: the number of households represented by the survey
-  wave
-
-This design supports two goals simultaneously. First, it allows the
-package to automate repeated operations across implicates. Second, it
-preserves transparency by allowing users to inspect or extract
-implicate-level survey objects directly for advanced diagnostics and
-custom modeling.
+container representing one SCF wave. It stores the five imputed data
+sets with an associated `survey::svrepdesign` object, along with
+supplemental information.
 
 ## Estimation workflow
 
 Most `scf` functions follow the same internal pattern:
 
-1.  construct or retrieve the implicate-specific survey designs  
-2.  apply the corresponding estimation routine to each implicate  
+1.  construct or retrieve the implicate-specific survey designs
+2.  apply the corresponding estimation routine to each implicate
 3.  combine results into a pooled estimate and associated uncertainty
     measure
+4.  store the combined results and results from individual implicates in
+    an R list
 
 For model-based and many descriptive quantities, pooling uses
 Rubin-style combining rules (Rubin 1987). For some statistics such as
 percentiles and proportions, the package uses appropriate
-implicate-aggregation strategies implemented in the workflow. The result
-is a consistent user interface across common SCF tasks without requiring
-users to manage the imputation and replicate-weight logic manually.
+implicate-aggregation strategies implemented per official documentation.
+The result is a consistent user interface across common SCF tasks
+without requiring users to manage the imputation and replicate-weight
+logic manually.
 
 ## Functional coverage
 
 The package supports end-to-end SCF workflows through functions for:
 
 - data acquisition and loading (`scf_download()`, `scf_load()`,
-  `scf_design()`)  
-- data wrangling (`scf_update()`, `scf_subset()`)  
+  `scf_design()`)
+- data wrangling (`scf_update()`, `scf_subset()`)
 - descriptive estimation (`scf_mean()`, `scf_median()`,
-  `scf_percentile()`, `scf_freq()`, `scf_xtab()`, `scf_corr()`)  
-- inference (`scf_ttest()`, `scf_prop_test()`)  
-- modeling (`scf_ols()`, `scf_logit()`, `scf_glm()`)  
+  `scf_percentile()`, `scf_freq()`, `scf_xtab()`, `scf_corr()`)
+- inference (`scf_ttest()`, `scf_prop_test()`)
+- modeling (`scf_ols()`, `scf_logit()`, `scf_glm()`)
 - results extraction and formatting (`scf_MIcombine()`,
-  `scf_implicates()`, `scf_regtable()`)  
+  `scf_implicates()`, `scf_regtable()`)
 - visualization (`scf_plot_dbar()`, `scf_plot_cbar()`,
   `scf_plot_bbar()`, `scf_plot_dist()`, `scf_plot_hist()`,
   `scf_plot_hex()`, `scf_plot_smooth()`, `scf_theme()`)
@@ -169,16 +162,13 @@ documentation and example workflows.
 
 # AI Use Declaration
 
-Generative AI tools were used as assistive aids in coding, debugging,
-and drafting portions of the documentation and manuscript. Their use
-occurred within a human-directed workflow in which the author determined
-all substantive content and structure. AI-generated outputs were treated
-as provisional and subject to review and revision. The conceptual
-design, methodology, and implementation were developed by the author.
-The author has reviewed and validated all material and retains full
-responsibility for the work.
-
-# References
+Generative AI tools were used as aids in coding, debugging, and drafting
+portions of the documentation and manuscript. Their use occurred within
+a human-directed workflow in which the author determined all substantive
+content and structure. AI-generated outputs were treated as provisional
+and subject to review and revision. The conceptual design, methodology,
+and implementation were developed by the author. The author has reviewed
+and validated all material and retains full responsibility for the work.
 
 Cohen, Joseph N. 2025. *Scf: Analyzing the Survey of Consumer Finances*.
 V. 1.0.5. Released November 20.
