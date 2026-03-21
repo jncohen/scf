@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0"
+       demote-non-dropping-particle="sort-only" page-range-format="chicago">
+
+  <!-- ============================================================
+       INFO
+       Derived from the ASA CSL style (Julian Onions, Patrick O'Brien;
+       CC BY-SA 3.0). Extended and revised for best-practice formatting
+       consistent with Chicago 17th edition author-date, with enhanced
+       support for modern digital source types.
+       ============================================================ -->
+  <info>
+    <title>jnc-tex-template default</title>
+    <title-short>JNC</title-short>
+    <author>
+      <name>Julian Onions</name>
+    </author>
+    <contributor>
+      <name>Patrick O'Brien</name>
+    </contributor>
+    <category citation-format="author-date"/>
+    <category field="sociology"/>
+    <summary>
+      Author-date style consistent with Chicago 17th edition best practice,
+      with enhanced support for: software and R packages, preprints and
+      working papers, datasets, blog posts, video (YouTube), podcasts,
+      and social media posts. Derived from the ASA CSL style (CC BY-SA 3.0).
+    </summary>
+    <updated>2026-03-03T00:00:00+00:00</updated>
+    <rights license="http://creativecommons.org/licenses/by-sa/3.0/">
+      This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License
+    </rights>
+  </info>
+
+  <!-- ============================================================
+       LOCALE
+       ============================================================ -->
+  <locale xml:lang="en">
+    <terms>
+      <term name="version">version</term>
+      <term name="accessed">accessed</term>
+      <term name="in">in</term>
+      <term name="presented at">presented at</term>
+      <term name="editor" form="verb">edited by</term>
+    </terms>
+  </locale>
+
+  <!-- ============================================================
+       MACROS — AUTHORS
+       Full names throughout (no initials). Chicago 17 best practice:
+       disambiguation is the reader's responsibility; name reduction
+       increases ambiguity.
+       ============================================================ -->
+
+  <!-- Full bibliography author block: Doe, Jane, and John Smith -->
+  <macro name="author">
+    <names variable="author">
+      <name and="text"
+            name-as-sort-order="first"
+            sort-separator=", "
+            delimiter=", "
+            delimiter-precedes-last="always"
+            initialize="false"
+            initialize-with=". "/>
+      <label form="short" prefix=", "/>
+      <substitute>
+        <names variable="editor director"/>
+        <text variable="title"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <!-- Short in-text author: (Doe 2020) or (Doe and Smith 2020) -->
+  <macro name="author-short">
+    <names variable="author">
+      <name form="short" and="text" delimiter=", " initialize-with=". "/>
+      <substitute>
+        <names variable="editor director"/>
+        <text variable="title"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <!-- Editor block: "edited by Jane Doe" -->
+  <macro name="editor">
+    <names variable="editor">
+      <label form="verb" suffix=" "/>
+      <name and="text" delimiter=", " initialize="false" initialize-with=". "/>
+    </names>
+  </macro>
+
+  <!-- ============================================================
+       MACROS — DATES
+       ============================================================ -->
+
+  <!-- Year for bibliography: handles suffix (disambig), status, n.d. -->
+  <macro name="year-date">
+    <choose>
+      <if variable="issued">
+        <group>
+          <group delimiter=" ">
+            <date variable="original-date" form="numeric" date-parts="year"
+                  prefix="[" suffix="]"/>
+            <date variable="issued" form="numeric" date-parts="year"/>
+          </group>
+          <text variable="year-suffix"/>
+        </group>
+      </if>
+      <else-if variable="status">
+        <group>
+          <text variable="status" text-case="lowercase"/>
+          <text variable="year-suffix" prefix="-"/>
+        </group>
+      </else-if>
+      <else>
+        <group>
+          <text term="no date" form="short"/>
+          <text variable="year-suffix" prefix="-"/>
+        </group>
+      </else>
+    </choose>
+  </macro>
+
+  <!-- Year for sort key only -->
+  <macro name="year-sort">
+    <choose>
+      <if variable="issued">
+        <date variable="issued" form="numeric" date-parts="year"/>
+      </if>
+      <else-if variable="status">
+        <text variable="status" text-case="lowercase"/>
+      </else-if>
+      <else>
+        <text term="no date" form="short"/>
+      </else>
+    </choose>
+  </macro>
+
+  <!-- Month Day (for periodicals, blogs, video, social media) -->
+  <macro name="day-month">
+    <date variable="issued">
+      <date-part name="month"/>
+      <date-part name="day" prefix=" "/>
+    </date>
+  </macro>
+
+  <!-- ============================================================
+       MACROS — ACCESS
+       Chicago 17 best practice:
+       - DOI as full https://doi.org/... URL for stable archival sources
+       - "Accessed Month Day, Year. URL." for ephemeral online sources
+       - Retrieval date not shown for DOI sources (DOIs are persistent)
+       ============================================================ -->
+
+  <!-- "Accessed Month Day, Year. URL." — Chicago 17 standard for online sources.
+       Only shown when a URL is present; retrieval date included if recorded. -->
+  <macro name="accessed-url">
+    <choose>
+      <if variable="URL">
+        <choose>
+          <if variable="accessed">
+            <group delimiter=" ">
+              <text term="accessed" text-case="capitalize-first"/>
+              <date variable="accessed" form="text" suffix="."/>
+              <text variable="URL"/>
+            </group>
+          </if>
+          <else>
+            <text variable="URL"/>
+          </else>
+        </choose>
+      </if>
+    </choose>
+  </macro>
+
+  <!-- DOI as full URL preferred; bare URL fallback.
+       Use for sources with stable identifiers (journals, datasets, preprints). -->
+  <macro name="doi-or-url">
+    <choose>
+      <if variable="DOI">
+        <text variable="DOI" prefix="https://doi.org/"/>
+      </if>
+      <else-if variable="URL">
+        <text variable="URL"/>
+      </else-if>
+    </choose>
+  </macro>
+
+  <!-- ============================================================
+       MACROS — TITLES
+       ============================================================ -->
+
+  <!-- Quoted title: articles, chapters, posts, presentations -->
+  <macro name="title-article">
+    <text variable="title" quotes="true" text-case="title"/>
+  </macro>
+
+  <!-- Italic title: books, software, datasets, named works -->
+  <macro name="title-book">
+    <text variable="title" font-style="italic" text-case="title"/>
+  </macro>
+
+  <!-- ============================================================
+       MACROS — PUBLICATION DETAILS
+       ============================================================ -->
+
+  <macro name="publisher-place">
+    <group delimiter=": ">
+      <text variable="publisher-place"/>
+      <text variable="publisher"/>
+    </group>
+  </macro>
+
+  <macro name="edition">
+    <choose>
+      <if is-numeric="edition">
+        <group delimiter=" ">
+          <number variable="edition" form="ordinal"/>
+          <text term="edition" form="short"/>
+        </group>
+      </if>
+      <else>
+        <text variable="edition" suffix="."/>
+      </else>
+    </choose>
+  </macro>
+
+  <macro name="volume">
+    <group delimiter=" ">
+      <label text-case="capitalize-first" variable="volume" form="short"/>
+      <text variable="volume"/>
+    </group>
+  </macro>
+
+  <!-- ============================================================
+       IN-TEXT CITATIONS
+       (Author Year:page); et al. after 3 authors; year collapse
+       ============================================================ -->
+  <citation et-al-min="4" et-al-use-first="1"
+            et-al-subsequent-min="3" et-al-subsequent-use-first="1"
+            disambiguate-add-year-suffix="true"
+            disambiguate-add-names="true"
+            disambiguate-add-givenname="true"
+            collapse="year">
+    <sort>
+      <key macro="author-short"/>
+      <key macro="year-sort"/>
+    </sort>
+    <layout prefix="(" suffix=")" delimiter="; ">
+      <group delimiter=":">
+        <group delimiter=" ">
+          <text macro="author-short"/>
+          <text macro="year-date"/>
+        </group>
+        <text variable="locator"/>
+      </group>
+    </layout>
+  </citation>
+
+  <!-- ============================================================
+       BIBLIOGRAPHY
+
+       Source type mapping (set in Zotero; exported via Better BibTeX):
+
+         article-journal   → Journal article
+         article-magazine  → Magazine article
+         article-newspaper → Newspaper article
+         book              → Book or edited volume
+         chapter           → Book chapter
+         paper-conference  → Published conference paper
+         thesis            → Dissertation or thesis
+         report            → Technical or institutional report
+         manuscript        → Preprint or working paper (SocArXiv, SSRN, OSF)
+         dataset           → Research dataset (OSF, ICPSR, Dataverse, Zenodo)
+         software          → R package or other software (CRAN, GitHub, PyPI)
+         post-weblog       → Blog post
+         post              → Social media post (X, Mastodon, etc.)
+         broadcast         → YouTube video, podcast episode, film
+         speech            → Conference presentation (unpublished)
+         webpage           → General web page
+
+       Zotero field notes:
+         Genre / Type      → Sets the bracketed label [Video], [Preprint], etc.
+         Accessed          → Set this to enable "Accessed DATE. URL" output
+         Version           → Used for software, packages, datasets
+         Publisher         → Repository name for preprints / software / data
+         container-title   → Platform or channel name for broadcast / post types
+
+       ============================================================ -->
+  <bibliography hanging-indent="true">
+    <sort>
+      <key macro="author"/>
+      <key macro="year-sort"/>
+      <key variable="title"/>
+    </sort>
+    <layout suffix=".">
+      <group delimiter=". ">
+        <text macro="author"/>
+        <text macro="year-date"/>
+
+        <choose>
+
+          <!-- ================================================
+               JOURNAL ARTICLE
+               Chicago 17: "Title." Journal Volume (Issue): Pages. DOI.
+               Space before issue parenthetical is intentional.
+               ================================================ -->
+          <if type="article-journal">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group suffix="." delimiter=" ">
+                <text variable="container-title" font-style="italic"
+                      text-case="title"/>
+                <group delimiter=":">
+                  <group>
+                    <text variable="volume"/>
+                    <text variable="issue" prefix=" (" suffix=")"/>
+                  </group>
+                  <text variable="page"/>
+                </group>
+              </group>
+              <text macro="doi-or-url"/>
+            </group>
+          </if>
+
+          <!-- ================================================
+               MAGAZINE / NEWSPAPER
+               Format: "Title." Publication, Month Day, Page.
+               ================================================ -->
+          <else-if type="article-magazine article-newspaper" match="any">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=", ">
+                <text variable="container-title" font-style="italic"
+                      text-case="title"/>
+                <text macro="day-month"/>
+                <text variable="page"/>
+              </group>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               BOOK
+               Chicago 17: Title. Nth ed. Place: Publisher.
+               ================================================ -->
+          <else-if type="bill book graphic legal_case legislation
+                         motion_picture song" match="any">
+            <group delimiter=". ">
+              <text macro="title-book"/>
+              <text macro="volume"/>
+              <text macro="edition"/>
+              <text macro="editor"/>
+              <text macro="publisher-place"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               CHAPTER / CONFERENCE PAPER
+               Chicago 17 author-date:
+               "Title." In Container Title, edited by First Last, pages.
+               Place: Publisher.
+               Note: pages come after the editor, not before "in".
+               ================================================ -->
+          <else-if type="chapter paper-conference" match="any">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=", ">
+                <group delimiter=" ">
+                  <text term="in" text-case="capitalize-first"/>
+                  <text variable="container-title" font-style="italic"
+                        text-case="title"/>
+                </group>
+                <text macro="editor"/>
+                <text variable="page"/>
+              </group>
+              <text macro="publisher-place"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               THESIS / DISSERTATION
+               Chicago 17: "Title." PhD diss. / MA thesis, Institution.
+               Set Type field in Zotero to "PhD dissertation", "MA thesis", etc.
+               ================================================ -->
+          <else-if type="thesis">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=", ">
+                <text variable="genre"/>
+                <text variable="publisher"/>
+              </group>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               REPORT (technical / institutional)
+               Format: "Title." Report No. X. Publisher. DOI/URL.
+               ================================================ -->
+          <else-if type="report">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=" ">
+                <text variable="genre"/>
+                <text variable="number"/>
+              </group>
+              <text variable="publisher"/>
+              <text macro="doi-or-url"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               PREPRINT / WORKING PAPER
+               Use for SocArXiv, SSRN, OSF, NBER, IZA, etc.
+               In Zotero: Item Type = Manuscript.
+               Set Genre to "Working Paper", "Preprint", etc.
+               Set Publisher to repository name.
+               Set Version if applicable.
+               Format: "Title." Working Paper [vX.X], Repository. DOI/URL.
+               ================================================ -->
+          <else-if type="manuscript">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=", ">
+                <choose>
+                  <if variable="genre">
+                    <text variable="genre"/>
+                  </if>
+                  <else>
+                    <text value="Working Paper"/>
+                  </else>
+                </choose>
+                <choose>
+                  <if variable="version">
+                    <text variable="version" prefix="v"/>
+                  </if>
+                </choose>
+                <text variable="publisher"/>
+              </group>
+              <text macro="doi-or-url"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               DATASET
+               Use for OSF, ICPSR, ANES, Dataverse, Zenodo, etc.
+               In Zotero: Item Type = Dataset.
+               Set Version and Publisher (repository name).
+               Format: Dataset Title. Version X. [Data set]. Publisher. DOI.
+               ================================================ -->
+          <else-if type="dataset">
+            <group delimiter=". ">
+              <text macro="title-book"/>
+              <group delimiter=" ">
+                <text term="version" text-case="capitalize-first"/>
+                <text variable="version"/>
+              </group>
+              <choose>
+                <if variable="genre">
+                  <text variable="genre" prefix="[" suffix="]"/>
+                </if>
+                <else>
+                  <text value="[Data set]"/>
+                </else>
+              </choose>
+              <text variable="publisher"/>
+              <text macro="doi-or-url"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               SOFTWARE / R PACKAGE
+               Consistent with FORCE11 Software Citation Principles.
+               In Zotero: Item Type = Software (or Computer Program).
+               Better BibTeX exports as @software.
+               Set Version, Publisher (CRAN / GitHub / PyPI), and URL or DOI.
+               Genre: "[R package]", "[Python package]", "[Software]", etc.
+               Format: Package Name. Version X.X. [R package]. Publisher. DOI/URL.
+               ================================================ -->
+          <else-if type="software">
+            <group delimiter=". ">
+              <text macro="title-book"/>
+              <group delimiter=" ">
+                <text term="version" text-case="capitalize-first"/>
+                <text variable="version"/>
+              </group>
+              <choose>
+                <if variable="genre">
+                  <text variable="genre" prefix="[" suffix="]"/>
+                </if>
+                <else>
+                  <text value="[Computer software]"/>
+                </else>
+              </choose>
+              <text variable="publisher"/>
+              <text macro="doi-or-url"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               BLOG POST
+               In Zotero: Item Type = Blog Post.
+               Set Blog Title (container-title), date, URL, and Accessed.
+               Format: "Title." Blog Name, Month Day. Accessed DATE. URL.
+               ================================================ -->
+          <else-if type="post-weblog">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=", ">
+                <text variable="container-title" font-style="italic"
+                      text-case="title"/>
+                <text macro="day-month"/>
+              </group>
+              <text macro="accessed-url"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               SOCIAL MEDIA POST
+               In Zotero: Item Type = Forum Post (exports as post).
+               Set container-title to platform name (X, Mastodon, etc.).
+               Format: "Post text..." Platform, Month Day. Accessed DATE. URL.
+               ================================================ -->
+          <else-if type="post">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=", ">
+                <text variable="container-title" font-style="italic"
+                      text-case="title"/>
+                <text macro="day-month"/>
+              </group>
+              <text macro="accessed-url"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               VIDEO / PODCAST (broadcast)
+               In Zotero: Item Type = Video Recording or Podcast.
+               Set container-title to channel or podcast name.
+               Set Genre to "[Video]", "[Podcast episode]", "[Film]", etc.
+               Format: "Title." Channel/Podcast, Month Day. [Type]. Accessed DATE. URL.
+               ================================================ -->
+          <else-if type="broadcast">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=", ">
+                <text variable="container-title" font-style="italic"
+                      text-case="title"/>
+                <text macro="day-month"/>
+              </group>
+              <choose>
+                <if variable="genre">
+                  <text variable="genre" prefix="[" suffix="]"/>
+                </if>
+              </choose>
+              <text macro="accessed-url"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               CONFERENCE PRESENTATION (unpublished)
+               In Zotero: Item Type = Presentation.
+               Format: "Title." Presented at Conference, Month Day, Place.
+               ================================================ -->
+          <else-if type="speech">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <group delimiter=", ">
+                <group delimiter=" ">
+                  <text term="presented at" text-case="capitalize-first"/>
+                  <text variable="event"/>
+                </group>
+                <text macro="day-month"/>
+                <text variable="event-place"/>
+              </group>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               GENERAL WEBPAGE
+               In Zotero: Item Type = Web Page.
+               Set Accessed date for the retrieval statement.
+               Format: "Title." Site Name. Accessed DATE. URL.
+               ================================================ -->
+          <else-if type="webpage">
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <text variable="container-title" font-style="italic"
+                    text-case="title"/>
+              <text macro="accessed-url"/>
+            </group>
+          </else-if>
+
+          <!-- ================================================
+               FALLBACK (any unrecognized type)
+               ================================================ -->
+          <else>
+            <group delimiter=". ">
+              <text macro="title-article"/>
+              <text macro="editor"/>
+              <group suffix="." delimiter=" ">
+                <text variable="container-title" font-style="italic"
+                      text-case="title"/>
+                <group delimiter=":">
+                  <group>
+                    <text variable="volume"/>
+                    <text variable="issue" prefix=" (" suffix=")"/>
+                  </group>
+                  <text variable="page"/>
+                </group>
+              </group>
+              <text macro="doi-or-url"/>
+            </group>
+          </else>
+
+        </choose>
+      </group>
+    </layout>
+  </bibliography>
+
+</style>
