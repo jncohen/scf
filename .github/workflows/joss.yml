@@ -1,4 +1,4 @@
-name: JOSS Paper Build
+name: JOSS Paper Builds
 
 on:
   push:
