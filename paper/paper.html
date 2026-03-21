@@ -413,7 +413,7 @@ coordinate design specification, implicate iteration, and pooling. As a
 result, even simple analyses involve substantial custom code, and
 correct implementation depends on careful adherence to SCF-specific
 conventions.</p>
-<p>Existing reference workflows, such as those provided by <span class="citation">Damico (2026)</span>, demonstrate correct
+<p>Existing reference workflows, such as those provided by Damico <span class="citation">(Damico 2026)</span>, demonstrate correct
 implementation but are not packaged as reusable abstractions. Users must
 adapt and reimplement these procedures for each analysis task.</p>
 <p>The <code>scf</code> package addresses this gap by formalizing
@@ -424,33 +424,6 @@ estimation and pooling. The package attempts a grammar and output format
 that reduces that amount of custom code required for common tasks,
 reducing the barrier to entry for valid SCF analysis while preserving
 transparency and flexibility for advanced users.</p>
-</div>
-<div id="state-of-the-field" class="section level1">
-<h1>State of the Field</h1>
-<p>There are well-developed R packages to perform discrete elements of
-the workflow required to analyze SCF microdata. For the analysis of
-complex survey data, the <code>survey</code> package <span class="citation">(<strong>Lumley2004?</strong>; Lumley 2011)</span> is
-an authoritative tool in the R ecosystem. It is a general purpose survey
-analysis package that allows users to generate population-level
-inferences that correctly account for the design features of the survey
-in question. Using this package requires that understand the details of
-sampling and weighting methodology, such that they can correctly specify
-the survey design object required to make these functions work. For the
-SCF, its <code>survey::svrepdesign()</code> function supports the
-construction of replicate-weighted survey designs, required in this
-use-case.</p>
-<p>The Federal Reserve distributes its microdata with missing data
-imputations, as five discrete data tables generated via multiple
-imputation with randomness. The R ecosystem offers tools for handling
-such data, like the <code>mitools</code> package <span class="citation">(Lumley 2019)</span> and the <code>mice</code> package
-<span class="citation">(Buuren et al. 2025)</span>. Typically, though
-not always, these tools combine the results of individual imputations
-using Rubin-style combining rules <span class="citation">(Rubin
-1987)</span>. Here, familiarity with missing data imputation can prove a
-barrier to entry in analyzing SCF microdata.</p>
-<p>The situation leaves users needing to use two tools that handle
-relatively advanced methodological operations: complex survey analysis
-and missing data imputation.</p>
 </div>
 <div id="package-overview" class="section level1">
 <h1>Package overview</h1>
@@ -485,9 +458,9 @@ measure</li>
 <p>For model-based and many descriptive quantities, pooling uses
 Rubin-style combining rules <span class="citation">(Rubin 1987)</span>.
 For some statistics such as percentiles and proportions, the package
-uses implicate-aggregation strategies implemented in official SCF
-documentation. The result is a consistent user interface across common
-SCF tasks without requiring users to manage the imputation and
+uses appropriate implicate-aggregation strategies implemented in the
+workflow. The result is a consistent user interface across common SCF
+tasks without requiring users to manage the imputation and
 replicate-weight logic manually.</p>
 </div>
 <div id="functional-coverage" class="section level2">
@@ -562,11 +535,6 @@ available SCF documentation and example workflows.</p>
 <div id="references" class="section level1 unnumbered">
 <h1 class="unnumbered">References</h1>
 <div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-vanBuuren2025" class="csl-entry">
-Buuren, Stef van, Karin Groothuis-Oudshoorn, Gerko Vink, et al. 2025.
-<em>Mice: <span>Multivariate Imputation</span> by <span>Chained
-Equations</span></em>. V. 3.19.0. Released December 10. <a href="https://cran.r-project.org/web/packages/mice/index.html">https://cran.r-project.org/web/packages/mice/index.html</a>.
-</div>
 <div id="ref-Cohen2025" class="csl-entry">
 Cohen, Joseph. 2025. <em>Scf: <span>Analyzing</span> the
 <span>Survey</span> of <span>Consumer Finances</span></em>. V. 1.0.5.
