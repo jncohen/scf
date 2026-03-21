@@ -34,7 +34,7 @@ In R, this workflow is typically implemented using the `survey` package [@Lumley
 
 Existing reference workflows, such as those provided by Damico [@Damico2026], demonstrate correct implementation but are not packaged as reusable abstractions. Users must adapt and reimplement these procedures for each analysis task.
 
-The `scf` package addresses this gap by formalizing SCF-specific best practices in a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, along with a set of functions that automate estimation and pooling. The package attempts a grammar and output format that reduces that amount of custom code required for common tasks, reducing the barrier to entry for valid SCF analysis while preserving transparency and flexibility for advanced users. 
+The `scf` package addresses this gap by formalizing SCF-specific best practices in a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, along with a set of functions that automate estimation and pooling. The package attempts a grammar and output format that reduces that amount of custom code required for common tasks, reducing the barrier to entry for valid SCF analysis while preserving transparency and flexibility for advanced users.
 
 # Package overview
 
