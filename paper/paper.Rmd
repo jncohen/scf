@@ -8,13 +8,13 @@ tags:
   - multiple imputation
   - complex surveys
 authors:
-  - name: Joseph N. Cohen
+  - name: Joseph Nathan Cohen
     orcid: 0000-0002-6197-4453
     affiliation: 1
 affiliations:
   - name: Queens College, City University of New York, Queens, New York, USA
     index: 1
-date: 2026
+date: 21 March 2026
 bibliography: paper.bib
 ---
 
