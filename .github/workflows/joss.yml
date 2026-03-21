@@ -1,4 +1,4 @@
-name: JOSS Paper Builds
+name: JOSS Paper Build
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build paper PDF
-        uses: openjournals/openjournals-draft-action@v2
+        uses: openjournals/openjournals-draft-action@v1.0
         with:
           journal: joss
           paper-path: paper/paper.md
