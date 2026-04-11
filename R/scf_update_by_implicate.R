@@ -87,11 +87,12 @@ scf_update_by_implicate <- function(object, f) {
     updated_implicates[[i]] <- new_df
     updated_designs[[i]] <- survey::svrepdesign(
       weights = ~wgt,
-      repweights = new_df[, rep_cols],
+      repweights = as.matrix(new_df[, rep_cols]),
       data = new_df,
-      type = "BRR",
-      fay.rho = 0.5,
-      mse = TRUE,
+      type = "other",
+      scale = 1,
+      rscales = rep(1 / (length(rep_cols) - 1), length(rep_cols)),
+      mse = FALSE,
       combined.weights = TRUE
     )
   }

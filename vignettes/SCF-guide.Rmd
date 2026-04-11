@@ -8,81 +8,81 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   message = FALSE,
   warning = FALSE
 )
-
-library(dplyr)
 library(scf)
-
 ```
 
 # Introduction
 
-The **Survey of Consumer Finances (SCF)** is a triennial survey of U.S. household finances conducted by the Federal Reserve Board. It is among the most detailed and methodologically sophisticated data sources on U.S. households' personal finances. 
+The **Survey of Consumer Finances (SCF)** is a triennial survey of U.S. household finances conducted by the Federal Reserve Board. It is among the most detailed data sources on U.S. household wealth, income, and financial behavior.
 
-To ensure valid estimation and inference, the SCF incorporates two key methodological features:
+Valid estimation from the SCF requires handling two design features:
 
-1. **Complex Survey Design**: The SCF uses a dual frame design with a geographic national sample and list sample of wealthy people selected from IRS records. Each implicate includes 999 replicate weights constructed via balanced repeated replication (BRR), which enable design-consistent estimation of variance.
-2. **Multiple Imputation**: The SCF addresses item nonresponse through multiple imputation. Each release includes five implicates—plausible, complete versions of the dataset with different imputed values for missing items.
+1. **Complex survey design**: The SCF uses a dual-frame design with 999 replicate weights per implicate, constructed via balanced repeated replication, which enable design-consistent variance estimation.
+2. **Multiple imputation**: The SCF addresses item nonresponse through multiple imputation. Each release includes five implicates — complete, plausible versions of the dataset with different imputed values for missing items.
 
-These design features demand appropriate statistical handling. Analysts unfamiliar with replicate weighting and imputation pooling may inadvertently produce biased or misleading results. In practice, these barriers have discouraged even quantitatively competent researchers from working directly with SCF microdata.
+The `scf` package handles both. It wraps the five implicates in replicate-weighted `survey::svrepdesign()` objects, applies estimation routines across implicates, and pools results using Rubin's Rules or equivalent procedures.
 
-The `scf` package aims to reduce this friction. It provides a structured and reproducible R interface for downloading, transforming, and analyzing SCF data using methods appropriate to its design. The package handles replicate weights and Rubin’s Rules transparently and consistently across descriptive statistics, hypothesis testing, regression modeling, and visualization.
-
-This vignette introduces the core analytic workflow supported by the package. For detailed methodological discussion, see Cohen (2025a).
+This vignette demonstrates the core workflow. For methodological background, see the package paper.
 
 
 # Workflow
 
 ## 1. Downloading and Loading the Data
 
-Download raw SCF data and load it into a valid multiply-imputed survey object using `scf_download()` and `scf_load()`. The result is an `scf_mi_survey` object that contains replicate-weighted survey designs for each implicate.
+Download SCF data and load it into a multiply-imputed survey object using `scf_download()` and `scf_load()`.
 
-```{r, include = F}
-# Using Mock data with distribution
+```{r, include = FALSE}
 vtd <- file.path(tempdir(), "scf_vig")
 dir.create(vtd, showWarnings = FALSE)
-
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(vtd, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = vtd)
 ```
 
-```{r, eval = F}
-scf2022 <- scf_download(2022)
-scf2022 <- scf_load(scf2022)
-
+```{r, eval = FALSE}
+scf_download(2022)
+scf2022 <- scf_load(2022)
 ```
+
+The result is a `scf_mi_survey` object containing five `svyrep.design` objects, one per implicate, and survey-year metadata.
 
 ## 2. Creating and Transforming Variables
 
-Before logging, you must bottom-code income and net worth at \$1 to avoid NA values due to log(0). The `scf_update()` function safely adds or modifies variables across all implicates.
+`scf_update()` adds or modifies variables uniformly across all five implicates. Bottom-code skewed variables before logging to avoid `log(0)`.
 
 ```{r}
-
 scf2022 <- scf_update(scf2022,
-  senior = age >= 65,
-  female = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
-  rich = networth > 1e6,
-  networth = ifelse(networth > 1, networth, 1),
+  senior       = age >= 65,
+  female       = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
+  rich         = networth > 1e6,
+  networth     = ifelse(networth > 1, networth, 1),
   log_networth = log(networth),
-  income = ifelse(income > 1, income, 1),
-  log_income = log(income),
-  npeople = x101
+  income       = ifelse(income > 1, income, 1),
+  log_income   = log(income),
+  npeople      = x101
 )
-
 ```
 
-Use `names(scf2022$mi_design[[1]]$variables)` to inspect variables.
+Use `names(scf2022$mi_design[[1]]$variables)` to inspect available variables.
+
+When a transformation depends on the distribution within each implicate — ranks, percentile flags, groupwise z-scores — use `scf_update_by_implicate()` instead:
+
+```{r, eval = FALSE}
+scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+  df$wealth_rank <- rank(df$networth) / nrow(df)
+  df
+})
+```
 
 ## 3. Univariate and Bivariate Distributions
 
-Use `scf_mean()`, `scf_median()`, and `scf_percentile()` to calculate pooled estimates with Rubin’s Rules. Use `by =` for grouped statistics.
+`scf_mean()`, `scf_median()`, and `scf_percentile()` return pooled population estimates with standard errors. The `by` argument produces group-level estimates.
 
 ```{r}
 scf_mean(scf2022, ~networth, by = ~senior)
@@ -91,9 +91,16 @@ scf_percentile(scf2022, ~networth, q = 0.9)
 scf_percentile(scf2022, ~networth, q = 0.75, by = ~female)
 ```
 
+Discrete distributions are summarized with `scf_freq()` and cross-tabulated with `scf_xtab()`.
+
+```{r}
+scf_freq(scf2022, ~senior)
+scf_xtab(scf2022, ~senior, ~female, scale = "col")
+```
+
 ## 4. Hypothesis Tests
 
-Conduct t-tests and proportion tests on pooled SCF data. These tests return interpretable outputs with correct degrees of freedom and pooled standard errors.
+`scf_ttest()` and `scf_prop_test()` produce pooled inferential tests with correct degrees of freedom.
 
 ```{r}
 scf_ttest(scf2022, ~networth, mu = 250000)
@@ -104,56 +111,116 @@ scf_prop_test(scf2022, ~rich, ~female)
 
 ## 5. Regression Modeling
 
-Fit linear or generalized linear models with Rubin-aware pooling. Logistic models can return odds ratios if requested.
+`scf_ols()`, `scf_glm()`, and `scf_logit()` fit replicate-weighted models to each implicate and pool coefficients via Rubin's Rules.
 
 ```{r}
-scf_ols(scf2022, networth ~ age + log_income)
-scf_logit(scf2022, rich ~ age + log_income)
+scf_ols(scf2022, log_networth ~ age + log_income)
 scf_logit(scf2022, rich ~ age + log_income, odds = TRUE)
-scf_glm(scf2022, own ~ age , family = binomial())
+scf_glm(scf2022, own ~ age, family = binomial())
 ```
 
-> **Note on Warnings**  
-> When running logistic regression with `scf_logit()` or other functions that use `family = binomial()`, you may see warnings like:  
->  
-> ```
-> `Warning: non-integer #successes in a binomial glm!`
-> ```
->  
-> This warning is harmless. It appears because `survey::svyglm()` uses replicate weights that can lead to fractional counts. The model still estimates correctly. For more background and discussion, see [Stack Overflow thread](https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-binomial-glm-survey-packages).
+`scf_regtable()` formats results from one or more models for publication:
 
+```{r}
+m1 <- scf_ols(scf2022, log_networth ~ age)
+m2 <- scf_ols(scf2022, log_networth ~ age + log_income)
+scf_regtable(m1, m2, model.names = c("Model 1", "Model 2"), digits = 3)
+```
 
-## 6. Visualization
+## 6. Quantile Regression
 
-Produce publication-quality plots using multiply-imputed data. All visuals account for weights and imputations.
+OLS models the conditional mean, which is sensitive to outliers and skew. Wealth and income distributions in the SCF are highly right-skewed: a small number of high-wealth households can dominate mean estimates. Quantile regression estimates the conditional quantile of the outcome at a user-specified probability `tau`, giving a more complete picture of distributional associations.
+
+`scf_quantreg()` fits `quantreg::rq()` with SCF final sampling weights to each implicate, then pools coefficients and variance-covariance matrices across implicates via `scf_MIcombine()`.
+
+```{r}
+# Median regression
+m_med <- scf_quantreg(scf2022, log_networth ~ age + senior, tau = 0.50)
+print(m_med)
+```
+
+```{r}
+# 75th percentile
+m_75 <- scf_quantreg(scf2022, log_networth ~ age + senior, tau = 0.75)
+summary(m_75)
+```
+
+The `se` argument controls within-implicate variance estimation. All methods feed a covariance matrix into `scf_MIcombine()`, so between-implicate (imputation) variance is always incorporated.
+
+- `"nid"` (default): non-iid sandwich estimator. Allows the conditional sparsity — the density of the error distribution at the quantile — to vary across observations. Appropriate when the error distribution is not constant across the covariate space, which is typical for wealth and income outcomes.
+- `"iid"`: implements the Koenker-Bassett (1978) covariance formula `[θ(1-θ)/f(ξ(θ))²] Q⁻¹`, where `f(ξ(θ))` is the density of the error at the θ-quantile (the sparsity) and `Q = lim T⁻¹X'X`. This assumes the error distribution is identical across all observations — constant sparsity, not merely constant variance. Fastest option.
+- `"ker"`: kernel density estimate of the conditional sparsity. More data-adaptive than `"nid"`.
+- `"boot"`: pairs bootstrap. Distribution-free but slowest of the analytical options.
+- `"replicate"`: re-fits the model using each of the SCF's 999 replicate weight vectors per implicate via `survey::withReplicates()`, accumulating variance as the weighted sum of squared deviations from the full-weight estimate. This matches the SCF's own published variance methodology and is recommended for final publication-quality estimates. It requires approximately 5,000 model fits across five implicates and is computationally intensive.
+
+```{r, eval = FALSE}
+# Replication-based variance (recommended for publication; slow)
+m_rep <- scf_quantreg(scf2022, log_networth ~ age + senior,
+                       tau = 0.50, se = "replicate")
+summary(m_rep)
+```
+
+A note on design: the `survey` package provides `svyquantile()` for estimating marginal quantiles of a single variable, but it has no function for regression quantiles (conditional quantiles given covariates). `scf_quantreg()` therefore uses `quantreg::rq()` for point estimation, with `survey::withReplicates()` providing the design-based variance wrapper for the `"replicate"` path. This keeps the SCF's replication scheme encapsulated in the survey design object, rather than reimplementing it manually.
+
+Koenker and Bassett (1978) established the asymptotic theory for the unweighted, i.i.d. case. Applying `rq()` with survey sampling weights extends the estimator to probability-weighted samples, which is standard empirical practice; the `"iid"` and `"nid"` standard error formulas extend correspondingly to the weighted design matrix `X'WX`. The `"replicate"` option sidesteps this by using the SCF's own replication scheme to estimate variance directly, without relying on distributional assumptions about the errors.
+
+Results are compatible with `scf_regtable()`:
+
+```{r}
+scf_regtable(m_med, m_75,
+             model.names = c("Median", "75th Pct"),
+             digits = 3)
+```
+
+To study how associations vary across the outcome distribution, estimate the same model at multiple quantiles and compare:
+
+```{r, eval = FALSE}
+taus <- c(0.25, 0.50, 0.75, 0.90)
+models <- lapply(taus, function(t) {
+  scf_quantreg(scf2022, log_networth ~ age + senior, tau = t)
+})
+names(models) <- paste0("tau=", taus)
+do.call(scf_regtable, c(models, list(digits = 3)))
+```
+
+## 7. Visualization
+
+`scf` plotting functions account for survey weights and multiply-imputed data.
 
 ```{r}
 scf_plot_dbar(scf2022, ~senior)
 scf_plot_bbar(scf2022, ~female, ~rich, scale = "percent")
 scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "median")
-scf_plot_dist(scf2022, ~age, bins = 10) 
+scf_plot_dist(scf2022, ~age, bins = 10)
 scf_plot_smooth(scf2022, ~age)
 scf_plot_hex(scf2022, ~income, ~networth)
 ```
 
-## 7. Inspecting Implicates and Pooled Objects
+## 8. Inspecting Implicates
 
-Use `scf_implicates()` to inspect individual implicate estimates for sensitivity analysis.
+Use `scf_implicates()` to retrieve implicate-level estimates from any `scf_*` result for sensitivity analysis or custom pooling.
 
 ```{r}
 freq_table <- scf_freq(scf2022, ~rich)
 scf_implicates(freq_table, long = TRUE)
 ```
 
+Implicate-level regression model objects are stored directly in the result:
+
+```{r, eval = FALSE}
+m <- scf_ols(scf2022, log_networth ~ age)
+summary(m$imps[[1]])   # first implicate svyglm object
+```
+
 
 # Learn More
-For more details on the SCF methodology and the `scf` package, see:
 
-- Federal Reserve Board. (2023). *Survey of Consumer Finances*. [https://www.federalreserve.gov/econres/aboutscf.htm](https://www.federalreserve.gov/econres/aboutscf.htm)
+- Federal Reserve Board. *Survey of Consumer Finances*. <https://www.federalreserve.gov/econres/aboutscf.htm>
+- Koenker R, Bassett G. Regression quantiles. *Econometrica*. 1978;46(1):33–50.
+- Rubin DB. *Multiple Imputation for Nonresponse in Surveys*. Wiley; 1987.
 
-```{r, include = F}
-# Cleanup to avoid NOTE about leftover files
-try(unlink(file.path(vtd, "scf2022.rds"), force=TRUE), silent=TRUE)
-try(unlink(vtd, recursive=TRUE, force=TRUE), silent=TRUE)
+```{r, include = FALSE}
+try(unlink(file.path(vtd, "scf2022.rds"), force = TRUE), silent = TRUE)
+try(unlink(vtd, recursive = TRUE, force = TRUE), silent = TRUE)
 rm(vtd)
 ```

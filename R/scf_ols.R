@@ -126,6 +126,37 @@ scf_ols <- function(object, formula) {
   return(out)
 }
 #' @export
+#' @method summary scf_ols
+summary.scf_ols <- function(object, digits = 4, ...) {
+  cat("SCF OLS Regression Summary\n")
+  cat("--------------------------------------------------\n")
+
+  df <- object$results
+  df$estimate   <- round(df$estimate,   digits)
+  df$std.error  <- round(df$std.error,  digits)
+  df$t.value    <- round(df$t.value,    digits)
+  df$p.value    <- format.pval(df$p.value, digits = digits)
+
+  cat("Pooled Coefficient Estimates:\n")
+  print(df[, c("term", "estimate", "std.error", "t.value", "p.value", "stars")],
+        row.names = FALSE)
+
+  cat("\nModel Fit Statistics:\n")
+  with(object$fit, {
+    if (!is.null(r.squared) && !is.na(r.squared)) {
+      cat("  Mean R-squared: ", round(r.squared, digits),
+          " (SD: ", round(r.squared.sd, digits), ")\n", sep = "")
+    }
+    cat("  Mean AIC:       ", round(AIC, digits),
+        " (SD: ", round(AIC.sd, digits), ")\n", sep = "")
+  })
+
+  cat("\nCall:\n")
+  print(object$call)
+  invisible(object)
+}
+
+#' @export
 #' @method print scf_ols
 print.scf_ols <- function(x, digits = 4, ...) {
   cat("OLS Regression Results (Multiply-Imputed SCF)\n")

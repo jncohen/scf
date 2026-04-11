@@ -23,12 +23,13 @@ Imports:
     stats,
     survey,
     utils
-Suggests: 
+Suggests:
     dplyr,
     hexbin,
     kableExtra,
     knitr,
     mitools,
+    quantreg,
     rmarkdown,
     markdown,
     testthat (>= 3.0.0)

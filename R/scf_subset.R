@@ -81,7 +81,7 @@ scf_subset <- function(scf, expr) {
     NULL
   }
 
-  structure(
+  result <- structure(
     list(
       mi_design = new_designs,
       data = new_data,
@@ -91,4 +91,6 @@ scf_subset <- function(scf, expr) {
     ),
     class = "scf_mi_survey"
   )
+  attr(result, "mock") <- isTRUE(attr(scf, "mock"))
+  result
 }

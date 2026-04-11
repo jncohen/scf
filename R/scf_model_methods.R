@@ -31,11 +31,19 @@ formula.scf_model_result <- function(x, ...) {
 #' @return A numeric vector of residuals.
 #' @export
 residuals.scf_model_result <- function(object, ...) {
-  if (length(object$models) == 0) {
+  # Implicate models may be stored under $models (scf_glm, scf_quantreg) or
+  # $imps (scf_ols, scf_logit). Check both to ensure uniform behavior.
+  imp_models <- if (!is.null(object$models) && length(object$models) > 0) {
+    object$models
+  } else if (!is.null(object$imps) && length(object$imps) > 0) {
+    object$imps
+  } else {
+    NULL
+  }
+  if (is.null(imp_models)) {
     stop("No underlying models found to extract residuals.")
   }
-  # Residuals are extracted from the first element of the 'models' list
-  return(stats::residuals(object$models[[1]]))
+  return(stats::residuals(imp_models[[1]]))
 }
 
 # ----------------------------------------------------------------------
@@ -115,25 +123,32 @@ AIC.scf_model_result <- function(object, k = 2, ...) {
 #' @return A numeric vector of pooled predicted values (mean prediction across implicates).
 #' @export
 predict.scf_model_result <- function(object, newdata, type = "link", ...) {
-  
-  if (length(object$models) == 0) {
+
+  # Implicate models may be stored under $models (scf_glm, scf_quantreg) or
+  # $imps (scf_ols, scf_logit). Resolve once and use throughout.
+  imp_models <- if (!is.null(object$models) && length(object$models) > 0) {
+    object$models
+  } else if (!is.null(object$imps) && length(object$imps) > 0) {
+    object$imps
+  } else {
+    NULL
+  }
+  if (is.null(imp_models)) {
     stop("No underlying models found to generate predictions.")
   }
-  
+
   # --- 1. Determine Model Type and Prediction Scale ---
-  
-  # Default is 'link' scale prediction
+
   pred_type <- match.arg(type, c("link", "response"))
-  
+
   # Try to infer family (necessary for predict.glm to handle links/responses)
   model_family <- tryCatch({
-    stats::family(object$models[[1]])
-  }, error = function(e) list(family = "gaussian")) # Assume OLS if retrieval fails
-  
+    stats::family(imp_models[[1]])
+  }, error = function(e) list(family = "gaussian"))
+
   # --- 2. Predict on each Implicate Model ---
-  
-  
-  all_preds <- lapply(object$models, function(m) {
+
+  all_preds <- lapply(imp_models, function(m) {
     # If no new data is provided, use the original data attached to the model
     local_newdata <- if (missing(newdata)) {
       m$model 
