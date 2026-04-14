@@ -116,15 +116,9 @@
 #' @seealso [scf_ols()], [scf_glm()], [scf_MIcombine()], [quantreg::rq()]
 #'
 #' @references
-#' Koenker R, Bassett G. Regression quantiles.
-#'   \emph{Econometrica}. 1978;46(1):33--50.
-#'   \doi{10.2307/1913643}
+#' Koenker R, Bassett G. Regression quantiles. \emph{Econometrica}. 1978;46(1):33--50. \doi{10.2307/1913643}
 #'
-#' Koenker R. \emph{Quantile Regression}. Cambridge University Press; 2005.
-#'   \doi{10.1017/CBO9780511754098}
-#'
-#' Rubin DB. \emph{Multiple Imputation for Nonresponse in Surveys}.
-#'   Wiley; 1987.
+#' Koenker R. \emph{Quantile Regression}. Cambridge University Press; 2005. \doi{10.1017/CBO9780511754098}
 #'
 #' @importFrom stats weights pt coef vcov
 #' @importFrom survey withReplicates
