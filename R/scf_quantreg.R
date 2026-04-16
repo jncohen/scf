@@ -171,7 +171,7 @@ scf_quantreg <- function(object, formula, tau = 0.5,
   for (i in seq_along(object$mi_design)) {
     imp <- object$mi_design[[i]]
     df  <- imp$variables
-    wts <- stats::weights(imp, type = "sampling")
+    wts <- as.numeric(stats::weights(imp, type = "sampling"))
     
     fit <- tryCatch(
       quantreg::rq(formula, tau = tau, data = df, weights = wts,
