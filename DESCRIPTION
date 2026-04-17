@@ -22,14 +22,14 @@ Imports:
     rlang,
     stats,
     survey,
-    utils
+    utils,
+    quantreg
 Suggests:
     dplyr,
     hexbin,
     kableExtra,
     knitr,
     mitools,
-    quantreg,
     rmarkdown,
     markdown,
     testthat (>= 3.0.0)
