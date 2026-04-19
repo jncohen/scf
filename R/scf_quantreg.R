@@ -136,45 +136,40 @@
 #'   method for sample quantiles. \emph{Annals of Statistics}.
 #'   1992;20(3):1371--1393. \doi{10.1214/aos/1176348781}
 #'
-#' @importFrom stats weights pt coef vcov
+#' @importFrom stats weights pt coef
 #' @importFrom survey withReplicates
 #' @export
 scf_quantreg <- function(object, formula, tau = 0.5,
                          se = c("nid", "iid", "ker", "boot", "replicate"),
                          ...) {
   
-  # ---- Input validation -----------------------------------------------------
   if (!inherits(object, "scf_mi_survey"))
     stop("Input must be of class 'scf_mi_survey'.")
   if (!inherits(formula, "formula"))
-    stop("'formula' must be a formula object (e.g., networth ~ age + income).")
+    stop("'formula' must be a formula object.")
   if (!requireNamespace("quantreg", quietly = TRUE))
-    stop("Package 'quantreg' is required. Install with: install.packages('quantreg')")
+    stop("Package 'quantreg' is required.")
   if (!is.numeric(tau) || length(tau) != 1 || tau <= 0 || tau >= 1)
     stop("'tau' must be a single numeric value strictly between 0 and 1.")
   
   se <- match.arg(se)
   
-  if (isTRUE(attr(object, "mock"))) {
+  if (isTRUE(attr(object, "mock")))
     warning("Mock data detected. Do not interpret results as valid SCF estimates.",
             call. = FALSE)
-  }
   
-  # ---- Fit implicate-level models -------------------------------------------
-  # SCF public-use microdata contain no missing values; each implicate is a
-  # complete dataset. Weights are extracted directly without subsetting.
   coefs_list <- list()
   vars_list  <- list()
   models     <- list()
   fit_errors <- character(0)
   
   for (i in seq_along(object$mi_design)) {
-    imp <- object$mi_design[[i]]
-    df  <- imp$variables
-    wts <- as.numeric(stats::weights(imp, type = "sampling"))
+    imp      <- object$mi_design[[i]]
+    df       <- imp$variables
+    df$.wts  <- as.numeric(stats::weights(imp, type = "sampling"))
     
     fit <- tryCatch(
-      quantreg::rq(formula, tau = tau, data = df, weights = wts,
+      quantreg::rq(formula, tau = tau, data = df, weights = .wts,
                    method = "fn", ...),
       error = function(e) e
     )
@@ -190,11 +185,12 @@ scf_quantreg <- function(object, formula, tau = 0.5,
     
     if (se == "replicate") {
       p    <- length(nm)
-      df_i <- df  # captured in closure for withReplicates
+      df_i <- df
       theta_fn <- function(w, ...) {
+        df_i$.wts <- w
         r <- tryCatch(
           suppressWarnings(
-            quantreg::rq(formula, tau = tau, data = df_i, weights = w)
+            quantreg::rq(formula, tau = tau, data = df_i, weights = .wts)
           ),
           error = function(e) NULL
         )
@@ -214,7 +210,6 @@ scf_quantreg <- function(object, formula, tau = 0.5,
     }
     
     dimnames(cov_i) <- list(nm, nm)
-    
     coefs_list[[length(coefs_list) + 1]] <- stats::coef(fit)
     vars_list[[length(vars_list) + 1]]   <- cov_i
     models[[length(models) + 1]]         <- fit
@@ -230,7 +225,6 @@ scf_quantreg <- function(object, formula, tau = 0.5,
     warning(paste(c("Some implicates failed:", fit_errors), collapse = "\n"),
             call. = FALSE)
   
-  # ---- Align terms across implicates ----------------------------------------
   common_terms <- Reduce(intersect, lapply(coefs_list, names))
   if (length(common_terms) == 0)
     stop("No common coefficient terms found across implicates.")
@@ -240,11 +234,10 @@ scf_quantreg <- function(object, formula, tau = 0.5,
     v[common_terms, common_terms, drop = FALSE]
   })
   
-  # ---- Pool via Rubin's Rules -----------------------------------------------
   pooled <- scf_MIcombine(coefs_list, vars_list)
   
-  est   <- stats::coef(pooled)
-  se_v  <- SE(pooled)
+  est   <- pooled$coefficients
+  se_v  <- sqrt(diag(pooled$variance))
   tval  <- est / se_v
   pval  <- 2 * stats::pt(-abs(tval), df = pooled$df)
   
@@ -276,9 +269,6 @@ scf_quantreg <- function(object, formula, tau = 0.5,
   class(out) <- c("scf_quantreg", "scf_model_result")
   return(out)
 }
-
-
-# ---- S3 methods: print and summary -------------------------------------------
 
 #' @export
 #' @method print scf_quantreg
