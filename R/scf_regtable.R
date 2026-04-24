@@ -245,9 +245,12 @@ scf_regtable <- function(...,
     invisible(out)
     
   } else if (output == "markdown") {
-    # Escape underscores in Term column for LaTeX compatibility
+    # Escape LaTeX special characters across all columns
     out_escaped <- out
     out_escaped$Term <- gsub("_", "\\_", out_escaped$Term, fixed = TRUE)
+    out_escaped[] <- lapply(out_escaped, function(col) {
+      gsub("^", "\\^{}", col, fixed = TRUE)
+    })
     
     header <- paste0("| ", paste(colnames(out_escaped), collapse = " | "), " |")
     separator <- paste0("|", paste(rep("---", ncol(out_escaped)), collapse = "|"), "|")
