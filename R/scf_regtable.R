@@ -35,12 +35,11 @@
 #' Fit statistics rows are automatically selected based on model class:
 #' \describe{
 #'   \item{All models}{Sample size (N)}
-#'   \item{OLS models}{R-squared}
-#'   \item{Logit/GLM models}{Pseudo-R-squared}
-#'   \item{Quantile regression}{Quantile tau}
-#'   \item{OLS and Logit (not quantreg)}{AIC}
+#'   \item{OLS models}{R-squared and AIC}
+#'   \item{Logit/GLM models}{Pseudo-R-squared and AIC}
+#'   \item{Quantile regression}{Quantile tau (no R-squared or AIC)}
 #' }
-#'
+#' 
 #' It avoids external dependencies by using base R formatting and simple text,
 #' Markdown, LaTeX, or CSV output.
 #'
@@ -246,9 +245,13 @@ scf_regtable <- function(...,
     invisible(out)
     
   } else if (output == "markdown") {
-    header <- paste0("| ", paste(colnames(out), collapse = " | "), " |")
-    separator <- paste0("|", paste(rep("---", ncol(out)), collapse = "|"), "|")
-    rows <- apply(out, 1, function(r) paste0("| ", paste(r, collapse = " | "), " |"))
+    # Escape underscores in Term column for LaTeX compatibility
+    out_escaped <- out
+    out_escaped$Term <- gsub("_", "\\_", out_escaped$Term, fixed = TRUE)
+    
+    header <- paste0("| ", paste(colnames(out_escaped), collapse = " | "), " |")
+    separator <- paste0("|", paste(rep("---", ncol(out_escaped)), collapse = "|"), "|")
+    rows <- apply(out_escaped, 1, function(r) paste0("| ", paste(r, collapse = " | "), " |"))
     md_table <- paste(c(header, separator, rows), collapse = "\n")
     cat(md_table, "\n")
     invisible(md_table)
