@@ -10,7 +10,7 @@ scf_regtable(
   digits = 0,
   auto_digits = FALSE,
   labels = NULL,
-  output = c("console", "markdown", "csv"),
+  output = c("console", "markdown", "latex", "csv"),
   file = NULL
 )
 }
@@ -31,7 +31,8 @@ and 3 digits for smaller values.}
 term names with descriptive labels.}
 
 \item{output}{Output format: one of \code{"console"} (print to console),
-\code{"markdown"} (print Markdown table for R Markdown), or \code{"csv"}
+\code{"markdown"} (print Markdown table for R Markdown), \code{"latex"}
+(print LaTeX table for PDF compilation), or \code{"csv"}
 (write CSV file).}
 
 \item{file}{File path for CSV output; required if \code{output = "csv"}.}
@@ -42,19 +43,28 @@ Invisibly returns a data frame with formatted regression results and fit statist
 \description{
 This function formats and aligns coefficient estimates, standard errors, and
 significance stars from one or more SCF regression model objects
-(e.g., from \code{scf_ols()}, \code{scf_logit()}, or \code{scf_glm()}).
+(e.g., from \code{scf_ols()}, \code{scf_logit()}, \code{scf_quantreg()}, or \code{scf_glm()}).
 }
 \details{
 It compiles a side-by-side table with terms matched across models, appends
-model fit statistics (sample size N, R-squared or pseudo-R-squared, and AIC),
-and outputs the results as console text, Markdown for R Markdown documents,
-or a CSV file.
+model fit statistics (sample size N, R-squared or pseudo-R-squared, quantile tau,
+and AIC where applicable), and outputs the results as console text, Markdown for
+R Markdown documents, LaTeX for PDF compilation, or a CSV file.
 
 The function aligns all unique coefficient terms across provided models, formats
 coefficients with significance stars and standard errors, appends model fit
 statistics as additional rows, and renders output in the specified format.
-It avoids external dependencies by using base R formatting and simple text or
-Markdown output.
+
+Fit statistics rows are automatically selected based on model class:
+\describe{
+\item{All models}{Sample size (N)}
+\item{OLS models}{R-squared and AIC}
+\item{Logit/GLM models}{Pseudo-R-squared and AIC}
+\item{Quantile regression}{Quantile tau (no R-squared or AIC)}
+}
+
+It avoids external dependencies by using base R formatting and simple text,
+Markdown, LaTeX, or CSV output.
 }
 \examples{
 # Do not implement these lines in real analysis:
