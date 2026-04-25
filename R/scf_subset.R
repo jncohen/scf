@@ -87,7 +87,7 @@ scf_subset <- function(scf, expr) {
       data = new_data,
       implicates = new_implicates,
       year = scf$year,
-      n_households = nrow(new_data)
+      n_households = sum(new_designs[[1]]$variables$wgt)
     ),
     class = "scf_mi_survey"
   )

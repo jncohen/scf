@@ -54,7 +54,7 @@ scf_implicates <- function(x, long = FALSE) {
         df$se <- sqrt(df$var)
         df$lower <- df$estimate - 1.96 * df$se
         df$upper <- df$estimate + 1.96 * df$se
-        df$cv <- df$se / abs(df$estimate)
+        df$cv <- ifelse(df$estimate == 0, NA_real_, df$se / abs(df$estimate))
       }
       df
     })
@@ -90,7 +90,7 @@ scf_implicates <- function(x, long = FALSE) {
         se = ses,
         lower = coefs - 1.96 * ses,
         upper = coefs + 1.96 * ses,
-        cv = ses / abs(coefs)
+        cv = ifelse(coefs == 0, NA_real_, ses / abs(coefs))
       )
     })
     return(if (long) do.call(rbind, out) else out)

@@ -48,7 +48,7 @@
 #' @export
 scf_design <- function(design, year, n_households) {
   if (!is.list(design) || !all(sapply(design, inherits, "svyrep.design")))
-    stop("`design` must be a list of `svrep.design` objects (one per implicate).")
+    stop("`design` must be a list of `svyrep.design` objects (one per implicate).")
   structure(list(mi_design = design, year = year, n_households = n_households),
             class = "scf_mi_survey")
 }
