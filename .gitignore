@@ -3,7 +3,6 @@
 .Rhistory
 .RData
 .Rapp.history
-.Rbuildignore
 .DS_Store
 *.swp
 *.tmp

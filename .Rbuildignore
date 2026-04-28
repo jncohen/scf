@@ -1,0 +1,9 @@
+^vignettes/SCF-introduction\.Rmd$
+^vignettes/SCF-introduction\.bib$
+^vignettes/default\.csl$
+^vignettes/jnctemplate\.tex$
+^vignettes/Cohen-2026-scf-Package\.pdf$
+^paper/
+^archive/
+^mock-data/
+^cran-comments\.md$
