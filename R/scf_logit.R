@@ -99,6 +99,7 @@ scf_logit <- function(object, formula, odds = TRUE, ...) {
     results = model$results,
     imps = model$models,
     fit = model$fit,
+    vcov = model$vcov,
     call = match.call(),
     formula = formula
   )
