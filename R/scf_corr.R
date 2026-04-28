@@ -24,7 +24,6 @@
 #' @param scf An `scf_mi_survey` object, created by [scf_load()]
 #' @param var1 One-sided formula specifying the first variable
 #' @param var2 One-sided formula specifying the second variable
-#' @param ... Currently unused; included for S3 generic compatibility.
 #'
 #'
 #' @section Statistical Notes:
@@ -128,6 +127,7 @@ print.scf_corr <- function(x, ...) {
 
 #' @rdname scf_corr
 #' @param object A `scf_corr` object returned by [scf_corr()].
+#' @param ... Currently unused; included for S3 generic compatibility.
 #' @export
 summary.scf_corr <- function(object, ...) {
   cat("Summary of SCF Correlation Analysis\n")
