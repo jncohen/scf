@@ -6,4 +6,11 @@
 ^paper/
 ^archive/
 ^mock-data/
+^local-data/
+^docs/
 ^cran-comments\.md$
+^scf_.*\.tar\.gz$
+^scf2022\.rds$
+^scf2019\.rds$
+^testdata/
+^scf_functions_.*\.txt$
