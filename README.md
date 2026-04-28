@@ -18,7 +18,7 @@ pedagogically-conscious toolkit for analyzing the U.S. Federal Reserve’s
 sources for information on U.S. households’ balance sheets and income
 statements.
 
-It wraps replicate-weighted, multiply-imputed SCF data into through a custom
+It wraps replicate-weighted, multiply-imputed SCF data into a custom
 data object (`scf_mi_survey`) with which users can implement custom
 easy-to-use functions for generating proper population estimates for
 descriptive statistics, hypothesis testing, regression
@@ -121,7 +121,7 @@ scf2022 <- scf_load(2022)
 ```r, include = F
 # This document will use mock data for CRAN compliance
 # use the above method to download and load data in your analysis instead of:
-scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
+scf2022 <- readRDS(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"))
 # NOTE: Mock data for demonstration only. 
 # Use `scf_download()` and `scf_load()` for full SCF datasets.
 ```
@@ -247,11 +247,11 @@ For detailed examples, function documentation, and usage guides, consult
 the package vignettes and reference manual.
 
 - [SCF Homepage](https://github.com/jncohen/scf)
-- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.5.pdf)
+- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.6.pdf)
 
 ## Note on Mock Data
 
-This package includes a small mock dataset (`mock_scf2022.rds`) for testing purposes.  
+This package includes a small mock dataset (`scf2022_mock_raw.rds`) for testing purposes.  
 It includes only 75 rows and select variables. It is structurally valid,  
 but **not suitable for analytical use or inference**. Mock data objects carry a 
 "mock" = TRUE attribute and may trigger warnings in functions to discourage 
@@ -262,7 +262,7 @@ interpretive use.
 
 If you use `scf` in published work, please cite it as:
 
-> Joseph N. Cohen (2025). *scf: Tools for Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.5. <https://github.com/jncohen/scf>
+> Joseph N. Cohen (2026). *scf: Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.6. <https://github.com/jncohen/scf>
 
 Use `citation("scf")` in R for formatted references.
 

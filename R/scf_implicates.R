@@ -5,7 +5,16 @@
 #' in the `scf` suite. Supports result objects containing implicate-level data
 #' frames, `svystat` summaries, or `svyglm` model fits.
 #'
-#' @param x A result object containing implicate-level estimates (e.g., from scf_mean, scf_ols).
+#' @param x A result object containing implicate-level estimates. Three types are supported:
+#'   \describe{
+#'     \item{Data frame results}{Objects from [scf_freq()], [scf_mean()], [scf_median()],
+#'       [scf_percentile()], [scf_corr()], and [scf_xtab()], whose `$imps` slot contains
+#'       a list of data frames.}
+#'     \item{Survey statistic results}{Objects whose `$imps` slot contains `svystat`
+#'       objects (e.g., raw outputs from `survey::svymean()`).}
+#'     \item{Model results}{Objects from [scf_ols()], [scf_glm()], [scf_logit()], and
+#'       [scf_quantreg()], whose `$imps` or `$models` slot contains `svyglm` fits.}
+#'   }
 #' @param long Logical. If TRUE, returns stacked data frame. If FALSE, returns list.
 #'
 #' @section Usage:

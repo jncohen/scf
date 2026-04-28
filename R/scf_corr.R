@@ -48,22 +48,21 @@
 #' few implicates.
 #'
 #' @examples
-#' # Ignore this code block.  It loads mock data for CRAN.
-#' # In your analysis, download and load your data using the
-#' # functions `scf_download()` and `scf_load()`
+#' # Do not implement these lines in real analysis:
+#' # Use functions `scf_download()` and `scf_load()`
 #' td <- tempfile("corr_")
 #' dir.create(td)
-#' 
+#'
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # EXAMPLE IMPLEMENTATION OF `scf_corr()`:
+#' # Example for real analysis: Correlate income and net worth
 #' corr <- scf_corr(scf2022, ~income, ~networth)
 #' print(corr)
 #' summary(corr)
-#' 
-#' # Ignore the code below.  It is for CRAN:
+#'
+#' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
 #' 
 #' @export
@@ -126,6 +125,8 @@ print.scf_corr <- function(x, ...) {
   invisible(x)
 }
 
+#' @rdname scf_corr
+#' @param object A `scf_corr` object returned by [scf_corr()].
 #' @export
 summary.scf_corr <- function(object, ...) {
   cat("Summary of SCF Correlation Analysis\n")

@@ -27,12 +27,9 @@
 #' @param ... Named expressions assigning new or modified variables using `=` syntax.
 #'   Each expression must return a vector of the same length as the implicate data frame.
 #'
-#' @return A new `scf_mi_survey` object with:
-#' \describe{
-#'   \item{implicates}{A list of updated data frames (one per implicate).}
-#'   \item{mi_design}{A list of updated `svyrep.design` survey objects.}
-#'   \item{data}{(If present in the original object) unchanged pooled data.}
-#' }
+#' @return The input `scf_mi_survey` object with `mi_design` updated to reflect
+#' the new or modified variables. All other attributes (`year`, `n_households`,
+#' `mock`) are preserved unchanged.
 #'
 #' @examples
 #' # Do not implement these lines in real analysis:
@@ -67,77 +64,36 @@ scf_update <- function(object, ...) {
   }
   
   exprs <- rlang::enquos(...)
-  
-  if (!is.null(object$implicates) && length(object$implicates) > 0) {
-    updated_implicates <- vector("list", length(object$implicates))
-    updated_designs    <- vector("list", length(object$implicates))
-    
-    for (i in seq_along(object$implicates)) {
-      df <- object$implicates[[i]]
-      
-      for (j in seq_along(exprs)) {
-        varname <- names(exprs)[j]
-        try({
-          df[[varname]] <- rlang::eval_tidy(exprs[[j]], data = df)
-        }, silent = TRUE)
-      }
-      
-      rep_cols <- grep("^wt1b", names(df), value = TRUE)
-      svy <- survey::svrepdesign(
-        weights = ~wgt,
-        repweights = as.matrix(df[, rep_cols]),
-        data = df,
-        type = "other",
-        scale = 1,
-        rscales = rep(1 / 998, 999),
-        mse = TRUE,
-        combined.weights = TRUE
-      )
-      
-      updated_implicates[[i]] <- df
-      updated_designs[[i]]    <- svy
+
+  if (is.null(object$mi_design) || length(object$mi_design) == 0)
+    stop("'mi_design' is empty. Cannot apply update.")
+
+  updated_designs <- vector("list", length(object$mi_design))
+
+  for (i in seq_along(object$mi_design)) {
+    df <- object$mi_design[[i]]$variables
+
+    for (j in seq_along(exprs)) {
+      varname <- names(exprs)[j]
+      try({
+        df[[varname]] <- rlang::eval_tidy(exprs[[j]], data = df)
+      }, silent = TRUE)
     }
-    
-    object$implicates <- updated_implicates
-    object$mi_design  <- updated_designs
-    
-  } else if (!is.null(object$mi_design) && length(object$mi_design) > 0) {
-    # No implicates, but mi_designs are present
-    # warning("Implicates are missing; updating only mi_design objects.")
-    
-    updated_designs <- vector("list", length(object$mi_design))
-    
-    for (i in seq_along(object$mi_design)) {
-      df <- object$mi_design[[i]]$variables
-      
-      for (j in seq_along(exprs)) {
-        varname <- names(exprs)[j]
-        try({
-          df[[varname]] <- rlang::eval_tidy(exprs[[j]], data = df)
-        }, silent = TRUE)
-      }
-      
-      # Rebuild design
-      rep_cols <- grep("^wt1b", names(df), value = TRUE)
-      svy <- survey::svrepdesign(
-        weights = ~wgt,
-        repweights = as.matrix(df[, rep_cols]),
-        data = df,
-        type = "other",
-        scale = 1,
-        rscales = rep(1 / 998, 999),
-        mse = TRUE,
-        combined.weights = TRUE
-      )
-      
-      updated_designs[[i]] <- svy
-    }
-    
-    object$mi_design <- updated_designs
-    
-  } else {
-    stop("Both implicates and mi_design are empty. Cannot apply update.")
+
+    rep_cols <- grep("^wt1b", names(df), value = TRUE)
+    updated_designs[[i]] <- survey::svrepdesign(
+      weights          = ~wgt,
+      repweights       = as.matrix(df[, rep_cols]),
+      data             = df,
+      type             = "other",
+      scale            = 1,
+      rscales          = rep(1 / 998, 999),
+      mse              = TRUE,
+      combined.weights = TRUE
+    )
   }
+
+  object$mi_design <- updated_designs
   
   if (!inherits(object, "scf_mi_survey")) {
     class(object) <- "scf_mi_survey"

@@ -45,6 +45,8 @@
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: Plot hexbin of income vs. net worth
+#' # Note: mock data has ~75 rows per implicate; hexbin output will be sparse.
+#' # Results on full SCF data will show a meaningful joint density.
 #' scf_plot_hex(scf2022, ~income, ~networth)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check

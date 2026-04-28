@@ -26,7 +26,8 @@
 #' @param overwrite Logical. If `TRUE`, re-download and overwrite existing `.rds` files. Default is `FALSE`.
 #' @param verbose Logical. If `TRUE`, display progress messages. Default is `TRUE`.
 #'
-#' @return These files are designed to be loaded using scf_load(), which wraps them into replicate-weighted designs.
+#' @return A character vector of paths to the `.rds` files written to disk (one per year).
+#' Each file contains a list of five implicate data frames ready for use with [scf_load()].
 #'
 #' @seealso [scf_load()], [scf_design()], [scf_update()]
 #' 

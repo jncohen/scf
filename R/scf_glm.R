@@ -151,6 +151,7 @@ scf_glm <- function(object, formula, family = binomial()) {
   out <- list(
     results = coef_table,
     fit = fit_stats,
+    vcov = pooled$variance,
     models = models,
     call = match.call(),
     formula = formula

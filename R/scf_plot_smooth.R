@@ -26,7 +26,7 @@
 #'
 #' @return A `ggplot2` object.
 #'
-#' @seealso [scf_theme()], [scf_plot_dist()]
+#' @seealso [scf_plot_hist()], [scf_plot_dist()], [scf_theme()]
 #'
 #' @examples
 #' # Do not implement these lines in real analysis:

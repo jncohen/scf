@@ -118,6 +118,7 @@ scf_ols <- function(object, formula) {
   out <- list(
     results = coefs,
     fit = diagnostics,
+    vcov = pooled$variance,
     imps = models,
     call = match.call(),
     formula = formula

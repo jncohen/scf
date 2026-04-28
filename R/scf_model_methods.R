@@ -67,23 +67,20 @@ coef.scf_model_result <- function(object, ...) {
 
 #' Generic S3 Method: vcov.scf_model_result
 #'
-#' Reconstructs the pooled variance-covariance matrix of the model coefficients.
+#' Returns the pooled variance-covariance matrix of the model coefficients,
+#' as computed by [scf_MIcombine()] across the five SCF implicates.
 #'
-#' NOTE: The pooled variance matrix is NOT stored directly, only the coefficients
-#' and SEs. This method is typically skipped in favour of direct SE access or 
-#' custom pooling, but is included here to provide a complete S3 interface.
-#'
-#' @param object An object of class 'scf_model_result'.
+#' @param object An object of class `'scf_model_result'` (e.g., from [scf_ols()],
+#'   [scf_glm()], [scf_logit()], or [scf_quantreg()]).
 #' @param ... Not used.
-#' @return Returns the variance-covariance matrix from the internal pooling object if available, 
-#' or stops with an error if the model object doesn't retain the raw pooled variance.
+#' @return A named square matrix of pooled coefficient variances and covariances.
+#'   Row and column names correspond to model terms.
 #' @export
 vcov.scf_model_result <- function(object, ...) {
-  # Since the raw pooling object is not explicitly exposed, 
-  # we stop with a message directing users to the SEs, or, ideally,
-  # the model functions (scf_ols/glm) should save the 'pooled' object 
-  # created by scf_MIcombine(). Assuming the current structure:
-  stop("Pooled variance-covariance matrix is not stored in this object. Please use SE() to extract pooled standard errors.")
+  if (is.null(object$vcov)) {
+    stop("Pooled variance-covariance matrix not found. Re-fit the model with the current version of the package.")
+  }
+  object$vcov
 }
 
 # ----------------------------------------------------------------------

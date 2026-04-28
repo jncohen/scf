@@ -30,17 +30,22 @@
 #' @seealso [scf_theme()]
 #'
 #' @examples
-#' # Mock workflow for CRAN (demo only — not real SCF data)
+#' # Do not implement these lines in real analysis:
+#' # Use functions `scf_download()` and `scf_load()`
 #' td <- tempfile("plot_dist_")
 #' dir.create(td)
-#' 
+#'
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
+#' # Example for real analysis: Distribution of homeownership
 #' scf_plot_dist(scf2022, ~own)
+#'
+#' # Example for real analysis: Distribution of age
 #' scf_plot_dist(scf2022, ~age, bins = 10)
-#' 
+#'
+#' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @export
