@@ -92,7 +92,7 @@ scf_update_by_implicate <- function(object, f) {
       type = "other",
       scale = 1,
       rscales = rep(1 / (length(rep_cols) - 1), length(rep_cols)),
-      mse = FALSE,
+      mse = TRUE,
       combined.weights = TRUE
     )
   }
