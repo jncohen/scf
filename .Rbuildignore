@@ -16,4 +16,7 @@
 ^scf_functions_.*\.txt$
 ^vignettes/.*\.rds$
 ^vignettes/.*\.png$
+^\.github/
+^documentation/
+^scf\.Rproj$
 ^scf_functions_.*\.txt$
