@@ -16,3 +16,4 @@
 ^scf_functions_.*\.txt$
 ^vignettes/.*\.rds$
 ^vignettes/.*\.png$
+^scf_functions_.*\.txt$
