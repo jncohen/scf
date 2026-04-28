@@ -2,14 +2,40 @@
 % Please edit documentation in R/scf_activate_theme.R
 \name{scf_activate_theme}
 \alias{scf_activate_theme}
-\title{Activate SCF Plot Theme}
+\title{Activate SCF Plot Theme Globally}
 \usage{
 scf_activate_theme()
 }
 \value{
-No return value, called for side effects.
+No return value; called for its side effect of setting the global
+ggplot2 theme.
 }
 \description{
-Sets the default \code{ggplot2} theme to \code{scf_theme()}. Call this function
-manually in your session or script to apply the style globally.
+Sets \code{scf_theme()} as the default \code{ggplot2} theme for all plots in the
+current R session. Call this once at the top of an analysis script to avoid
+adding \code{+ scf_theme()} to every individual plot.
+}
+\details{
+There are two ways to apply the SCF theme:
+
+\describe{
+\item{Per-plot}{Add \code{+ scf_theme()} to each individual plot. Useful when
+mixing SCF-styled plots with other themes in the same script.}
+\item{Global (this function)}{Call \code{scf_activate_theme()} once and all
+subsequent \code{ggplot2} plots in the session will use the SCF theme
+automatically. Equivalent to calling
+\code{ggplot2::theme_set(scf_theme())} directly.}
+}
+
+The effect lasts only for the current R session and does not persist across
+sessions. All \verb{scf_plot_*()} functions apply \code{scf_theme()} internally, so
+this function is most useful when producing custom plots alongside the
+package's built-in visualizations.
+}
+\examples{
+scf_activate_theme()
+
+}
+\seealso{
+\code{\link[=scf_theme]{scf_theme()}}
 }

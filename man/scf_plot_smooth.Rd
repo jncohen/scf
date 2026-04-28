@@ -75,5 +75,5 @@ unlink(td, recursive = TRUE, force = TRUE)
 
 }
 \seealso{
-\code{\link[=scf_theme]{scf_theme()}}, \code{\link[=scf_plot_dist]{scf_plot_dist()}}
+\code{\link[=scf_plot_hist]{scf_plot_hist()}}, \code{\link[=scf_plot_dist]{scf_plot_dist()}}, \code{\link[=scf_theme]{scf_theme()}}
 }

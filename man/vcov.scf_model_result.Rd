@@ -7,19 +7,16 @@
 \method{vcov}{scf_model_result}(object, ...)
 }
 \arguments{
-\item{object}{An object of class 'scf_model_result'.}
+\item{object}{An object of class \code{'scf_model_result'} (e.g., from \code{\link[=scf_ols]{scf_ols()}},
+\code{\link[=scf_glm]{scf_glm()}}, \code{\link[=scf_logit]{scf_logit()}}, or \code{\link[=scf_quantreg]{scf_quantreg()}}).}
 
 \item{...}{Not used.}
 }
 \value{
-Returns the variance-covariance matrix from the internal pooling object if available,
-or stops with an error if the model object doesn't retain the raw pooled variance.
+A named square matrix of pooled coefficient variances and covariances.
+Row and column names correspond to model terms.
 }
 \description{
-Reconstructs the pooled variance-covariance matrix of the model coefficients.
-}
-\details{
-NOTE: The pooled variance matrix is NOT stored directly, only the coefficients
-and SEs. This method is typically skipped in favour of direct SE access or
-custom pooling, but is included here to provide a complete S3 interface.
+Returns the pooled variance-covariance matrix of the model coefficients,
+as computed by \code{\link[=scf_MIcombine]{scf_MIcombine()}} across the five SCF implicates.
 }

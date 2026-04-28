@@ -14,7 +14,8 @@ scf_download(years = seq(1989, 2022, 3), overwrite = FALSE, verbose = TRUE)
 \item{verbose}{Logical. If \code{TRUE}, display progress messages. Default is \code{TRUE}.}
 }
 \value{
-These files are designed to be loaded using scf_load(), which wraps them into replicate-weighted designs.
+A character vector of paths to the \code{.rds} files written to disk (one per year).
+Each file contains a list of five implicate data frames ready for use with \code{\link[=scf_load]{scf_load()}}.
 }
 \description{
 Downloads SCF public-use microdata from official servers.  For each year,

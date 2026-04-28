@@ -50,7 +50,7 @@ using familiar statistical workflows.
 
 This section recommends a sequence of operations enacted through the package's
 functions.  For an in-depth discussion of the methodological considerations
-involved in these functions' formulation, see Cohen (2025).
+involved in these functions' formulation, see Cohen (2026).
 \enumerate{
 \item \strong{Data Acquisition}:  Download the data from Federal Reserve servers to your working directory using \code{\link[=scf_download]{scf_download()}}.
 \item \strong{Data Loading}: Load the data into R using \code{\link[=scf_load]{scf_load()}}. This function returns an \code{scf_mi_survey} object (described below).
@@ -129,6 +129,9 @@ transparent, inspectable code and data structures.
 }
 
 \references{
+Cohen JN. Analyzing the Survey of Consumer Finances with \pkg{scf}. 2026.
+\url{https://osf.io/azrsn}
+
 Barnard J, Rubin DB. Small-sample degrees of freedom with multiple imputation.
 \doi{10.1093/biomet/86.4.948}.
 

@@ -54,9 +54,8 @@ Unlike means or model parameters, category proportions do not use Rubin's full c
 }
 
 \examples{
-# Ignore this code block.  It loads mock data for CRAN.
-# In your analysis, download and load your data using the
-# functions `scf_download()` and `scf_load()`
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td <- tempfile("freq_")
 dir.create(td)
 
@@ -64,16 +63,16 @@ src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# EXAMPLE IMPLEMENTATION: Proportions of homeownership
+# Example for real analysis: Proportions of homeownership
 scf_freq(scf2022, ~own)
 
-# EXAMPLE IMPLEMENTATION: Cross-tabulate education by homeownership
+# Example for real analysis: Homeownership proportions by education
 scf_freq(scf2022, ~own, by = ~edcl)
 
-# Ignore the code below.  It is for CRAN:
+# Do not implement these lines in real analysis: Cleanup for package check
 unlink(td, recursive = TRUE, force = TRUE)
 
 }
 \seealso{
-\code{\link[=scf_xtab]{scf_xtab()}}, \code{\link[=scf_plot_dist]{scf_plot_dist()}}]
+\code{\link[=scf_xtab]{scf_xtab()}}, \code{\link[=scf_plot_dist]{scf_plot_dist()}}
 }

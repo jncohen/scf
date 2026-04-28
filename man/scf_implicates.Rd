@@ -7,7 +7,16 @@
 scf_implicates(x, long = FALSE)
 }
 \arguments{
-\item{x}{A result object containing implicate-level estimates (e.g., from scf_mean, scf_ols).}
+\item{x}{A result object containing implicate-level estimates. Three types are supported:
+\describe{
+\item{Data frame results}{Objects from \code{\link[=scf_freq]{scf_freq()}}, \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}},
+\code{\link[=scf_percentile]{scf_percentile()}}, \code{\link[=scf_corr]{scf_corr()}}, and \code{\link[=scf_xtab]{scf_xtab()}}, whose \verb{$imps} slot contains
+a list of data frames.}
+\item{Survey statistic results}{Objects whose \verb{$imps} slot contains \code{svystat}
+objects (e.g., raw outputs from \code{survey::svymean()}).}
+\item{Model results}{Objects from \code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, \code{\link[=scf_logit]{scf_logit()}}, and
+\code{\link[=scf_quantreg]{scf_quantreg()}}, whose \verb{$imps} or \verb{$models} slot contains \code{svyglm} fits.}
+}}
 
 \item{long}{Logical. If TRUE, returns stacked data frame. If FALSE, returns list.}
 }

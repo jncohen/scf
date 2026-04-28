@@ -18,25 +18,13 @@ For examples and tests, use \code{tempdir()} to avoid leaving files behind.}
 \value{
 Invisibly returns a \code{scf_mi_survey} (or named list if multiple years).
 Attributes: \code{mock} (logical), \code{year}, \code{n_households}.
-
-Invisibly returns a \code{scf_mi_survey} (or named list if multiple years).
-Attributes: \code{mock} (logical), \code{year}, \code{n_households}.
 }
 \description{
 Converts SCF \code{.rds} files prepared by \code{scf_download()} into \code{scf_mi_survey}
 objects. Each object wraps five implicates per year in replicate-weighted,
 multiply-imputed survey designs suitable for use with \code{scf_} functions.
-
-Converts SCF \code{.rds} files prepared by \code{scf_download()} into \code{scf_mi_survey}
-objects. Each object wraps five implicates per year in replicate-weighted,
-multiply-imputed survey designs suitable for use with \code{scf_} functions.
 }
 \section{Implementation}{
-
-Provide a year or range and either (1) a directory containing \verb{scf<year>.rds}
-files, or (2) a full path to a single \code{.rds} file. Files must contain five
-implicate data frames with columns \code{wgt} and \code{wt1b1..wt1bK} (typically K=999).
-
 
 Provide a year or range and either (1) a directory containing \verb{scf<year>.rds}
 files, or (2) a full path to a single \code{.rds} file. Files must contain five
@@ -58,9 +46,5 @@ unlink(td, recursive = TRUE, force = TRUE)
 
 }
 \seealso{
-\code{\link[=scf_download]{scf_download()}}, \code{\link[=scf_design]{scf_design()}}, \code{\link[=scf_update]{scf_update()}}, \code{\link[survey:svrepdesign]{survey::svrepdesign()}}
-
-Load SCF Data as Multiply-Imputed Survey Designs
-
 \code{\link[=scf_download]{scf_download()}}, \code{\link[=scf_design]{scf_design()}}, \code{\link[=scf_update]{scf_update()}}, \code{\link[survey:svrepdesign]{survey::svrepdesign()}}
 }

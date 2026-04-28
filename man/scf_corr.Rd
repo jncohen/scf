@@ -2,9 +2,12 @@
 % Please edit documentation in R/scf_corr.R
 \name{scf_corr}
 \alias{scf_corr}
+\alias{summary.scf_corr}
 \title{Estimate Correlation Between Two Continuous Variables in SCF Microdata}
 \usage{
 scf_corr(scf, var1, var2)
+
+\method{summary}{scf_corr}(object, ...)
 }
 \arguments{
 \item{scf}{An \code{scf_mi_survey} object, created by \code{\link[=scf_load]{scf_load()}}}
@@ -12,6 +15,8 @@ scf_corr(scf, var1, var2)
 \item{var1}{One-sided formula specifying the first variable}
 
 \item{var2}{One-sided formula specifying the second variable}
+
+\item{object}{A \code{scf_corr} object returned by \code{\link[=scf_corr]{scf_corr()}}.}
 }
 \value{
 An object of class \code{scf_corr}, containing:
@@ -65,9 +70,8 @@ scalar statistics like correlation coefficients.
 }
 
 \examples{
-# Ignore this code block.  It loads mock data for CRAN.
-# In your analysis, download and load your data using the
-# functions `scf_download()` and `scf_load()`
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td <- tempfile("corr_")
 dir.create(td)
 
@@ -75,12 +79,12 @@ src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# EXAMPLE IMPLEMENTATION OF `scf_corr()`:
+# Example for real analysis: Correlate income and net worth
 corr <- scf_corr(scf2022, ~income, ~networth)
 print(corr)
 summary(corr)
 
-# Ignore the code below.  It is for CRAN:
+# Do not implement these lines in real analysis: Cleanup for package check
 unlink(td, recursive = TRUE, force = TRUE)
 
 }

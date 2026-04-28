@@ -45,7 +45,8 @@ Empty subsets in any implicate can cause downstream analysis to fail. Always che
 }
 
 \examples{
-# Mock workflow for CRAN (demo only — not real SCF data)
+# Do not implement these lines in real analysis:
+# Use functions `scf_download()` and `scf_load()`
 td <- tempfile("subset_")
 dir.create(td)
 
@@ -53,7 +54,7 @@ src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Filter for working-age households with positive net worth
+# Example for real analysis: Filter for working-age households with positive net worth
 scf_sub <- scf_subset(scf2022, age < 65 & networth > 0)
 scf_mean(scf_sub, ~income)
 

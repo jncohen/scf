@@ -13,12 +13,9 @@ scf_update(object, ...)
 Each expression must return a vector of the same length as the implicate data frame.}
 }
 \value{
-A new \code{scf_mi_survey} object with:
-\describe{
-\item{implicates}{A list of updated data frames (one per implicate).}
-\item{mi_design}{A list of updated \code{svyrep.design} survey objects.}
-\item{data}{(If present in the original object) unchanged pooled data.}
-}
+The input \code{scf_mi_survey} object with \code{mi_design} updated to reflect
+the new or modified variables. All other attributes (\code{year}, \code{n_households},
+\code{mock}) are preserved unchanged.
 }
 \description{
 Use this function to create or alter SCF variables once the raw data set has
