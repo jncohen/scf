@@ -14,3 +14,5 @@
 ^scf2019\.rds$
 ^testdata/
 ^scf_functions_.*\.txt$
+^vignettes/.*\.rds$
+^vignettes/.*\.png$
