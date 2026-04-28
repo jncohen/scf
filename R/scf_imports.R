@@ -12,3 +12,7 @@
 #' @import ggplot2
 #' @name scf_imports
 NULL
+
+# .wts is the replicate-weight vector injected by survey::withReplicates()
+# into user-supplied functions. Declared here to suppress R CMD check NOTE.
+utils::globalVariables(".wts")
