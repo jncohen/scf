@@ -60,7 +60,7 @@ Fit statistics rows are automatically selected based on model class:
 \item{All models}{Sample size (N)}
 \item{OLS models}{R-squared and AIC}
 \item{Logit/GLM models}{Pseudo-R-squared and AIC}
-\item{Quantile regression}{Quantile tau (no R-squared or AIC)}
+\item{Quantile regression}{Quantile tau, R1(tau), and adjusted R1(tau)}
 }
 
 It avoids external dependencies by using base R formatting and simple text,

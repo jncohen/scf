@@ -40,7 +40,9 @@ An object of class \code{"scf_quantreg"} and \code{"scf_model_result"} with:
 t-values, p-values, and significance stars.}
 \item{\code{tau}}{The quantile estimated.}
 \item{\code{se_method}}{The SE method used.}
-\item{\code{fit}}{An empty list (AIC is not defined for quantile regression).}
+\item{\code{fit}}{A list of goodness-of-fit statistics. See the
+\strong{Goodness of Fit} section for details. Components: \code{rho},
+\code{rho_null}, \code{r1}, \code{r1_adj}, \code{nobs}, \code{nobs_mean}.}
 \item{\code{models}}{A list of implicate-level \code{rq} model objects for
 direct inspection.}
 \item{\code{fit_errors}}{Character vector of any implicate-level errors.}
@@ -79,10 +81,10 @@ For each implicate, the model is re-fit using each of the SCF's 999
 replicate weight vectors. Variance is accumulated as the weighted sum of
 squared deviations from the full-weight estimate, matching the SCF's own
 published variance methodology via \code{\link[survey:withReplicates]{survey::withReplicates()}}.
-This method is theoretically preferred for quantile regression: Shao and
-Wu (1992) establish asymptotic consistency of BRR variance estimators for
-sample quantiles, whereas analytical (sandwich) estimators are not
-guaranteed consistent for nonsmooth statistics (Rust and Rao, 1996).
+This method is theoretically preferred for quantile regression because
+replication-based variance estimators are consistent for sample quantiles,
+whereas analytical (sandwich) estimators are not guaranteed consistent for
+nonsmooth statistics (Rust and Rao, 1996).
 Computationally intensive (~5,000 model fits for five implicates).}
 \item{\code{"nid"} (default)}{Non-iid sandwich estimator. Allows the
 conditional sparsity (density of the error distribution at the quantile)
@@ -105,6 +107,39 @@ option. Useful for robustness checks.}
 }
 }
 
+\section{Goodness of Fit}{
+
+
+The \code{fit} component of the returned object contains per-quantile goodness-of-fit
+measures following Koenker and Machado (1999). These are computed by comparing
+the full model to an intercept-only null model at the same \code{tau}.
+
+\describe{
+\item{\code{rho}}{Mean minimized weighted sum of absolute residuals
+(\eqn{\sum \rho_\tau(y_i - x_i'\hat\beta)}) from the full model, averaged
+across implicates. This is the quantile regression analog of the residual
+sum of squares.}
+\item{\code{rho_null}}{Same quantity from the intercept-only null model. Larger
+values relative to \code{rho} indicate greater explanatory power.}
+\item{\code{r1}}{The Koenker-Machado R\eqn{^1(\tau)} statistic:
+\eqn{1 - \bar{V}(\tau) / \tilde{V}(\tau)}, where \eqn{\bar{V}} is the
+mean full-model objective and \eqn{\tilde{V}} is the mean null-model
+objective, each averaged across implicates. Ranges from 0 to 1. Measures
+the proportional reduction in the weighted sum of absolute residuals due
+to the covariates at quantile \code{tau}. This is a \emph{local} measure for the
+specific quantile estimated; it is not a global summary of fit across
+the distribution.}
+\item{\code{r1_adj}}{Degrees-of-freedom-adjusted R\eqn{^1(\tau)}:
+\eqn{1 - (1 - R^1) \cdot n / (n - p)}, where \eqn{n} is the mean
+number of observations and \eqn{p} is the number of estimated parameters.
+Penalizes model complexity analogously to adjusted R\eqn{^2} in OLS.
+Note: this adjustment is not derived from the asymptotic theory in
+Koenker and Machado (1999) and should be interpreted descriptively.}
+\item{\code{nobs}}{Integer vector of per-implicate sample sizes.}
+\item{\code{nobs_mean}}{Mean sample size across successful implicates.}
+}
+}
+
 \section{Implementation}{
 
 For each implicate:
@@ -114,6 +149,8 @@ For each implicate:
 \item Fits \code{\link[quantreg:rq]{quantreg::rq()}} at quantile \code{tau} with the final weights.
 \item Estimates the within-implicate variance-covariance matrix using
 the method specified by \code{se}.
+\item Fits an intercept-only \code{\link[quantreg:rq]{quantreg::rq()}} at the same \code{tau} and
+weights to obtain the null-model objective value for goodness-of-fit.
 }
 SCF public-use microdata contain no missing values; each implicate is a
 complete dataset. Pooled estimates follow Rubin's Rules (see
@@ -135,6 +172,10 @@ scf2022 <- scf_load(2022, data_directory = td)
 m_med <- scf_quantreg(scf2022, networth ~ age + factor(edcl), tau = 0.5)
 summary(m_med)
 
+# Access goodness-of-fit statistics
+m_med$fit$r1
+m_med$fit$r1_adj
+
 # Example for real analysis: 75th-percentile regression
 m_75 <- scf_quantreg(scf2022, networth ~ age + factor(edcl), tau = 0.75)
 summary(m_75)
@@ -147,16 +188,13 @@ unlink(td, recursive = TRUE, force = TRUE)
 Koenker R, Bassett G. Regression quantiles. \emph{Econometrica}.
 1978;46(1):33--50. \doi{10.2307/1913643}
 
-Koenker R. \emph{Quantile Regression}. Cambridge University Press; 2005.
-\doi{10.1017/CBO9780511754098}
+Koenker R, Machado JAF. Goodness of fit and related inference processes
+for quantile regression. \emph{Journal of the American Statistical
+Association}. 1999;94(448):1296--1310. \doi{10.2307/2669943}
 
 Rust KF, Rao JNK. Variance estimation for complex surveys using replication
 techniques. \emph{Statistical Methods in Medical Research}.
 1996;5(3):283--310. \doi{10.1177/096228029600500305}
-
-Shao J, Wu CFJ. Asymptotic properties of the balanced repeated replication
-method for sample quantiles. \emph{Annals of Statistics}.
-1992;20(3):1371--1393. \doi{10.1214/aos/1176348781}
 }
 \seealso{
 \code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, \code{\link[=scf_MIcombine]{scf_MIcombine()}}, \code{\link[quantreg:rq]{quantreg::rq()}}

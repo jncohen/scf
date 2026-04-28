@@ -37,7 +37,7 @@
 #'   \item{All models}{Sample size (N)}
 #'   \item{OLS models}{R-squared and AIC}
 #'   \item{Logit/GLM models}{Pseudo-R-squared and AIC}
-#'   \item{Quantile regression}{Quantile tau (no R-squared or AIC)}
+#'   \item{Quantile regression}{Quantile tau, R1(tau), and adjusted R1(tau)}
 #' }
 #' 
 #' It avoids external dependencies by using base R formatting and simple text,
@@ -150,7 +150,7 @@ scf_regtable <- function(...,
     fit_terms <- c(fit_terms, "AIC")
   } else {
     # For quantreg, add tau column
-    fit_terms <- c(fit_terms, "Tau")
+    fit_terms <- c(fit_terms, "Tau", "R1", "R1(adj)")
   }
   
   fit_stats_mat <- matrix("--", nrow = length(fit_terms), ncol = n_models,
@@ -177,6 +177,13 @@ scf_regtable <- function(...,
     # Quantile regression: add tau
     if (inherits(m, "scf_quantreg")) {
       tau_val <- if (!is.null(m$tau)) m$tau else NA_real_
+      r1_val     <- if (!is.null(m$fit$r1))     m$fit$r1     else NA_real_
+      r1_adj_val <- if (!is.null(m$fit$r1_adj)) m$fit$r1_adj else NA_real_
+      
+      fit_stats_mat["R1", i] <-
+        if (!is.na(r1_val))     formatC(r1_val,     digits = 3, format = "f") else "--"
+      fit_stats_mat["R1(adj)", i] <-
+        if (!is.na(r1_adj_val)) formatC(r1_adj_val, digits = 3, format = "f") else "--"
       fit_stats_mat["Tau", i] <- if (!is.na(tau_val)) formatC(tau_val, digits = 2, format = "f") else "--"
     } else {
       # Standard models: add R2/PseudoR2 and AIC
