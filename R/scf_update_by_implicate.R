@@ -22,8 +22,12 @@
 #' - You need to derive a variable based on implicate-specific thresholds or bins
 #'
 #' @param object A `scf_mi_survey` object from [scf_load()].
-#' @param f A function that takes a data frame as input and returns a modified data frame.
-#'   This function will be applied independently to each implicate.
+#' @param f A function that takes a replicate-weighted `svyrep.design` object as input
+#'   and returns a modified data frame (i.e., the updated `design$variables`).
+#'   The design object gives direct access to survey-weighted statistics via
+#'   `survey::svyquantile()`, `survey::svymean()`, etc., without needing to
+#'   reconstruct the design from scratch. This function will be applied
+#'   independently to each implicate.
 #'
 #' @return A modified `scf_mi_survey` object with updated implicate-level designs.
 #'
@@ -36,10 +40,22 @@
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
+#' # Example for real analysis: flag households in the top 10% of net worth,
+#' # using the survey-weighted 90th percentile as the implicate-specific threshold.
+#' scf2022 <- scf_update_by_implicate(scf2022, function(design) {
+#'   df        <- design$variables
+#'   threshold <- as.numeric(
+#'     coef(survey::svyquantile(~networth, design, quantiles = 0.90, se = FALSE))
+#'   )
+#'   df$top10nw <- df$networth >= threshold
+#'   df
+#' })
+#'
 #' # Example for real analysis: compute implicate-specific z-scores of income
-#' scf2022 <- scf_update_by_implicate(scf2022, function(df) {
-#'   mu <- mean(df$income, na.rm = TRUE)
-#'   sigma <- sd(df$income, na.rm = TRUE)
+#' scf2022 <- scf_update_by_implicate(scf2022, function(design) {
+#'   df        <- design$variables
+#'   mu        <- as.numeric(coef(survey::svymean(~income, design)))
+#'   sigma     <- as.numeric(sqrt(diag(vcov(survey::svymean(~income, design)))))
 #'   df$z_income <- (df$income - mu) / sigma
 #'   df
 #' })
@@ -57,18 +73,16 @@ scf_update_by_implicate <- function(object, f) {
     stop("Input must be a 'scf_mi_survey' object.")
   }
   if (!is.function(f)) {
-    stop("Argument 'f' must be a function that accepts and returns a data frame.")
+    stop("Argument 'f' must be a function that accepts a svyrep.design and returns a data frame.")
   }
-  
-  # Extract implicates from replicate-weighted survey designs
-  implicates <- lapply(object$mi_design, function(design) design$variables)
-  
-  updated_implicates <- vector("list", length(implicates))
-  updated_designs <- vector("list", length(implicates))
-  
-  for (i in seq_along(implicates)) {
-    df <- implicates[[i]]
-    new_df <- f(df)
+
+  updated_implicates <- vector("list", length(object$mi_design))
+  updated_designs    <- vector("list", length(object$mi_design))
+
+  for (i in seq_along(object$mi_design)) {
+    design <- object$mi_design[[i]]
+    df     <- design$variables
+    new_df <- f(design)
     
     if (!is.data.frame(new_df)) {
       stop(sprintf("Function `f` must return a data.frame. Implicate %d returned: %s",
