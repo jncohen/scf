@@ -4,7 +4,7 @@
 #' Creates a factor variable that assigns each household to a percentile group
 #' of a continuous variable. Two methods are available. The \code{"implicate"}
 #' method (the default) computes survey-weighted quantile thresholds separately
-#' within each implicate — the statistically preferable approach under multiple
+#' within each implicate, the statistically preferable approach under multiple
 #' imputation, as it correctly accounts for between-implicate variation in
 #' imputed values. The \code{"stack"} method replicates the Federal Reserve's
 #' published convention, in which all five implicates are pooled with weights
@@ -16,7 +16,7 @@
 #' The two methods will generally produce similar but not identical results.
 #' Use \code{method = "stack"} when exact replication of the Federal Reserve's
 #' published SCF tables is required. For standard grouping variables already
-#' published by the Fed — such as net worth percentile (\code{nwcat}) and
+#' published by the Fed, such as net worth percentile (\code{nwcat}) and
 #' income percentile (\code{inccat}) — those variables are included directly
 #' in the data returned by \code{\link{scf_load}} and can be passed to
 #' \code{by} in estimation functions without calling \code{scf_pctile_cut}.
@@ -143,7 +143,7 @@ scf_pctile_cut <- function(scf, var, probs = seq(0, 1, by = 0.1),
                            breaks         = breaks,
                            labels         = labels,
                            include.lowest = TRUE,
-                           right          = TRUE)
+                           right          = FALSE)
       df
     }))
   }
@@ -164,7 +164,7 @@ scf_pctile_cut <- function(scf, var, probs = seq(0, 1, by = 0.1),
                          breaks         = breaks,
                          labels         = labels,
                          include.lowest = TRUE,
-                         right          = TRUE)
+                         right          = FALSE)
     df
   })
 }
