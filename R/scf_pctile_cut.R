@@ -24,9 +24,7 @@
 #' @param scf A \code{scf_mi_survey} object created with \code{\link{scf_load}}.
 #' @param var A one-sided formula naming the continuous variable to cut
 #'   (e.g., \code{~networth}).
-#' @param probs Numeric vector of probabilities in [0, 1] defining the cut
-#'   points. Must include 0 and 1. Defaults to deciles:
-#'   \code{seq(0, 1, by = 0.1)}.
+#' @param probs numeric vector with values between 0 and 1
 #' @param labels Optional character vector of group labels, length equal to
 #'   \code{length(probs) - 1}. If \code{NULL} (default), labels are generated
 #'   automatically in the form \code{"p0-p10"}, \code{"p10-p20"}, etc.

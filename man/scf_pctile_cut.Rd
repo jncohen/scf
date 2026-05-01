@@ -19,9 +19,7 @@ scf_pctile_cut(
 \item{var}{A one-sided formula naming the continuous variable to cut
 (e.g., \code{~networth}).}
 
-\item{probs}{Numeric vector of probabilities in \link{0, 1} defining the cut
-points. Must include 0 and 1. Defaults to deciles:
-\code{seq(0, 1, by = 0.1)}.}
+\item{probs}{numeric vector with values between 0 and 1}
 
 \item{labels}{Optional character vector of group labels, length equal to
 \code{length(probs) - 1}. If \code{NULL} (default), labels are generated
