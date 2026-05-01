@@ -17,6 +17,8 @@ scf_corr(scf, var1, var2)
 \item{var2}{One-sided formula specifying the second variable}
 
 \item{object}{A \code{scf_corr} object returned by \code{\link[=scf_corr]{scf_corr()}}.}
+
+\item{...}{Currently unused; included for S3 generic compatibility.}
 }
 \value{
 An object of class \code{scf_corr}, containing:
