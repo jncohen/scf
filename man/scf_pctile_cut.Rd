@@ -54,7 +54,7 @@ The two methods will generally produce similar but not identical results.
 Use \code{method = "stack"} when exact replication of the Federal Reserve's
 published SCF tables is required. For standard grouping variables already
 published by the Fed, such as net worth percentile (\code{nwcat}) and
-income percentile (\code{inccat}) — those variables are included directly
+income percentile (\code{inccat}) - those variables are included directly
 in the data returned by \code{\link{scf_load}} and can be passed to
 \code{by} in estimation functions without calling \code{scf_pctile_cut}.
 }

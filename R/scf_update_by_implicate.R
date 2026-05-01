@@ -22,12 +22,10 @@
 #' - You need to derive a variable based on implicate-specific thresholds or bins
 #'
 #' @param object A `scf_mi_survey` object from [scf_load()].
-#' @param f A function that takes a replicate-weighted `svyrep.design` object as input
-#'   and returns a modified data frame (i.e., the updated `design$variables`).
-#'   The design object gives direct access to survey-weighted statistics via
-#'   `survey::svyquantile()`, `survey::svymean()`, etc., without needing to
-#'   reconstruct the design from scratch. This function will be applied
-#'   independently to each implicate.
+#' @param f A function that takes one implicate data frame as input and returns
+#'   a modified data frame with the same number of rows. This function is applied
+#'   independently to each implicate. The returned data frame is used to rebuild
+#'   the replicate-weighted survey design.
 #'
 #' @return A modified `scf_mi_survey` object with updated implicate-level designs.
 #'
@@ -41,21 +39,17 @@
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: flag households in the top 10% of net worth,
-#' # using the survey-weighted 90th percentile as the implicate-specific threshold.
-#' scf2022 <- scf_update_by_implicate(scf2022, function(design) {
-#'   df        <- design$variables
-#'   threshold <- as.numeric(
-#'     coef(survey::svyquantile(~networth, design, quantiles = 0.90, se = FALSE))
-#'   )
+#' # using the unweighted implicate-specific 90th percentile as the threshold.
+#' scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+#'   threshold <- stats::quantile(df$networth, probs = 0.90, na.rm = TRUE)
 #'   df$top10nw <- df$networth >= threshold
 #'   df
 #' })
 #'
 #' # Example for real analysis: compute implicate-specific z-scores of income
-#' scf2022 <- scf_update_by_implicate(scf2022, function(design) {
-#'   df        <- design$variables
-#'   mu        <- as.numeric(coef(survey::svymean(~income, design)))
-#'   sigma     <- as.numeric(sqrt(diag(vcov(survey::svymean(~income, design)))))
+#' scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+#'   mu <- mean(df$income, na.rm = TRUE)
+#'   sigma <- stats::sd(df$income, na.rm = TRUE)
 #'   df$z_income <- (df$income - mu) / sigma
 #'   df
 #' })
@@ -73,16 +67,15 @@ scf_update_by_implicate <- function(object, f) {
     stop("Input must be a 'scf_mi_survey' object.")
   }
   if (!is.function(f)) {
-    stop("Argument 'f' must be a function that accepts a svyrep.design and returns a data frame.")
+    stop("Argument 'f' must be a function that accepts a data frame and returns a data frame.")
   }
 
-  updated_implicates <- vector("list", length(object$mi_design))
   updated_designs    <- vector("list", length(object$mi_design))
 
   for (i in seq_along(object$mi_design)) {
     design <- object$mi_design[[i]]
     df     <- design$variables
-    new_df <- f(design)
+    new_df <- f(df)
     
     if (!is.data.frame(new_df)) {
       stop(sprintf("Function `f` must return a data.frame. Implicate %d returned: %s",
@@ -98,7 +91,6 @@ scf_update_by_implicate <- function(object, f) {
       stop("Could not find replicate weight columns in implicate.")
     }
     
-    updated_implicates[[i]] <- new_df
     updated_designs[[i]] <- survey::svrepdesign(
       weights = ~wgt,
       repweights = as.matrix(new_df[, rep_cols]),

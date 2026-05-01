@@ -17,7 +17,7 @@
 #' Use \code{method = "stack"} when exact replication of the Federal Reserve's
 #' published SCF tables is required. For standard grouping variables already
 #' published by the Fed, such as net worth percentile (\code{nwcat}) and
-#' income percentile (\code{inccat}) — those variables are included directly
+#' income percentile (\code{inccat}) - those variables are included directly
 #' in the data returned by \code{\link{scf_load}} and can be passed to
 #' \code{by} in estimation functions without calling \code{scf_pctile_cut}.
 #'
@@ -137,8 +137,7 @@ scf_pctile_cut <- function(scf, var, probs = seq(0, 1, by = 0.1),
                                     probs = interior_probs)
     breaks <- c(-Inf, thresholds, Inf)
 
-    return(scf_update_by_implicate(scf, function(design) {
-      df            <- design$variables
+    return(scf_update_by_implicate(scf, function(df) {
       df[[varname]] <- cut(df[[varname_in]],
                            breaks         = breaks,
                            labels         = labels,
@@ -149,8 +148,12 @@ scf_pctile_cut <- function(scf, var, probs = seq(0, 1, by = 0.1),
   }
 
   # --- Implicate method (per-implicate survey-weighted quantiles) ---
-  scf_update_by_implicate(scf, function(design) {
-    df         <- design$variables
+  updated_designs <- vector("list", length(scf$mi_design))
+  
+  for (i in seq_along(scf$mi_design)) {
+    design <- scf$mi_design[[i]]
+    df     <- design$variables
+    
     thresholds <- as.numeric(coef(
       suppressWarnings(suppressMessages(
         survey::svyquantile(var, design,
@@ -159,14 +162,35 @@ scf_pctile_cut <- function(scf, var, probs = seq(0, 1, by = 0.1),
                             interval.type = "quantile")
       ))
     ))
-    breaks        <- c(-Inf, thresholds, Inf)
+    
+    breaks <- c(-Inf, thresholds, Inf)
+    
     df[[varname]] <- cut(df[[varname_in]],
                          breaks         = breaks,
                          labels         = labels,
                          include.lowest = TRUE,
                          right          = FALSE)
-    df
-  })
+    
+    rep_cols <- grep("^wt1b", names(df), value = TRUE)
+    if (length(rep_cols) == 0) {
+      stop("Could not find replicate weight columns in implicate.", call. = FALSE)
+    }
+    
+    updated_designs[[i]] <- survey::svrepdesign(
+      weights          = ~wgt,
+      repweights       = as.matrix(df[, rep_cols]),
+      data             = df,
+      type             = "other",
+      scale            = 1,
+      rscales          = rep(1 / (length(rep_cols) - 1), length(rep_cols)),
+      mse              = TRUE,
+      combined.weights = TRUE
+    )
+  }
+  
+  scf$mi_design <- updated_designs
+  scf
+  
 }
 
 

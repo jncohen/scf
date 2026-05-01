@@ -9,12 +9,10 @@ scf_update_by_implicate(object, f)
 \arguments{
 \item{object}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
-\item{f}{A function that takes a replicate-weighted \code{svyrep.design} object as input
-and returns a modified data frame (i.e., the updated \code{design$variables}).
-The design object gives direct access to survey-weighted statistics via
-\code{survey::svyquantile()}, \code{survey::svymean()}, etc., without needing to
-reconstruct the design from scratch. This function will be applied
-independently to each implicate.}
+\item{f}{A function that takes one implicate data frame as input and returns
+a modified data frame with the same number of rows. This function is applied
+independently to each implicate. The returned data frame is used to rebuild
+the replicate-weighted survey design.}
 }
 \value{
 A modified \code{scf_mi_survey} object with updated implicate-level designs.
@@ -55,21 +53,17 @@ file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
 # Example for real analysis: flag households in the top 10\% of net worth,
-# using the survey-weighted 90th percentile as the implicate-specific threshold.
-scf2022 <- scf_update_by_implicate(scf2022, function(design) {
-  df        <- design$variables
-  threshold <- as.numeric(
-    coef(survey::svyquantile(~networth, design, quantiles = 0.90, se = FALSE))
-  )
+# using the unweighted implicate-specific 90th percentile as the threshold.
+scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+  threshold <- stats::quantile(df$networth, probs = 0.90, na.rm = TRUE)
   df$top10nw <- df$networth >= threshold
   df
 })
 
 # Example for real analysis: compute implicate-specific z-scores of income
-scf2022 <- scf_update_by_implicate(scf2022, function(design) {
-  df        <- design$variables
-  mu        <- as.numeric(coef(survey::svymean(~income, design)))
-  sigma     <- as.numeric(sqrt(diag(vcov(survey::svymean(~income, design)))))
+scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+  mu <- mean(df$income, na.rm = TRUE)
+  sigma <- stats::sd(df$income, na.rm = TRUE)
   df$z_income <- (df$income - mu) / sigma
   df
 })
