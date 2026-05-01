@@ -67,28 +67,13 @@ src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Net worth deciles (default, implicate method)
-scf2022 <- scf_pctile_cut(scf2022, ~networth)
-scf_mean(scf2022, ~networth, by = ~networth_pctile)
-
-# Top 10\% vs. bottom 90\%, custom labels, implicate method
+# Top vs bottom median using stack method
 scf2022 <- scf_pctile_cut(scf2022, ~networth,
-                           probs  = c(0, 0.9, 1),
-                           labels = c("bottom90", "top10"))
-scf_mean(scf2022, ~networth, by = ~networth_pctile)
-
-# Same cut, stack method (replicates Fed published tables)
-scf2022 <- scf_pctile_cut(scf2022, ~networth,
-                           probs   = c(0, 0.9, 1),
-                           labels  = c("bottom90", "top10"),
-                           method  = "stack")
-scf_mean(scf2022, ~networth, by = ~networth_pctile)
-
-# Quartiles with a custom variable name
-scf2022 <- scf_pctile_cut(scf2022, ~networth,
-                           probs   = c(0, 0.25, 0.5, 0.75, 1),
-                           varname = "nw_quartile")
-scf_mean(scf2022, ~networth, by = ~nw_quartile)
+                          probs  = c(0, 0.5, 1),
+                          labels = c("bottom50", "top50"),
+                          method = "stack")
+                          
+levels(scf2022$mi_design[[1]]$variables$networth_pctile)
 
 # Do not implement these lines in real analysis: Cleanup for package check
 unlink(td, recursive = TRUE, force = TRUE)

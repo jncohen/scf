@@ -37,10 +37,10 @@
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: Cross-tabulate ownership by education
-#' scf_xtab(scf2022, ~own, ~edcl, scale = "row")
+#' scf_xtab(scf2022, ~own, ~hhsex, scale = "row")
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @importFrom stats as.formula ave
 #' @export

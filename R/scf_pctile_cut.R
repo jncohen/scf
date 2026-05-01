@@ -47,15 +47,12 @@
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Net worth deciles using the default implicate method
-#' scf2022 <- scf_pctile_cut(scf2022, ~networth)
-#' names(scf2022$mi_design[[1]]$variables)
-#'
-#' # Top 10% vs. bottom 90% using the Federal Reserve-style stack method
+#' # Top vs bottom median using stack method
 #' scf2022 <- scf_pctile_cut(scf2022, ~networth,
-#'                           probs  = c(0, 0.9, 1),
-#'                           labels = c("bottom90", "top10"),
+#'                           probs  = c(0, 0.5, 1),
+#'                           labels = c("bottom50", "top50"),
 #'                           method = "stack")
+#'                           
 #' levels(scf2022$mi_design[[1]]$variables$networth_pctile)
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check

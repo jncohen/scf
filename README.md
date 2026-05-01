@@ -273,4 +273,3 @@ Joseph N. Cohen
 Department of Sociology & Program in Data Analytics  
 Queens College, City University of New York  
 <joseph.cohen@qc.cuny.edu>
-<https://jncohen.commons.gc.cuny.edu>
