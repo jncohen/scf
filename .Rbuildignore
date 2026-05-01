@@ -21,3 +21,4 @@
 ^scf\.Rproj$
 ^scf_functions_.*\.txt$
 ^\.Rproj\.user$
+^scf_.*[.]pdf$

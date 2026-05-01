@@ -47,28 +47,16 @@
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Net worth deciles (default, implicate method)
+#' # Net worth deciles using the default implicate method
 #' scf2022 <- scf_pctile_cut(scf2022, ~networth)
-#' scf_mean(scf2022, ~networth, by = ~networth_pctile)
+#' names(scf2022$mi_design[[1]]$variables)
 #'
-#' # Top 10% vs. bottom 90%, custom labels, implicate method
+#' # Top 10% vs. bottom 90% using the Federal Reserve-style stack method
 #' scf2022 <- scf_pctile_cut(scf2022, ~networth,
-#'                            probs  = c(0, 0.9, 1),
-#'                            labels = c("bottom90", "top10"))
-#' scf_mean(scf2022, ~networth, by = ~networth_pctile)
-#'
-#' # Same cut, stack method (replicates Fed published tables)
-#' scf2022 <- scf_pctile_cut(scf2022, ~networth,
-#'                            probs   = c(0, 0.9, 1),
-#'                            labels  = c("bottom90", "top10"),
-#'                            method  = "stack")
-#' scf_mean(scf2022, ~networth, by = ~networth_pctile)
-#'
-#' # Quartiles with a custom variable name
-#' scf2022 <- scf_pctile_cut(scf2022, ~networth,
-#'                            probs   = c(0, 0.25, 0.5, 0.75, 1),
-#'                            varname = "nw_quartile")
-#' scf_mean(scf2022, ~networth, by = ~nw_quartile)
+#'                           probs  = c(0, 0.9, 1),
+#'                           labels = c("bottom90", "top10"),
+#'                           method = "stack")
+#' levels(scf2022$mi_design[[1]]$variables$networth_pctile)
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
