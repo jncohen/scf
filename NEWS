@@ -1,5 +1,6 @@
 # scf 1.0.7
 
+* `scf_pctile_cut()` reconceptualized as `scf_pctile_sum()` with integrated calls for stats
 * Added function handling to `scf_update_by_implicate()` and updated cascading dependencies
 * Update `scf_percentile()` to handle SCF stack method for percentile estimation
 
