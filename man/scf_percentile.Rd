@@ -4,7 +4,14 @@
 \alias{scf_percentile}
 \title{Estimate Percentiles in SCF Microdata}
 \usage{
-scf_percentile(scf, var, q = 0.5, by = NULL, verbose = FALSE)
+scf_percentile(
+  scf,
+  var,
+  q = 0.5,
+  by = NULL,
+  verbose = FALSE,
+  method = c("implicate", "stack")
+)
 }
 \arguments{
 \item{scf}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}. Must
@@ -22,6 +29,16 @@ each group.}
 
 \item{verbose}{Logical. If TRUE, include implicate-level estimates in
 the returned object for inspection. Default FALSE.}
+
+\item{method}{Character. One of \code{"implicate"} (default) or
+\code{"stack"}. The implicate method averages percentile estimates
+across the five implicates using the SCF Bulletin variance convention.
+The stack method pools all five implicates into a single dataset with
+weights divided by five and computes a single weighted quantile,
+replicating the Federal Reserve's published figures. When
+\code{method = "stack"} no standard error is returned, as the stacked
+estimate is a deterministic weighted quantile rather than a
+model-based estimate.}
 }
 \value{
 An object of class \code{"scf_percentile"} containing:
@@ -38,14 +55,18 @@ should be printed by \code{print()} or \code{summary()}.}
 }
 \description{
 This function estimates a weighted percentile of a continuous variable
-in the Survey of Consumer Finances (SCF). It reproduces the procedure used
-in the Federal Reserve Board's published SCF Bulletin SAS macro for
-distributional statistics (Federal Reserve Board 2023c). This convention is
-specific to SCF descriptive distributional statistics (quantiles,
-proportions) and differs from standard handling (i.e., using Rubin's Rule).
+in the Survey of Consumer Finances (SCF). Two methods are available.
+The default \code{"implicate"} method estimates the percentile separately
+within each implicate using \code{\link[survey:svyquantile]{survey::svyquantile()}} and pools the results
+following the SCF Bulletin variance convention. The \code{"stack"} method
+replicates the Federal Reserve's published convention by pooling all five
+implicates with weights divided by five and computing a single weighted
+quantile from the combined sample. The two methods will generally produce
+similar but not identical results. Use \code{method = "stack"} when exact
+replication of Federal Reserve published figures is required.
 }
 \details{
-The operation to render the estimates:
+The implicate method computes estimates as follows:
 \enumerate{
 \item For each implicate, estimate the requested percentile using
 \code{\link[survey:svyquantile]{survey::svyquantile()}} with \code{se = TRUE}.
@@ -67,6 +88,9 @@ The reported standard error is sqrt(V_total).
 \item If a grouping variable is supplied, the same logic is applied
 separately within each group.
 }
+
+The stack method returns no standard error, as the estimate is a
+deterministic weighted quantile rather than a model-based estimate.
 }
 \examples{
 # Do not implement these lines in real analysis:

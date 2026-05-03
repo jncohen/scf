@@ -1,6 +1,7 @@
 # scf 1.0.7
 
-* Added function handling to `scf_update_by_implicate()`
+* Added function handling to `scf_update_by_implicate()` and updated cascading dependencies
+* Update `scf_percentile()` to handle SCF stack method for percentile estimation
 
 # scf 1.0.6
 

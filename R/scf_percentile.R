@@ -1,13 +1,17 @@
 #' Estimate Percentiles in SCF Microdata
 #'
-#' This function estimates a weighted percentile of a continuous variable 
-#' in the Survey of Consumer Finances (SCF). It reproduces the procedure used 
-#' in the Federal Reserve Board's published SCF Bulletin SAS macro for 
-#' distributional statistics (Federal Reserve Board 2023c). This convention is 
-#' specific to SCF descriptive distributional statistics (quantiles, 
-#' proportions) and differs from standard handling (i.e., using Rubin's Rule).
+#' This function estimates a weighted percentile of a continuous variable
+#' in the Survey of Consumer Finances (SCF). Two methods are available.
+#' The default \code{"implicate"} method estimates the percentile separately
+#' within each implicate using [survey::svyquantile()] and pools the results
+#' following the SCF Bulletin variance convention. The \code{"stack"} method
+#' replicates the Federal Reserve's published convention by pooling all five
+#' implicates with weights divided by five and computing a single weighted
+#' quantile from the combined sample. The two methods will generally produce
+#' similar but not identical results. Use \code{method = "stack"} when exact
+#' replication of Federal Reserve published figures is required.
 #'
-#' The operation to render the estimates:
+#' The implicate method computes estimates as follows:
 #' 1. For each implicate, estimate the requested percentile using
 #'    [survey::svyquantile()] with `se = TRUE`.
 #' 2. The reported point estimate is the mean of the M implicate-specific
@@ -26,12 +30,24 @@
 #' 4. If a grouping variable is supplied, the same logic is applied
 #'    separately within each group.
 #'
+#' The stack method returns no standard error, as the estimate is a
+#' deterministic weighted quantile rather than a model-based estimate.
+#'
 #' @param scf A `scf_mi_survey` object created with [scf_load()]. Must
 #'   contain the list of replicate-weighted designs for each implicate in
 #'   `scf$mi_design`.
 #' @param var A one-sided formula naming the continuous variable to
 #'   summarize (for example `~networth`).
 #' @param q Numeric percentile in between 0 and 1. Default 0.5 (median).
+#' @param method Character. One of \code{"implicate"} (default) or
+#'   \code{"stack"}. The implicate method averages percentile estimates
+#'   across the five implicates using the SCF Bulletin variance convention.
+#'   The stack method pools all five implicates into a single dataset with
+#'   weights divided by five and computes a single weighted quantile,
+#'   replicating the Federal Reserve's published figures. When
+#'   \code{method = "stack"} no standard error is returned, as the stacked
+#'   estimate is a deterministic weighted quantile rather than a
+#'   model-based estimate.
 #' @param by Optional one-sided formula naming a categorical grouping
 #'   variable. If supplied, the percentile is estimated separately within
 #'   each group.
@@ -77,7 +93,12 @@
 #' @seealso [scf_median()], [scf_mean()]
 #'
 #' @export
-scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
+scf_percentile <- function(scf, var, q = 0.5, by = NULL, 
+                           verbose = FALSE,
+                           method = c("implicate", "stack")) {
+  
+  method <- match.arg(method)
+  
   # Basic checks
   if (!inherits(scf, "scf_mi_survey")) {
     stop("`scf` must be an object of class 'scf_mi_survey'.", call. = FALSE)
@@ -134,6 +155,37 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
     )
   }
   
+  # --- Stack method (Federal Reserve convention) ---
+  if (method == "stack") {
+    all_vars <- do.call(rbind, lapply(designs, function(d) d$variables))
+    if (!is.null(byname)) {
+      groups <- levels(factor(all_vars[[byname]]))
+      out_df <- do.call(rbind, lapply(groups, function(g) {
+        idx <- all_vars[[byname]] == g
+        est <- .scf_wtd_quantile(x     = all_vars[[varname]][idx],
+                                 w     = all_vars$wgt[idx] / M,
+                                 probs = q)
+        data.frame(group = g, variable = varname, quantile = q,
+                   estimate = est, se = NA_real_,
+                   min = NA_real_, max = NA_real_,
+                   stringsAsFactors = FALSE)
+      }))
+    } else {
+      est <- .scf_wtd_quantile(x     = all_vars[[varname]],
+                               w     = all_vars$wgt / M,
+                               probs = q)
+      out_df <- data.frame(variable = varname, quantile = q,
+                           estimate = est, se = NA_real_,
+                           min = NA_real_, max = NA_real_,
+                           stringsAsFactors = FALSE)
+    }
+    return(structure(
+      list(results = out_df, imps = NULL,
+           aux     = list(varname = varname, byname = byname, quantile = q),
+           verbose = verbose),
+      class = "scf_percentile"
+    ))
+  }
   
   if (is.null(byname)) {
     ## -------------------------------------------------
@@ -248,9 +300,12 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL, verbose = FALSE) {
 
 #' @export
 print.scf_percentile <- function(x, ...) {
-  cat("SCF Percentile Estimate (SCF Bulletin convention)\n\n")
+  cat("SCF Percentile Estimate\n\n")
   print(x$results, row.names = FALSE, ...)
-  if (isTRUE(x$verbose)) {
+  if (all(is.na(x$results$se))) {
+    cat("\nNote: Standard error not available for stack method.\n")
+  }
+  if (isTRUE(x$verbose) && !is.null(x$imps)) {
     cat("\nImplicate-Level Estimates:\n\n")
     imp_df <- do.call(rbind, x$imps)
     print(imp_df, row.names = FALSE)
@@ -261,12 +316,15 @@ print.scf_percentile <- function(x, ...) {
 #' @export
 summary.scf_percentile <- function(object, ...) {
   cat("Summary of SCF Percentile Estimate\n\n")
-  cat("Pooled Estimates (SCF Bulletin convention):\n")
+  cat("Pooled Estimates:\n")
   print(format(object$results, digits = 4, nsmall = 2),
         row.names = FALSE, ...)
-  cat("\nImplicate-Level Estimates:\n")
-  imp_df <- do.call(rbind, object$imps)
-  print(format(imp_df, digits = 4, nsmall = 2),
-        row.names = FALSE)
+  if (!is.null(object$imps)) {
+    cat("\nImplicate-Level Estimates:\n")
+    imp_df <- do.call(rbind, object$imps)
+    print(format(imp_df, digits = 4, nsmall = 2), row.names = FALSE)
+  } else {
+    cat("\nImplicate-level estimates not available for stack method.\n")
+  }
   invisible(object)
 }
