@@ -122,7 +122,7 @@ scf_pctile_cut <- function(scf, var, probs = seq(0, 1, by = 0.1),
                                     probs = interior_probs)
     breaks <- c(-Inf, thresholds, Inf)
 
-    return(scf_update_by_implicate(scf, function(df) {
+    return(scf_update_by_implicate(scf, function(df, design) {
       df[[varname]] <- cut(df[[varname_in]],
                            breaks         = breaks,
                            labels         = labels,
