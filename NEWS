@@ -1,8 +1,12 @@
+# scf 1.0.7
+
+* Added function handling to `scf_update_by_implicate()`
+
 # scf 1.0.6
 
 * Added `scf_quantreg()` for weighted quantile regression on multiply-imputed SCF data, with coefficient pooling across implicates.
 * Added `scf_pctile_cut()` for creating percentile-based grouping variables, including both implicate-specific and Federal Reserve-style stacked percentile methods.
-* Revised `scf_update_by_implicate()` so callbacks operate directly on implicate data frames and return modified data frames.
+* Other miscellaneous minor fixes
 
 # scf 1.0.5
 
