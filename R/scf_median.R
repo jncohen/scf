@@ -70,7 +70,9 @@ scf_median <- function(scf, var, by = NULL, verbose = FALSE) {
 
 #' @export
 print.scf_median <- function(x, ...) {
-  cat("Multiply-Imputed Median Estimate\n\n")
+  dollar_label <- if (isTRUE(attr(x, "deflated")))
+    sprintf(" (%d$)", attr(x, "base_year")) else ""
+  cat(sprintf("Multiply-Imputed Median Estimate%s\n\n", dollar_label))
   print(x$results, row.names = FALSE, ...)
   if (isTRUE(x$verbose)) {
     cat("\nImplicate-Level Estimates:\n\n")

@@ -158,7 +158,7 @@ scf_mean <- function(scf, var, by = NULL, verbose = FALSE) {
   out_obj <- list(
     results = out,
     imps    = imp_estimates,
-    aux     = list(varname = varname, byname = byname),
+    aux     = list(varname = varname, byname = byname, year = scf$year),
     verbose = verbose
   )
   class(out_obj) <- "scf_mean"
@@ -167,7 +167,12 @@ scf_mean <- function(scf, var, by = NULL, verbose = FALSE) {
 
 #' @export
 print.scf_mean <- function(x, ...) {
-  cat("Multiply-Imputed, Replicate-Weighted Mean Estimate\n\n")
+  dollar_label <- if (isTRUE(attr(x, "deflated")))
+    sprintf(" (%d$)", attr(x, "base_year")) else ""
+  cat(sprintf(
+    "Multiply-Imputed, Replicate-Weighted Mean Estimate%s\n\n",
+    dollar_label
+  ))
   print(x$results, row.names = FALSE, ...)
 
   if (isTRUE(x$verbose)) {
