@@ -81,6 +81,11 @@ scf_ols <- function(object, formula) {
   coefs_list <- lapply(coefs_list, function(x) x[common_terms])
   vars_list  <- lapply(vars_list, function(v) v[common_terms, common_terms, drop = FALSE])
 
+  # Drop the survey design from each model object after extracting what is
+  # needed. svyglm stores the full svrepdesign (data + 999 replicate weights)
+  # in $survey.design; keeping it multiplies object size by ~5x for no benefit.
+  models <- lapply(models, function(m) { m$survey.design <- NULL; m })
+
   pooled <- scf_MIcombine(coefs_list, vars_list)
 
   est  <- coef(pooled)
