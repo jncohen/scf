@@ -80,6 +80,8 @@
 #' @param call Optional. The originating function call. Defaults to `sys.call()`.
 #' @param df.complete Optional degrees of freedom for the complete-data model. Used for small-sample
 #' corrections. Defaults to `Inf`, assuming large-sample asymptotics.
+#' @param object A pooled result object of class \code{"scf_MIresult"} (for \code{SE()}).
+#' @param ... Not used.
 #'
 #' @return An object of class `"scf_MIresult"` with components:
 #' \describe{
