@@ -20,7 +20,17 @@
 #' @param axis Logical. Include axis ticks and lines? Defaults to TRUE.
 #' @param ... Additional arguments passed to [ggplot2::theme_minimal()].
 #'
-#' @return A `ggplot2` theme object applied by all `scf_plot_*()` functions.
+#' @return \code{scf_theme()} returns a \code{ggplot2} theme object.
+#'   \code{scf_activate_theme()} returns \code{NULL} invisibly; called for
+#'   its side effect of setting the session-wide \code{ggplot2} theme.
+#'
+#' @section Global activation:
+#' \code{scf_activate_theme()} sets \code{scf_theme()} as the default
+#' \code{ggplot2} theme for all plots in the current R session — equivalent
+#' to \code{ggplot2::theme_set(scf_theme())}. The effect lasts only for the
+#' session and does not persist across sessions. All \code{scf_plot_*()} functions
+#' apply \code{scf_theme()} internally, so this is most useful when producing
+#' custom plots alongside the package's built-in visualizations.
 #'
 #' @examples
 #' library(ggplot2)
@@ -28,7 +38,11 @@
 #'   geom_bar(fill = "#0072B2") +
 #'   scf_theme()
 #'
+#' # Activate globally for the session:
+#' scf_activate_theme()
+#'
 #' @seealso [ggplot2::theme()], [scf_plot_dist()]
+#' @name scf_theme
 #' @export
 scf_theme <- function(base_size = 13,
                       base_family = "sans",

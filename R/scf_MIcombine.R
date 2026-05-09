@@ -158,22 +158,11 @@ scf_MIcombine <- function(results, variances, call = sys.call(), df.complete = I
   )
 }
 
-#' Extract Standard Errors from Pooled SCF Model Results
-#'
-#' @description
-#' Generic extractor for pooled standard errors from objects of class
-#' `"scf_MIresult"`.
-#'
-#' @param object A pooled result object of class `"scf_MIresult"`.
-#' @param ... Not used.
-#'
-#' @return A numeric vector of standard errors.
-#'
-#' @seealso scf_MIcombine
+#' @rdname scf_MIcombine
 #' @export
 SE <- function(object, ...) UseMethod("SE")
 
-#' @rdname SE
+#' @rdname scf_MIcombine
 #' @export
 SE.scf_MIresult <- function(object, ...) {
   sqrt(diag(object$variance))

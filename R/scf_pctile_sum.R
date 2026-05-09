@@ -78,12 +78,11 @@
 #'                labels = c("bottom90", "top10"),
 #'                method = "stack")
 #'
-#' \donttest{
-#' # Mean net worth by decile, implicate method (default)
-#' # Note: slow due to per-implicate replicate-weight quantile estimation
+#' \dontrun{
+#' # Implicate method (default): requires full SCF data; unreliable on mock data
 #' scf_pctile_sum(scf2022, ~networth)
 #'
-#' # Return grouping variable only, no summary statistic
+#' # Return grouping variable only, no summary statistic (implicate method)
 #' scf2022 <- scf_pctile_sum(scf2022, ~networth,
 #'                            probs  = c(0, 0.9, 1),
 #'                            labels = c("bottom90", "top10"),
