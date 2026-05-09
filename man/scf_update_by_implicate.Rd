@@ -9,10 +9,10 @@ scf_update_by_implicate(object, f)
 \arguments{
 \item{object}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
-\item{f}{A function that takes one implicate data frame and its corresponding
-survey design object as input and returns a modified data frame with the same
-number of rows. The function signature should be \code{function(df, design)}.
-The returned data frame is used to rebuild the replicate-weighted survey design.}
+\item{f}{A function that takes one implicate's data frame as its sole argument
+and returns a modified data frame with the same number of rows. The function
+signature should be \code{function(df) \{ ... \}}. The returned data frame is
+used to rebuild the replicate-weighted survey design.}
 }
 \value{
 A modified \code{scf_mi_survey} object with updated implicate-level designs.
