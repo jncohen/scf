@@ -56,7 +56,25 @@ targets a research community for whom the SCF is a primary data source.
 
 # Software design
 
-The package is designed around three principles: rigor, accessibility, and transparency. It encodes SCF-specific survey and imputation workflows in a structured object while preserving access to implicate-level survey designs for advanced use.
+The package is designed around three principles: rigor, accessibility, 
+and transparency. It encodes SCF-specific survey and imputation workflows 
+in a structured object while preserving access to implicate-level survey 
+designs for advanced use.
+
+The central design trade-off was between convenience and transparency. 
+A fully opaque interface would minimize code volume but obscure the 
+statistical operations being performed. The chosen approach stores both 
+pooled results and implicate-level estimates in every function's output, 
+so analysts can inspect the underlying calculations rather than treat 
+them as a black box.
+
+Rather than implementing survey-statistical computations from scratch, 
+`scf` builds on the `survey` package [@Lumley2026], inheriting its 
+validation record and estimator coverage at the cost of an external 
+dependency. Pooling uses Rubin-style combining rules [@Rubin1987] for 
+model-based quantities and alternative strategies for percentiles and 
+proportions per Federal Reserve documentation; this distinction is 
+handled internally.
 
 ## Core object
 
@@ -71,7 +89,7 @@ Most `scf` functions follow the same internal pattern:
 3. combine results into a pooled estimate and associated uncertainty measure
 4. store the combined results and results from individual implicates in an R list
 
-For model-based and many descriptive quantities, pooling uses Rubin-style combining rules [@Rubin1987]. For some statistics such as percentiles and proportions, the package uses appropriate implicate-aggregation strategies implemented per official documentation. The result is a consistent user interface across common SCF tasks without requiring users to manage the imputation and replicate-weight logic manually.
+For model-based and many descriptive quantities, pooling uses Rubin rules. For some statistics such as percentiles and proportions, the package uses appropriate implicate-aggregation strategies implemented per official documentation. The result is a consistent user interface across common SCF tasks without requiring users to manage the imputation and replicate-weight logic manually.
 
 ## Functional coverage
 
@@ -111,7 +129,7 @@ scf_regtable(fit, digits = 3, output = "console")
 
 This workflow delegates design specification, implicate iteration, and pooling to the package while leaving the substantive modeling decisions to the analyst.
 
-Visualization capabilities also available:
+Visualization capabilities are also available:
 
 ```{r}
 
@@ -149,5 +167,5 @@ The package builds on the `survey` package and on publicly available SCF documen
 Claude (Anthropic; versions 3.5–4.5), ChatGPT (OpenAI; GPT-4o), 
 Gemini (Google; 2.0 Flash), and Copilot (Microsoft) were used as aids 
 in coding, debugging, and drafting portions of the documentation and 
-manuscript.
+manuscript. Their use occurred within a human-directed workflow in which the author determined all substantive content and structure. AI-generated outputs were treated as provisional and subject to review and revision. The conceptual design, methodology, and implementation were developed by the author. The author has reviewed and validated all material and retains full responsibility for the work.
 

@@ -22,6 +22,10 @@ or an object with methods for \code{coef()} and \code{vcov()}. Typically generat
 
 \item{df.complete}{Optional degrees of freedom for the complete-data model. Used for small-sample
 corrections. Defaults to \code{Inf}, assuming large-sample asymptotics.}
+
+\item{object}{A pooled result object of class \code{"scf_MIresult"} (for \code{SE()}).}
+
+\item{...}{Not used.}
 }
 \value{
 An object of class \code{"scf_MIresult"} with components:
