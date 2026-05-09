@@ -59,6 +59,28 @@
 #' in the Federal Reserve's SAS macro, which applies a separate lag
 #' adjustment to income before the main deflation step.
 #'
+#' @section Conditions:
+#' \describe{
+#'   \item{Warning — double deflation}{If the input object has already been
+#'     deflated (\code{attr(x, "deflated")} is \code{TRUE}), \code{scf_deflate()}
+#'     issues a warning and proceeds. Applying the function twice compounds the
+#'     CPI adjustment and produces incorrect results. Check
+#'     \code{attr(result, "deflated")} and \code{attr(result, "base_year")}
+#'     before calling.}
+#'   \item{Error — stale result object}{If the result object does not carry a
+#'     survey year (\code{x$aux$year} is \code{NULL}), the function stops with
+#'     a message asking you to re-run the originating function (\code{scf_mean()},
+#'     \code{scf_median()}, etc.) under the current package version. This field
+#'     was introduced in version 1.0.6.}
+#'   \item{Error — unsupported class}{Passing an object of an unsupported class
+#'     (e.g., a regression result or a frequency table) stops with a message
+#'     listing the supported classes: \code{scf_mean}, \code{scf_median},
+#'     \code{scf_percentile}, and \code{scf_ttest}.}
+#'   \item{Error — year not in CPI table}{If \code{base_year} is not one of
+#'     the valid triennial SCF survey years (1989--2022), the function stops
+#'     and lists the valid options.}
+#' }
+#'
 #' @param x An object of class \code{scf_mean}, \code{scf_median},
 #'   \code{scf_percentile}, or \code{scf_ttest}.
 #' @param base_year Integer. Reference year for real dollars. Must be a valid
@@ -67,8 +89,7 @@
 #' @return The input object with dollar estimates, standard errors, and
 #'   confidence intervals rescaled to \code{base_year} dollars. Attributes
 #'   \code{"deflated"} (logical) and \code{"base_year"} (integer) are set on
-#'   the returned object. Calling \code{scf_deflate()} on an already-deflated
-#'   object raises a warning.
+#'   the returned object.
 #'
 #' @examples
 #' # Do not implement these lines in real analysis:

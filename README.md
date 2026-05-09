@@ -247,8 +247,12 @@ For detailed examples, function documentation, and usage guides, consult
 the package vignettes and reference manual.
 
 - [SCF Homepage](https://github.com/jncohen/scf)
+<<<<<<< HEAD
 - [Reference Manual](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.7.pdf)
 - [Overview Paper and Validation](https://github.com/jncohen/scf/blob/v1.0/vignettes/Cohen-2026-scf-Package.pdf)
+=======
+- [**Reference Manual:** Click here](https://cran.r-project.org/web/packages/scf/scf.pdf)
+>>>>>>> c7ca88fd7941e9e0900466e1639572f14215fa0a
 
 ## Note on Mock Data
 

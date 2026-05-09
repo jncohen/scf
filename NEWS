@@ -3,6 +3,7 @@
 * `scf_pctile_cut()` reconceptualized as `scf_pctile_sum()` with integrated calls for stats
 * Added function handling to `scf_update_by_implicate()` and updated cascading dependencies
 * Update `scf_percentile()` to handle SCF stack method for percentile estimation
+* Added `scf_deflate()` to convert nominal dollar estimates to real terms.
 * Fixed a memory bloat issue in `scf_ols()`, `scf_glm()`, and `scf_logit()` where the full survey design object (data plus 999 replicate weights per implicate) was retained in each stored implicate-level model. The design is now released after coefficient and variance extraction, reducing result object size by roughly 5x.
 * Eliminated use of `<<-` in `scf_regtable()` error-handler closures; restructured `tryCatch()` calls to return values directly.
 * Added `scf_deflate()` to convert nominal dollar estimates to real terms. 
