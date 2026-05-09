@@ -9,10 +9,14 @@
   version = {1.0.5}
 }
 
-@misc{Cohen2026, 
-  title={Analyzing the Survey of Consumer Finances with `scf`}, 
-  url={osf.io/azrsn}, publisher={OSF}, 
-  author={Cohen, Joseph N.}, year={2026}, month={Mar} }
+@unpublished{Cohen2026,
+  title = {Analyzing the {Survey of Consumer Finances} with \texttt{scf}: 
+           Methodology, User Guide, and Package Validation},
+  author = {Cohen, Joseph N.},
+  year = {2026},
+  note = {CUNY Academic Works. Queens College, City University of New York},
+  url = {https://academicworks.cuny.edu/qc_pubs/695}
+}
 
 @software{Damico2026,
   title = {Ajdamico/Asdfree},
@@ -34,28 +38,6 @@
   urldate = {2024-02-29},
   abstract = {The Survey of Consumer Finances (SCF) is normally a triennial cross-sectional survey of U.S. families. The survey data include information on families' balance sheets, pensions, income, and demographic characteristics.},
   langid = {english}
-}
-
-@article{Lumley2004,
-  title = {Analysis of {{Complex Survey Samples}}},
-  author = {Lumley, Thomas},
-  date = {2004},
-  journaltitle = {Journal of Statistical Software},
-  volume = {9},
-  pages = {1--19},
-  url = {https://www.jstatsoft.org/article/view/v009i08/931},
-  urldate = {2025-07-12},
-  file = {C:\Users\jcohen\Zotero\storage\6YIR84BG\Lumley - 2004 - Analysis of complex survey samples.pdf}
-}
-
-
-@book{Lumley2011,
-  title = {Complex Surveys: A Guide to Analysis Using {{R}}},
-  shorttitle = {Complex Surveys},
-  author = {Lumley, Thomas},
-  date = {2011},
-  publisher = {John Wiley \& Sons},
-  urldate = {2024-02-26}
 }
 
 @software{Lumley2019,
@@ -87,7 +69,6 @@
   title = {Multiple {{Imputation}} for {{Nonresponse}} in {{Surveys}}},
   author = {Rubin, Donald B.},
   date = {1987},
-  eprint = {cNvTIOLs_WMC},
   publisher = {John Wiley \& Sons},
   abstract = {Demonstrates how nonresponse in sample surveys and censuses can be handled by replacing each missing value with two or more multiple imputations. Clearly illustrates the advantages of modern computing to such handle surveys, and demonstrates the benefit of this statistical technique for researchers who must analyze them. Also presents the background for Bayesian and frequentist theory. After establishing that only standard complete-data methods are needed to analyze a multiply-imputed set, the text evaluates procedures in general circumstances, outlining specific procedures for creating imputations in both the ignorable and nonignorable cases. Examples and exercises reinforce ideas, and the interplay of Bayesian and frequentist ideas presents a unified picture of modern statistics.},
   isbn = {978-0-470-31736-5},
@@ -95,14 +76,3 @@
   pagetotal = {297}
   }
 
-@software{vanBuuren2025,
-  title = {Mice: {{Multivariate Imputation}} by {{Chained Equations}}},
-  shorttitle = {Mice},
-  author = {family=Buuren, given=Stef, prefix=van, useprefix=false and Groothuis-Oudshoorn, Karin and Vink, Gerko and Schouten, Rianne and Robitzsch, Alexander and Rockenschaub, Patrick and Doove, Lisa and Jolani, Shahab and Moreno-Betancur, Margarita and White, Ian and Gaffert, Philipp and Meinfelder, Florian and Gray, Bernie and Arel-Bundock, Vincent and Cai, Mingyang and Volker, Thom and Costantini, Edoardo and family=Lissa, given=Caspar, prefix=van, useprefix=false and Oberman, Hanne and Wade, Stephen and family=Leeuwen, given=Florian, prefix=van, useprefix=false and Fabricius-Bjerre, Frederik},
-  date = {2025-12-10},
-  url = {https://cran.r-project.org/web/packages/mice/index.html},
-  urldate = {2026-03-20},
-  abstract = {Multiple imputation using Fully Conditional Specification (FCS) implemented by the MICE algorithm as described in Van Buuren and Groothuis-Oudshoorn (2011) {$<$}doi:10.18637/jss.v045.i03{$>$}. Each variable has its own imputation model. Built-in imputation models are provided for continuous data (predictive mean matching, normal), binary data (logistic regression), unordered categorical data (polytomous logistic regression) and ordered categorical data (proportional odds). MICE can also impute continuous two-level data (normal model, pan, second-level variables). Passive imputation can be used to maintain consistency between variables. Various diagnostic plots are available to inspect the quality of the imputations.},
-  version = {3.19.0},
-  keywords = {ClinicalTrials,MissingData,MixedModels}
-}
