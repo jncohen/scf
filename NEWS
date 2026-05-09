@@ -3,12 +3,15 @@
 * `scf_pctile_cut()` reconceptualized as `scf_pctile_sum()` with integrated calls for stats
 * Added function handling to `scf_update_by_implicate()` and updated cascading dependencies
 * Update `scf_percentile()` to handle SCF stack method for percentile estimation
+* Fixed a memory bloat issue in `scf_ols()`, `scf_glm()`, and `scf_logit()` where the full survey design object (data plus 999 replicate weights per implicate) was retained in each stored implicate-level model. The design is now released after coefficient and variance extraction, reducing result object size by roughly 5x.
+* Eliminated use of `<<-` in `scf_regtable()` error-handler closures; restructured `tryCatch()` calls to return values directly.
 
 # scf 1.0.6
 
 * Added `scf_quantreg()` for weighted quantile regression on multiply-imputed SCF data, with coefficient pooling across implicates.
 * Added `scf_pctile_cut()` for creating percentile-based grouping variables, including both implicate-specific and Federal Reserve-style stacked percentile methods.
 * Other miscellaneous minor fixes
+
 
 # scf 1.0.5
 

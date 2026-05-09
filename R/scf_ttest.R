@@ -158,13 +158,16 @@ scf_ttest <- function(design, var, group = NULL, mu = 0,
       null.value = mu,
       conf.level = conf.level,
       alternative = alternative
-    )
+    ),
+    aux = list(year = design$year)
   ), class = "scf_ttest")
 }
 
 #' @export
 print.scf_ttest <- function(x, digits = 4, ...) {
-  cat("SCF", x$fit$method, "\n")
+  dollar_label <- if (isTRUE(attr(x, "deflated")))
+    sprintf(" (%d$)", attr(x, "base_year")) else ""
+  cat(sprintf("SCF %s%s\n", x$fit$method, dollar_label))
   cat("Alternative hypothesis:",
       switch(x$fit$alternative,
              "two.sided" = "mean is not equal to",

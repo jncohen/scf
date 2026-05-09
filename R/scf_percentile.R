@@ -290,7 +290,8 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
       aux     = list(
         varname  = varname,
         byname   = byname,
-        quantile = q
+        quantile = q,
+        year     = scf$year
       ),
       verbose = verbose
     ),
@@ -301,6 +302,10 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
 #' @export
 print.scf_percentile <- function(x, ...) {
   cat("SCF Percentile Estimate\n\n")
+  dollar_label <- if (isTRUE(attr(x, "deflated")))
+    sprintf(" (%d$)", attr(x, "base_year")) else ""
+  cat(sprintf("SCF Percentile Estimate (SCF Bulletin convention)%s\n\n", dollar_label))
+
   print(x$results, row.names = FALSE, ...)
   if (all(is.na(x$results$se))) {
     cat("\nNote: Standard error not available for stack method.\n")

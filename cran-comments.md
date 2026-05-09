@@ -7,6 +7,10 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
+## Notes
+Source files use Windows (CRLF) line endings, as the package is developed on
+Windows. This is a pre-existing condition accepted in prior CRAN releases.
+
 ## Warnings with scf_logit() and scf_glm()
 A known benign warning ("non-integer #successes in a binomial glm!") may 
 appear when using `svyglm(family = binomial())` with replicate weights. This 

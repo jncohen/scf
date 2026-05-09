@@ -160,15 +160,16 @@ scf_regtable <- function(...,
     m <- models[[i]]
     
     # Fetch N
-    n <- NA_integer_
-    tryCatch({
-      n <- length(stats::residuals(m)) 
+    n <- tryCatch({
+      length(stats::residuals(m))
     }, error = function(e) {
-      # Fallback to old, manual logic if S3 method fails (for robustness)
+      # Fallback if S3 method fails: reach into stored implicate models directly
       if (!is.null(m$models) && length(m$models) > 0 && !is.null(m$models[[1]])) {
-        n <<- length(stats::residuals(m$models[[1]]))
+        length(stats::residuals(m$models[[1]]))
       } else if (!is.null(m$imps) && length(m$imps) > 0 && !is.null(m$imps[[1]])) {
-        n <<- length(stats::residuals(m$imps[[1]]))
+        length(stats::residuals(m$imps[[1]]))
+      } else {
+        NA_integer_
       }
     })
     
@@ -189,12 +190,10 @@ scf_regtable <- function(...,
       # Standard models: add R2/PseudoR2 and AIC
       
       # Fetch AIC
-      aic_val <- NA_real_
-      tryCatch({
-        aic_val <- stats::AIC(m)
+      aic_val <- tryCatch({
+        stats::AIC(m)
       }, error = function(e) {
-        # Fallback to old, manual logic
-        aic_val <<- if (!is.null(m$fit$AIC)) m$fit$AIC else NA_real_
+        if (!is.null(m$fit$AIC)) m$fit$AIC else NA_real_
       })
       
       # Detect binomial/logit family for pseudo-R2 usage 
