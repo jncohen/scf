@@ -72,20 +72,23 @@
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Mean net worth by decile, implicate method (default)
-#' scf_pctile_sum(scf2022, ~networth)
-#'
-#' # Mean net worth, top vs bottom 90 percent, stack method
+#' # Mean net worth, top vs bottom 90 percent, stack method (fast)
 #' scf_pctile_sum(scf2022, ~networth,
 #'                probs  = c(0, 0.9, 1),
 #'                labels = c("bottom90", "top10"),
 #'                method = "stack")
+#'
+#' \donttest{
+#' # Mean net worth by decile, implicate method (default)
+#' # Note: slow due to per-implicate replicate-weight quantile estimation
+#' scf_pctile_sum(scf2022, ~networth)
 #'
 #' # Return grouping variable only, no summary statistic
 #' scf2022 <- scf_pctile_sum(scf2022, ~networth,
 #'                            probs  = c(0, 0.9, 1),
 #'                            labels = c("bottom90", "top10"),
 #'                            stat   = "none")
+#' }
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
@@ -175,7 +178,7 @@ scf_pctile_sum <- function(scf, var,
     # If no summary statistic requested, add grouping variable to each
     # implicate and return the scf_mi_survey object
     if (stat == "none") {
-      return(scf_update_by_implicate(scf, function(df, design) {
+      return(scf_update_by_implicate(scf, function(df) {
         df[[varname]] <- cut(df[[varname_in]],
                              breaks         = breaks,
                              labels         = labels,

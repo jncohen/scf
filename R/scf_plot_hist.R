@@ -69,8 +69,7 @@ scf_plot_hist <- function(design, variable,
   breaks <- seq(rng[1], rng[2], length.out = bins + 1)
   
   # Clamp and bin within each implicate
-  design <- scf_update_by_implicate(design, function(d) {
-    df <- d$variables
+  design <- scf_update_by_implicate(design, function(df) {
     x <- df[[varname]]
     x <- pmin(pmax(x, rng[1]), rng[2])
     df$.binvar <- cut(x, breaks = breaks, include.lowest = TRUE, right = TRUE)

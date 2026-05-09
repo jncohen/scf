@@ -22,10 +22,10 @@
 #' - You need to derive a variable based on implicate-specific thresholds or bins
 #'
 #' @param object A `scf_mi_survey` object from [scf_load()].
-#' @param f A function that takes one implicate data frame and its corresponding
-#'   survey design object as input and returns a modified data frame with the same
-#'   number of rows. The function signature should be \code{function(df, design)}.
-#'   The returned data frame is used to rebuild the replicate-weighted survey design.
+#' @param f A function that takes one implicate's data frame as its sole argument
+#'   and returns a modified data frame with the same number of rows. The function
+#'   signature should be \code{function(df) \{ ... \}}. The returned data frame is
+#'   used to rebuild the replicate-weighted survey design.
 #'   
 #'
 #' @return A modified `scf_mi_survey` object with updated implicate-level designs.
@@ -76,7 +76,7 @@ scf_update_by_implicate <- function(object, f) {
   for (i in seq_along(object$mi_design)) {
     design <- object$mi_design[[i]]
     df     <- design$variables
-    new_df <- f(df, design)
+    new_df <- f(df)
     
     if (!is.data.frame(new_df)) {
       stop(sprintf("Function `f` must return a data.frame. Implicate %d returned: %s",
