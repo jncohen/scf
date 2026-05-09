@@ -2,9 +2,15 @@
 % Please edit documentation in R/scf_MIcombine.R
 \name{scf_MIcombine}
 \alias{scf_MIcombine}
+\alias{SE}
+\alias{SE.scf_MIresult}
 \title{Combine Estimates Across SCF Implicates Using Rubin's Rules}
 \usage{
 scf_MIcombine(results, variances, call = sys.call(), df.complete = Inf)
+
+SE(object, ...)
+
+\method{SE}{scf_MIresult}(object, ...)
 }
 \arguments{
 \item{results}{A list of implicate-level model outputs. Each element must be a named numeric vector

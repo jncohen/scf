@@ -14,7 +14,7 @@ authors:
 affiliations:
   - name: Queens College, City University of New York, Queens, New York, USA
     index: 1
-date: 2026
+date: 9 May 2026
 bibliography: paper.bib
 ---
 
@@ -26,7 +26,7 @@ The R package `scf` [@Cohen2025] provides a unified framework for acquiring, pre
 
 @Cohen2026 offers a more detailed description of the package design and validates its ability to produce official statistics.
 
-# Statement of Need
+# Statement of need
 
 The valid analysis of SCF microdata requires a multi-step workflow that combines replicate-weighted survey estimation with the handling of multiply imputed datasets. Analysts must construct replicate-weighted survey designs for each implicate, estimate quantities separately across implicates, and combine results using appropriate pooling rules. 
 
@@ -34,13 +34,33 @@ In R, this workflow is typically implemented using Thomas Lumley's [-@Lumley2026
 
 The `scf` package addresses this gap by formalizing SCF-specific best practices in a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, along with a set of functions that automate estimation and pooling. The package provides a consistent grammar and output format that reduces the amount of custom code required for common tasks. It reproduces official SCF statistics and reduces typical workflows from dozens of lines of custom code to a small number of standardized function calls [see @Cohen2026].
 
-# Package overview
+# State of the field
+
+No dedicated R package for SCF analysis existed on CRAN prior to `scf`. 
+As described above, existing approaches rely on general-purpose tools 
+(`survey`, `mitools`) or reference documentation (`asdfree`) rather than 
+a purpose-built functional interface. Contributing SCF-specific logic to 
+`survey` would be out of scope for a general-purpose package; extending 
+`asdfree` would not produce the modular, testable, CRAN-distributed 
+infrastructure that enables reproducible workflows across projects and 
+users. `scf` fills this gap.
+
+# Research impact statement
+
+The package has been validated against published Federal Reserve 
+statistics; @Cohen2026 documents this validation in detail. The package 
+vignettes include replications of results from two published empirical 
+papers, demonstrating that `scf` produces estimates consistent with 
+prior peer-reviewed work. The package is distributed through CRAN and 
+targets a research community for whom the SCF is a primary data source.
+
+# Software design
 
 The package is designed around three principles: rigor, accessibility, and transparency. It encodes SCF-specific survey and imputation workflows in a structured object while preserving access to implicate-level survey designs for advanced use.
 
 ## Core object
 
-The central object in the package is `scf_mi_survey`, a structured container representing one SCF wave. It stores the five imputed data sets with an associated `survey::svrepdesign` object, along with supplemental information. 
+The central object in the package is `scf_mi_survey`, a structured container representing one SCF wave. It stores the five imputed data sets with an associated `survey::svrepdesign` object, along with supplemental metadata. 
 
 ## Estimation workflow
 
@@ -91,11 +111,20 @@ scf_regtable(fit, digits = 3, output = "console")
 
 This workflow delegates design specification, implicate iteration, and pooling to the package while leaving the substantive modeling decisions to the analyst.
 
-Visualization is also available:
+Visualization capabilities also available:
 
 ```{r}
 
+# Specify education as an ordered factor with meaningful labels
+scf2022 <- scf_update(scf2022, edclF = factor(edcl, 
+                                              levels = 1:4, 
+                                              labels = c("<HS", "HS", 
+                                                         "Associates", 
+                                                         "Bachelor+"),
+                                              ordered = T))
 
+# Plot
+scf_plot_cbar(scf2022, ~networth, ~edclF)
 
 ```
 
@@ -113,9 +142,12 @@ Source code, examples, and documentation are available at: https://github.com/jn
 
 # Acknowledgements
 
-The package builds on the `survey` package and on publicly available SCF documentation and example workflows. 
+The package builds on the `survey` package and on publicly available SCF documentation and example workflows. The author received no external funding for this work.
 
 # AI usage disclosure
 
-Generative AI tools were used as aids in coding, debugging, and drafting portions of the documentation and manuscript. Their use occurred within a human-directed workflow in which the author determined all substantive content and structure. AI-generated outputs were treated as provisional and subject to review and revision. The conceptual design, methodology, and implementation were developed by the author. The author has reviewed and validated all material and retains full responsibility for the work.
+Claude (Anthropic; versions 3.5–4.5), ChatGPT (OpenAI; GPT-4o), 
+Gemini (Google; 2.0 Flash), and Copilot (Microsoft) were used as aids 
+in coding, debugging, and drafting portions of the documentation and 
+manuscript.
 
