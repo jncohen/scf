@@ -5,6 +5,7 @@
 * Update `scf_percentile()` to handle SCF stack method for percentile estimation
 * Fixed a memory bloat issue in `scf_ols()`, `scf_glm()`, and `scf_logit()` where the full survey design object (data plus 999 replicate weights per implicate) was retained in each stored implicate-level model. The design is now released after coefficient and variance extraction, reducing result object size by roughly 5x.
 * Eliminated use of `<<-` in `scf_regtable()` error-handler closures; restructured `tryCatch()` calls to return values directly.
+* Added `scf_deflate()` to convert nominal dollar estimates to real terms. Applies CPI-U-RS deflation factors (taken from the Federal Reserve Board's SCF Bulletin SAS macro) to results from `scf_mean()`, `scf_median()`, `scf_percentile()`, and `scf_ttest()`. Both point estimates and standard errors are rescaled; t-statistics, degrees of freedom, and p-values are left unchanged. Regression functions are not supported — deflate variables upstream with `scf_update()` before fitting.
 
 # scf 1.0.6
 
