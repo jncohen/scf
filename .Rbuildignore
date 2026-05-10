@@ -22,4 +22,4 @@
 ^scf_functions_.*\.txt$
 ^\.Rproj\.user$
 ^scf_.*[.]pdf$
-^LICENSE\.md$
+^CONTRIBUTING\.md$

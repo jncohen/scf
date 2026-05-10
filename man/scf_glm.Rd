@@ -87,7 +87,7 @@ file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
 # Example for real analysis: Run logistic regression
-model <- scf_glm(scf2022, own ~ age + factor(edcl), family = binomial())
+model <- suppressWarnings(scf_glm(scf2022, own ~ hhsex, family = binomial()))
 summary(model)
 
 # Do not implement these lines in real analysis: Cleanup for package check

@@ -40,6 +40,7 @@ For technical details on pooling logic, see \code{\link[=scf_MIcombine]{scf_MIco
 }
 
 \examples{
+\donttest{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`
 td <- tempfile("xtab_")
@@ -54,5 +55,6 @@ scf_xtab(scf2022, ~own, ~hhsex, scale = "row")
 
 # Do not implement these lines in real analysis: Cleanup for package check
 unlink(td, recursive = TRUE, force = TRUE)
+}
 
 }
