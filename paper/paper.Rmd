@@ -16,6 +16,10 @@ affiliations:
     index: 1
 date: 9 May 2026
 bibliography: paper.bib
+output:
+  md_document:
+    variant: markdown_strict
+    fig_path: ""
 ---
 
 # Summary
@@ -24,57 +28,31 @@ The *Survey of Consumer Finances* (SCF) is a triennial national survey of U.S. h
 
 The R package `scf` [@Cohen2025] provides a unified framework for acquiring, preparing, analyzing, and visualizing SCF public-use microdata. It encodes standard practices for handling the survey’s design, automates implicate-level estimation and pooling, and reduces implementation complexity for common analytical tasks.
 
-@Cohen2026 offers a more detailed description of the package design and validates its ability to produce official statistics.
+A detailed methodological description and validation against official Federal Reserve statistics is provided by @Cohen2026.
 
 # Statement of need
 
 The valid analysis of SCF microdata requires a multi-step workflow that combines replicate-weighted survey estimation with the handling of multiply imputed datasets. Analysts must construct replicate-weighted survey designs for each implicate, estimate quantities separately across implicates, and combine results using appropriate pooling rules. 
 
-In R, this workflow is typically implemented using Thomas Lumley's [-@Lumley2026] `survey` package along with imputed data handling tools his `mitools` [@Lumley2019] or custom scripts. These tools are flexible and methodologically appropriate but require users to manually coordinate design specification, implicate iteration, and pooling. As a result, even simple analyses involve substantial custom code, and correct implementation depends on careful adherence to SCF-specific conventions. Existing reference workflows, such as those provided by Anthony Damico [-@Damico2026], demonstrate correct implementation but require dozens of lines of code that can slow or discourage non-specialists' engagement of the data.
+In R, this workflow is typically implemented using Lumley's `survey` package [-@Lumley2026] together with the `mitools` package [@Lumley2019] or custom scripts. These tools are flexible and methodologically appropriate but require users to manually coordinate design specification, implicate iteration, and pooling. Consequently, even simple analyses require substantial custom code, and correct implementation depends on careful adherence to SCF-specific conventions. Reference workflows, such as those provided by Damico [-@Damico2026], demonstrate proper implementation but entail dozens of lines of code that can impede engagement by non-specialists.
 
-The `scf` package addresses this gap by formalizing SCF-specific best practices in a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, along with a set of functions that automate estimation and pooling. The package provides a consistent grammar and output format that reduces the amount of custom code required for common tasks. It reproduces official SCF statistics and reduces typical workflows from dozens of lines of custom code to a small number of standardized function calls [see @Cohen2026].
+The `scf` package addresses this gap by formalizing SCF-specific best practices within a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, together with functions that automate estimation and pooling. The package offers a consistent grammar and output format that substantially reduces custom code requirements for common analytical tasks. It reproduces official SCF statistics and reduces typical workflows from dozens of lines of custom code to a small number of standardized function calls [see @Cohen2026].
 
 # State of the field
 
-No dedicated R package for SCF analysis existed on CRAN prior to `scf`. 
-As described above, existing approaches rely on general-purpose tools 
-(`survey`, `mitools`) or reference documentation (`asdfree`) rather than 
-a purpose-built functional interface. Contributing SCF-specific logic to 
-`survey` would be out of scope for a general-purpose package; extending 
-`asdfree` would not produce the modular, testable, CRAN-distributed 
-infrastructure that enables reproducible workflows across projects and 
-users. `scf` fills this gap.
+No dedicated R package for SCF analysis existed on CRAN prior to `scf`. Existing approaches rely on general-purpose tools (`survey`, `mitools`) or reference documentation (`asdfree`) rather than a purpose-built functional interface. Contributing SCF-specific logic to `survey` would be inappropriate for a general-purpose package; extending `asdfree` would not yield the modular, testable, CRAN-distributed infrastructure necessary for reproducible workflows across projects and users. The `scf` package fills this gap.
 
 # Research impact statement
 
-The package has been validated against published Federal Reserve 
-statistics; @Cohen2026 documents this validation in detail. The package 
-vignettes include replications of results from two published empirical 
-papers, demonstrating that `scf` produces estimates consistent with 
-prior peer-reviewed work. The package is distributed through CRAN and 
-targets a research community for whom the SCF is a primary data source.
+The package has been validated against published Federal Reserve statistics; @Cohen2026 documents this validation in detail. Package vignettes include replications of results from two published empirical papers, demonstrating that `scf` produces estimates consistent with prior peer-reviewed findings. The package is distributed through CRAN and targets a research community for whom the SCF serves as a primary data source.
 
 # Software design
 
-The package is designed around three principles: rigor, accessibility, 
-and transparency. It encodes SCF-specific survey and imputation workflows 
-in a structured object while preserving access to implicate-level survey 
-designs for advanced use.
+The package is designed around three core principles: rigor, accessibility, and transparency. It encodes SCF-specific survey and imputation workflows in a structured object while preserving access to implicate-level survey designs for advanced use cases.
 
-The central design trade-off was between convenience and transparency. 
-A fully opaque interface would minimize code volume but obscure the 
-statistical operations being performed. The chosen approach stores both 
-pooled results and implicate-level estimates in every function's output, 
-so analysts can inspect the underlying calculations rather than treat 
-them as a black box.
+A central design trade-off exists between convenience and transparency. A fully opaque interface would minimize code volume but obscure the underlying statistical operations. The approach adopted stores both pooled results and implicate-level estimates in every function's output, enabling analysts to inspect the underlying calculations rather than treating them as a black box.
 
-Rather than implementing survey-statistical computations from scratch, 
-`scf` builds on the `survey` package [@Lumley2026], inheriting its 
-validation record and estimator coverage at the cost of an external 
-dependency. Pooling uses Rubin-style combining rules [@Rubin1987] for 
-model-based quantities and alternative strategies for percentiles and 
-proportions per Federal Reserve documentation; this distinction is 
-handled internally.
+Rather than implementing survey-statistical computations from scratch, `scf` builds on the `survey` package [@Lumley2026], inheriting its well-established validation record and comprehensive estimator coverage. Pooling uses Rubin's combining rules [@Rubin1987] for model-based quantities and alternative strategies for percentiles and proportions per Federal Reserve documentation; these distinctions are handled automatically.
 
 ## Core object
 
@@ -82,14 +60,14 @@ The central object in the package is `scf_mi_survey`, a structured container rep
 
 ## Estimation workflow
 
-Most `scf` functions follow the same internal pattern:
+Most `scf` functions follow a consistent internal pattern:
 
-1. construct or retrieve the implicate-specific survey designs 
-2. apply the corresponding estimation routine to each implicate
-3. combine results into a pooled estimate and associated uncertainty measure
-4. store the combined results and results from individual implicates in an R list
+1. Construct or retrieve implicate-specific survey designs
+2. Apply the corresponding estimation routine to each implicate
+3. Combine results into a pooled estimate with associated uncertainty
+4. Store combined and implicate-level results in an R list
 
-For model-based and many descriptive quantities, pooling uses Rubin rules. For some statistics such as percentiles and proportions, the package uses appropriate implicate-aggregation strategies implemented per official documentation. The result is a consistent user interface across common SCF tasks without requiring users to manage the imputation and replicate-weight logic manually.
+For model-based and many descriptive quantities, pooling uses Rubin's rules. For statistics such as percentiles and proportions, the package implements appropriate implicate-aggregation strategies per official Federal Reserve documentation. This design yields a consistent user interface across common analytical tasks while automating imputation and replicate-weight handling.
 
 ## Functional coverage
 
@@ -103,7 +81,7 @@ The package supports end-to-end SCF workflows through functions for:
 - results extraction and formatting (`scf_MIcombine()`, `scf_implicates()`, `scf_regtable()`)
 - visualization (`scf_plot_dbar()`, `scf_plot_cbar()`, `scf_plot_bbar()`, `scf_plot_dist()`, `scf_plot_hist()`, `scf_plot_hex()`, `scf_plot_smooth()`, `scf_theme()`)
 
-These functions reduce repetition in common SCF workflows while remaining compatible with Thomas Lumley's [-@Lumley2026] `survey` ecosystem.
+These functions reduce code repetition in common SCF workflows while maintaining compatibility with Lumley's `survey` ecosystem [-@Lumley2026].
 
 # Example
 
@@ -127,23 +105,21 @@ fit <- scf_ols(scf2022, networth ~ senior)
 scf_regtable(fit, digits = 3, output = "console")
 ```
 
-This workflow delegates design specification, implicate iteration, and pooling to the package while leaving the substantive modeling decisions to the analyst.
+This approach delegates design specification, implicate iteration, and pooling to the package, leaving substantive modeling decisions with the analyst.
 
-Visualization capabilities are also available:
+Visualization capabilities are included:
 
 ```{r}
-
 # Specify education as an ordered factor with meaningful labels
-scf2022 <- scf_update(scf2022, edclF = factor(edcl, 
-                                              levels = 1:4, 
-                                              labels = c("<HS", "HS", 
-                                                         "Associates", 
+scf2022 <- scf_update(scf2022, edclF = factor(edcl,
+                                              levels = 1:4,
+                                              labels = c("<HS", "HS",
+                                                         "Associates",
                                                          "Bachelor+"),
-                                              ordered = T))
+                                              ordered = TRUE))
 
-# Plot
+# Create a categorical bar plot
 scf_plot_cbar(scf2022, ~networth, ~edclF)
-
 ```
 
 # Availability
@@ -152,15 +128,15 @@ scf_plot_cbar(scf2022, ~networth, ~edclF)
 
 The package is available on CRAN:
 
-```{r}
+```{r, eval = F}
 install.packages("scf")
 ```
 
 Source code, examples, and documentation are available at: https://github.com/jncohen/scf. The package is distributed under the MIT License.
 
-# Acknowledgements
+# Acknowledgments
 
-The package builds on the `survey` package and on publicly available SCF documentation and example workflows. The author received no external funding for this work.
+The package builds on the `survey` package and publicly available SCF documentation and example workflows. The author received no external funding for this work.
 
 # AI usage disclosure
 
