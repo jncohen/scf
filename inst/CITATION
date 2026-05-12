@@ -9,10 +9,10 @@ bibentry(
 
 bibentry(
   "Misc",
-  title       = "Analyzing the {Survey of Consumer Finances} with {scf}",
-  author      = person("Joseph", "Cohen"),
+  title       = "Analyzing the {Survey of Consumer Finances} with {scf}: {M}ethodology, {U}ser {G}uide, and {P}ackage {V}alidation",
+  author      = person("Joseph N.", "Cohen"),
   year        = "2026",
-  eprinttype  = "OSF",
-  url         = "https://osf.io/azrsn",
-  pubstate    = "prepublished"
+  type        = "Working Paper",
+  institution = "CUNY Queens College",
+  url         = "https://academicworks.cuny.edu/qc_pubs/695/"
 )
