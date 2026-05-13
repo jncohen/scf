@@ -56,14 +56,22 @@ scf_plot_hist <- function(design, variable,
   if (isTRUE(attr(design, "mock"))) {
     warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
   }
+  if (!is.numeric(bins) || length(bins) != 1L || !is.finite(bins) || bins < 1 || bins != as.integer(bins)) {
+    stop("`bins` must be a single positive integer.")
+  }
   
-  `%||%` <- function(a, b) if (!is.null(a)) a else b
   varname <- all.vars(variable)[1]
   
   # Pull values from mi_design (not implicates)
   all_values <- unlist(lapply(design$mi_design, function(d) d$variables[[varname]]), use.names = FALSE)
   all_values <- all_values[is.finite(all_values)]
   if (length(all_values) == 0L) stop("No usable values found for this variable.")
+  
+  if (!is.null(xlim)) {
+    if (!is.numeric(xlim) || length(xlim) != 2L || !all(is.finite(xlim)) || xlim[1] >= xlim[2]) {
+      stop("`xlim` must be a numeric vector of length 2 with xlim[1] < xlim[2].")
+    }
+  }
   
   rng <- if (!is.null(xlim)) xlim else range(all_values, na.rm = TRUE)
   breaks <- seq(rng[1], rng[2], length.out = bins + 1)
@@ -82,6 +90,16 @@ scf_plot_hist <- function(design, variable,
   # Keep non-empty bins
   res <- freq$results
   res <- res[is.finite(res$proportion) & res$proportion > 0, , drop = FALSE]
+  
+  # Restore the intended numeric bin order after scf_freq() returns category labels.
+  bin_levels <- levels(cut(
+    pmin(pmax(all_values, rng[1]), rng[2]),
+    breaks = breaks,
+    include.lowest = TRUE,
+    right = TRUE
+  ))
+  
+  res$category <- factor(res$category, levels = bin_levels, ordered = TRUE)
   
   ggplot2::ggplot(res, ggplot2::aes(x = .data$category, y = .data$proportion)) +
     ggplot2::geom_col(fill = fill) +

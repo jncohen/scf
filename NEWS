@@ -1,3 +1,7 @@
+# scf 1.0.8
+
+* Fixed display order problem with `scf_plot_hist()`
+
 # scf 1.0.7
 
 * `scf_pctile_cut()` reconceptualized as `scf_pctile_sum()` with integrated calls for stats
