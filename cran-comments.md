@@ -30,3 +30,11 @@ allowing the `scf` functions to operate as intended.
 Because the mock dataset is small by design, certain functions (especially 
 `scf_logit()` on rare outcomes) may produce warnings or fail, but this does 
 not reflect problems in the real-SCF workflow.
+
+## Fast Update 1.0.8 after 1.0.7
+
+This is a maintenance release submitted shortly after the previous release to fix
+package metadata/build configuration and improve CRAN-readiness. A regrettable
+oversight caused 1.0.7 to ship with an unpushed, highly functional change that
+involves no changes to the user interface. My apologies to the hard-working 
+people at CRAN.
