@@ -78,17 +78,19 @@ survey-weighted quantile thresholds separately within each implicate, the
 statistically preferable approach under multiple imputation, as it correctly
 accounts for between-implicate variation in imputed values. The
 \code{"stack"} method replicates the Federal Reserve's published convention,
-in which all five implicates are pooled with weights divided by five, a
-single set of thresholds is computed from the pooled distribution, and a
-flat weighted statistic is computed directly on the stacked data.
+in which all five implicates are pooled with weights divided by five,
+observations are sorted by the percentile variable and household identifier,
+percentile groups are assigned from the cumulative weighted population share,
+and a flat weighted statistic is computed directly on the stacked data.
 }
 \details{
 The two methods will generally produce similar but not identical results.
-Use \code{method = "stack"} when exact replication of the Federal Reserve's
-published SCF tables is required. Note that \code{method = "stack"} with
-\code{stat != "none"} computes a flat weighted statistic on the pooled
-stacked data and does not use replicate-weight survey machinery or Rubin's
-combining rules. No standard error is returned in this case.
+Use \code{method = "stack"} when replication of the Federal Reserve's
+published percentile-group point estimates is required. Note that
+\code{method = "stack"} with \code{stat != "none"} computes a flat weighted
+statistic on the pooled stacked data and does not use replicate-weight
+survey machinery or Rubin's combining rules. No standard error is
+returned in this case.
 
 When \code{stat = "none"}, the function returns the input
 \code{scf_mi_survey} object with the grouping variable added, ready to pass
@@ -98,6 +100,15 @@ already published by the Fed, such as net worth percentile (\code{nwcat})
 and income percentile (\code{inccat}), those variables are included directly
 in the data returned by \code{\link{scf_load}} and can be passed to
 \code{by} without calling \code{scf_pctile_sum}.
+
+For \code{method = "stack"}, percentile groups are assigned using the
+Federal Reserve SAS macro logic: after stacking implicates and dividing
+weights by five, observations are sorted by the variable used to define the
+percentile groups and by household identifier. The cumulative weighted
+population share is then used to assign groups. This is not equivalent to
+first estimating a percentile threshold and then applying a simple
+\code{>} or \code{>=} comparison, especially when observations lie at or
+near a percentile boundary.
 }
 \examples{
 # Do not implement these lines in real analysis:

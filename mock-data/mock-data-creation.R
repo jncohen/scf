@@ -43,7 +43,9 @@ scf_download(2022)                   # produces scf2022.rds in cwd
 imp <- readRDS("scf2022.rds")        # list of 5 data.frames
 
 rep_cols <- paste0("wt1b", 1:999)
-keep_vars <- c("wgt", rep_cols, "age","income","networth","own","hhsex","edcl")  
+keep_vars <- c("y1", "Y1", "x1", "X1",
+               "wgt", rep_cols, 
+               "age","income","networth","own","hhsex","edcl")  
 
 imp_small <- lapply(imp, function(df) {
   df <- df[ , intersect(keep_vars, names(df))]
@@ -52,3 +54,9 @@ imp_small <- lapply(imp, function(df) {
 
 attr(imp_small, "mock") <- TRUE
 saveRDS(imp_small, "scf2022_mock_raw.rds", compress = "xz")
+
+file.copy(
+  "D:/Dropbox/Data/scf/mock-data/scf2022_mock_raw.rds",
+  "D:/Dropbox/Data/scf/inst/extdata/scf2022_mock_raw.rds",
+  overwrite = TRUE
+)
