@@ -16,19 +16,16 @@ affiliations:
     index: 1
 date: 9 May 2026
 bibliography: paper.bib
-output:
-  md_document:
-    variant: markdown_strict
-    fig_path: ""
+
 ---
 
 # Summary
 
-The *Survey of Consumer Finances* (SCF) is a triennial national survey of U.S. households' income, assets, debts, financial behavior, and household organization [@Fed2023]. The data are used in academic research, Congressional research reports, and the production of official statistics.
+The *Survey of Consumer Finances* (SCF) is a triennial national survey of U.S. households' income, assets, debts, financial behavior, and household organization [@Fed2023]. The data are used in academic research, Congressional research reports, and the production of official statistics. The data are high-quality and feature-rich, but its analysis is complicated by the Survey's complex design and its use of multiple imputation to impute missing data.
 
-The R package `scf` [@Cohen2025] provides a unified framework for acquiring, preparing, analyzing, and visualizing SCF public-use microdata. It encodes standard practices for handling the survey’s design, automates implicate-level estimation and pooling, and reduces implementation complexity for common analytical tasks.
+The R package `scf` [@Cohen2026a] provides a unified framework for acquiring, preparing, analyzing, and visualizing SCF public-use microdata. It encodes standard practices for handling the survey’s design, automates implicate-level estimation and pooling, and greatly reduces implementation complexity for common analytical tasks.
 
-A detailed methodological description and validation against official Federal Reserve statistics is provided by @Cohen2026.
+A detailed methodological description and validation against official Federal Reserve statistics is provided by @Cohen2026b.
 
 # Statement of need
 
@@ -36,15 +33,17 @@ The valid analysis of SCF microdata requires a multi-step workflow that combines
 
 In R, this workflow is typically implemented using Lumley's `survey` package [-@Lumley2026] together with the `mitools` package [@Lumley2019] or custom scripts. These tools are flexible and methodologically appropriate but require users to manually coordinate design specification, implicate iteration, and pooling. Consequently, even simple analyses require substantial custom code, and correct implementation depends on careful adherence to SCF-specific conventions. Reference workflows, such as those provided by Damico [-@Damico2026], demonstrate proper implementation but entail dozens of lines of code that can impede engagement by non-specialists.
 
-The `scf` package addresses this gap by formalizing SCF-specific best practices within a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, together with functions that automate estimation and pooling. The package offers a consistent grammar and output format that substantially reduces custom code requirements for common analytical tasks. It reproduces official SCF statistics and reduces typical workflows from dozens of lines of custom code to a small number of standardized function calls [see @Cohen2026].
+The `scf` package addresses this gap by formalizing SCF-specific best practices within a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, together with functions that automate estimation and pooling. The package offers a consistent grammar and output format that substantially reduces custom code requirements for common analytical tasks. It reproduces official SCF statistics and reduces typical workflows from dozens of lines of custom code to a small number of standardized function calls [see @Cohen2026b].
 
 # State of the field
 
-No dedicated R package for SCF analysis existed on CRAN prior to `scf`. Existing approaches rely on general-purpose tools (`survey`, `mitools`) or reference documentation (`asdfree`) rather than a purpose-built functional interface. Contributing SCF-specific logic to `survey` would be inappropriate for a general-purpose package; extending `asdfree` would not yield the modular, testable, CRAN-distributed infrastructure necessary for reproducible workflows across projects and users. The `scf` package fills this gap.
+There is no dedicated R package for analysing the SCF public-use microdata. At present, analyzing these data requires that the analyst craft custom scripts using a combination of generalist tools (e.g., `survey` and `mitools`) and reference documentation (publicly-distributed SAS scripts from the Federal Reserve or Damico's excellent code repository). These tools are more than sufficient for a seasoned survey data analyst with sufficient prior motivation to learn the SCF's idiosyncrasies. However, the task involves learning specialty branches of data analysis, learning the specificities of the SCF, and writing custom code. My experience is that this complexity can discourage competent generalist analysts with substantive interests in household finance from engaging the data. 
+
+The `scf` package addresses this gap by providing a standardized interface that encodes SCF-specific best practices and automates the most common analytical tasks. It reduces the barrier to entry for analysts with substantive interests in household finance who may not have prior experience with complex survey data or multiple imputation. The package is designed to be used by "intermediate" analysts who understand the basics of statistical inference, data wrangling, and regression modeling in R, but may not have specialized expertise in survey data analysis or multiple imputation. 
 
 # Research impact statement
 
-The package has been validated against published Federal Reserve statistics; @Cohen2026 documents this validation in detail. Package vignettes include replications of results from two published empirical papers, demonstrating that `scf` produces estimates consistent with prior peer-reviewed findings. The package is distributed through CRAN and targets a research community for whom the SCF serves as a primary data source.
+The package has been validated against published Federal Reserve statistics; @Cohen2026b documents this validation in detail. Package vignettes include replications of results from Federal Reserve-published findings, demonstrating that `scf` produces estimates consistent with official calculations. The package is distributed through CRAN and targets a research community for whom the SCF serves as a primary data source.
 
 # Software design
 
@@ -52,7 +51,7 @@ The package is designed around three core principles: rigor, accessibility, and 
 
 A central design trade-off exists between convenience and transparency. A fully opaque interface would minimize code volume but obscure the underlying statistical operations. The approach adopted stores both pooled results and implicate-level estimates in every function's output, enabling analysts to inspect the underlying calculations rather than treating them as a black box.
 
-Rather than implementing survey-statistical computations from scratch, `scf` builds on the `survey` package [@Lumley2026], inheriting its well-established validation record and comprehensive estimator coverage. Pooling uses Rubin's combining rules [@Rubin1987] for model-based quantities and alternative strategies for percentiles and proportions per Federal Reserve documentation; these distinctions are handled automatically.
+Rather than implementing survey-statistical computations from scratch, `scf` builds on the `survey` package [@Lumley2026], the industry-standard package for complex survey analysis. Pooling uses Rubin's combining rules [@Rubin1987] for model-based quantities and alternative strategies for percentiles and proportions per Federal Reserve documentation [@Fed2023b]; these distinctions are handled automatically.
 
 ## Core object
 
@@ -134,10 +133,6 @@ install.packages("scf")
 
 Source code, examples, and documentation are available at: https://github.com/jncohen/scf. The package is distributed under the MIT License.
 
-# Acknowledgments
-
-The package builds on the `survey` package and publicly available SCF documentation and example workflows. The author received no external funding for this work.
-
 # AI usage disclosure
 
 Claude (Anthropic; versions 3.5–4.5), ChatGPT (OpenAI; GPT-4o), 
@@ -145,3 +140,6 @@ Gemini (Google; 2.0 Flash), and Copilot (Microsoft) were used as aids
 in coding, debugging, and drafting portions of the documentation and 
 manuscript. Their use occurred within a human-directed workflow in which the author determined all substantive content and structure. AI-generated outputs were treated as provisional and subject to review and revision. The conceptual design, methodology, and implementation were developed by the author. The author has reviewed and validated all material and retains full responsibility for the work.
 
+# Acknowledgments
+
+The package builds on the `survey` package and publicly available SCF documentation and example workflows. The author received no external funding for this work.
