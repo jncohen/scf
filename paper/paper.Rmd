@@ -1,23 +1,59 @@
 ---
-title: "scf: An R package for analysis of Survey of Consumer Finances public-use microdata"
-tags:
+title: "scf: An R Package for Analysis of Survey of Consumer Finances Public-Use Microdata"
+
+date: "May 20, 2026"
+surname: "Cohen"
+runningtitle: "R package scf"
+fontset: methods
+
+author:
+  - name: "Joseph N. Cohen"
+    dept: "Department of Sociology"
+    inst: "Queens College, City University of New York"
+    addr: "65-30 Kissena Blvd., Queens, NY 11367"
+    email: "joseph.cohen@qc.cuny.edu"
+    web: "https://github.com/jncohen/scf"
+    orcid: "0000-0002-6197-4453"
+
+abstract: |
+  This article introduces the R package `scf`, which allows for a streamlined analysis of public-use microdata from the U.S. Federal Reserve's Survey of Consumer Finances. 
+
+keywords:
+  - Survey of Consumer Finances
+  - household finance
+  - complex surveys
+  - multiple imputation
   - R
   - survey methodology
-  - household finance
-  - Survey of Consumer Finances
-  - multiple imputation
-  - complex surveys
-authors:
-  - name: Joseph N. Cohen
-    orcid: 0000-0002-6197-4453
-    affiliation: 1
-affiliations:
-  - name: Queens College, City University of New York, Queens, New York, USA
-    index: 1
-date: 9 May 2026
-bibliography: paper.bib
 
+acknowledgements: |
+  The author received no external funding for this work.
+
+bibliography: paper.bib
+csl: default.csl
+fontpath: fonts/
+
+anonymize: false
+doublespace: false
+linenumbers: false
+numbersections: false
+maincolumns: 1
+
+output:
+  pdf_document:
+    template: "./hfwgtemplate.tex"
+    latex_engine: pdflatex
 ---
+
+```{r, include = F}
+
+library(hfwgtex)
+
+hfwg_use(overwrite = T)
+
+set.seed(123)
+
+```
 
 # Summary
 
@@ -34,6 +70,8 @@ The valid analysis of SCF microdata requires a multi-step workflow that combines
 In R, this workflow is typically implemented using Lumley's `survey` package [-@Lumley2026] together with the `mitools` package [@Lumley2019] or custom scripts. These tools are flexible and methodologically appropriate but require users to manually coordinate design specification, implicate iteration, and pooling. Consequently, even simple analyses require substantial custom code, and correct implementation depends on careful adherence to SCF-specific conventions. Reference workflows, such as those provided by Damico [-@Damico2026], demonstrate proper implementation but entail dozens of lines of code that can impede engagement by non-specialists.
 
 The `scf` package addresses this gap by formalizing SCF-specific best practices within a standardized functional interface. It provides a unified data object that encodes the replicate-weighted design across implicates, together with functions that automate estimation and pooling. The package offers a consistent grammar and output format that substantially reduces custom code requirements for common analytical tasks. It reproduces official SCF statistics and reduces typical workflows from dozens of lines of custom code to a small number of standardized function calls [see @Cohen2026b].
+
+\newpage
 
 # State of the field
 
@@ -82,11 +120,13 @@ The package supports end-to-end SCF workflows through functions for:
 
 These functions reduce code repetition in common SCF workflows while maintaining compatibility with Lumley's `survey` ecosystem [-@Lumley2026].
 
+\newpage
+
 # Example
 
 A typical workflow is concise:
 
-```{r}
+```{r, message = F, warning = F}
 library(scf)
 
 scf_download(2022)
@@ -108,7 +148,7 @@ This approach delegates design specification, implicate iteration, and pooling t
 
 Visualization capabilities are included:
 
-```{r}
+```{r, message=F, warning=F}
 # Specify education as an ordered factor with meaningful labels
 scf2022 <- scf_update(scf2022, edclF = factor(edcl,
                                               levels = 1:4,
@@ -117,9 +157,37 @@ scf2022 <- scf_update(scf2022, edclF = factor(edcl,
                                                          "Bachelor+"),
                                               ordered = TRUE))
 
-# Create a categorical bar plot
-scf_plot_cbar(scf2022, ~networth, ~edclF)
+# Plot
+library(scales)
+library(ggplot2)
+
+fig <- scf_plot_cbar(
+  scf2022, ~networth, ~edclF,
+  stat  = "median",
+  title = "Median Net Worth by Educational Attainment",
+  xlab  = "Education Level",
+  ylab  = "Median Net Worth",
+  fill  = "#1F5F8B",
+  angle = 0,
+  label_map = c(
+    "<HS"       = "Less than\nhigh school",
+    "HS"        = "High school",
+    "Associates" = "Associate's",
+    "Bachelor+" = "Bachelor's\nor more"
+  )
+) +
+  ggplot2::scale_y_continuous(
+    labels = scales::label_dollar(scale = 1 / 1000, suffix = "K")
+  )
 ```
+
+```{r, echo = F, message = F, warning = F}
+
+ggsave(fig, file = "fig.png")
+fig
+
+```
+
 
 # Availability
 
@@ -143,3 +211,7 @@ manuscript. Their use occurred within a human-directed workflow in which the aut
 # Acknowledgments
 
 The package builds on the `survey` package and publicly available SCF documentation and example workflows. The author received no external funding for this work.
+
+
+
+

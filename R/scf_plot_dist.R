@@ -122,5 +122,5 @@ scf_plot_dist <- function(design, variable, bins = 30,
     ggplot2::geom_col(fill = fill) +
     ggplot2::labs(title = title, x = xlab, y = ylab) +
     scf_theme() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = angle, hjust = 1))
+    ggplot2::theme(axis.text.x = .scf_axis_text_x(angle))
 }

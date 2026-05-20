@@ -128,5 +128,5 @@ scf_plot_cbar <- function(design, yvar, xvar,
       y = y_label
     ) +
     scf_theme() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = angle, hjust = 1))
+    ggplot2::theme(axis.text.x = .scf_axis_text_x(angle))
 }
