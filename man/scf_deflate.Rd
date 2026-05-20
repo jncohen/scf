@@ -2,31 +2,32 @@
 % Please edit documentation in R/scf_deflate.R
 \name{scf_deflate}
 \alias{scf_deflate}
-\title{Convert SCF Dollar Estimates to Real Terms}
+\title{Convert SCF Dollar Estimates to Nominal Survey-Year Dollars}
 \usage{
-scf_deflate(x, base_year = 2022)
+scf_deflate(x, from_year = 2022)
 }
 \arguments{
 \item{x}{An object of class \code{scf_mean}, \code{scf_median},
 \code{scf_percentile}, or \code{scf_ttest}.}
 
-\item{base_year}{Integer. Reference year for real dollars. Must be a valid
-SCF survey year (1989--2022, triennial). Default is \code{2022}.}
+\item{from_year}{Integer. Year whose real-dollar units are assumed for the
+input estimate. Defaults to \code{2022}.}
 }
 \value{
 The input object with dollar estimates, standard errors, and
-confidence intervals rescaled to \code{base_year} dollars. Attributes
-\code{"deflated"} (logical) and \code{"base_year"} (integer) are set on
-the returned object.
+confidence intervals rescaled to nominal survey-year dollars. Attributes
+\code{"deflated"} and \code{"from_year"} are set on the returned object.
 }
 \description{
-Multiplies dollar-valued point estimates and their standard errors by the
-CPI-U-RS deflation factor \code{CPI[base_year] / CPI[survey_year]},
-converting nominal survey-year dollars to real dollars of the chosen base
-year. The CPI-U-RS September values are taken directly from the Federal
-Reserve Board's SCF Bulletin SAS macro.
+Converts dollar-valued SCF estimates from real \code{from_year} dollars to
+nominal survey-year dollars. By default, \code{from_year = 2022}, because
+the Federal Reserve Summary Extract variables merged by \code{scf_download()}
+are already inflation-adjusted to 2022 dollars.
 }
 \details{
+The function multiplies dollar-valued point estimates and standard errors by
+the CPI-U-RS conversion factor \code{CPI[survey_year] / CPI[from_year]}.
+
 Standard errors rescale correctly under linear multiplication, so both
 estimates and SEs are multiplied by the same factor. Confidence intervals
 and group means are also rescaled. The t-statistic, degrees of freedom,
@@ -36,43 +37,40 @@ and are left unchanged.
 \strong{Supported functions:} \code{scf_mean}, \code{scf_median},
 \code{scf_percentile}, and \code{scf_ttest} return dollar-valued estimates
 that transform correctly under scalar multiplication.
+
 \code{scf_freq}, \code{scf_xtab}, and \code{scf_prop_test} return
 proportions and are not supported. \code{scf_corr} returns a dimensionless
-coefficient and is not supported. The regression functions
+coefficient and is not supported. Regression functions
 (\code{scf_ols}, \code{scf_glm}, \code{scf_logit}, \code{scf_quantreg})
-are not supported because deflating coefficients post hoc is ambiguous
-when a model mixes dollar and non-dollar variables; for real-dollar
-regression results, deflate variables upstream with \code{scf_update()}
+are not supported because post-hoc dollar conversion is ambiguous when a
+model mixes dollar and non-dollar variables. For nominal-dollar regression
+results, convert dollar-valued variables upstream with \code{scf_update()}
 before fitting.
 
-\strong{Income note:} SCF income is measured in the prior calendar year,
-so a mean income estimate from the 2019 survey is in 2018 dollars, not
-2019 dollars. \code{scf_deflate()} applies \code{CPI[base] / CPI[2019]},
-which is a close but not exact conversion for income. This is documented
-in the Federal Reserve's SAS macro, which applies a separate lag
-adjustment to income before the main deflation step.
+\strong{Income note:} SCF income is measured for the prior calendar year.
+A 2019 survey income estimate refers to 2018 income, while this function uses
+the 2019 SCF CPI-U-RS value. The result is therefore an approximate nominal
+conversion for income, not an exact prior-calendar-year conversion.
 }
 \section{Conditions}{
 
 \describe{
-\item{Warning — double deflation}{If the input object has already been
+\item{Warning — repeated deflation}{If the input object has already been
 deflated (\code{attr(x, "deflated")} is \code{TRUE}), \code{scf_deflate()}
 issues a warning and proceeds. Applying the function twice compounds the
 CPI adjustment and produces incorrect results. Check
-\code{attr(result, "deflated")} and \code{attr(result, "base_year")}
+\code{attr(result, "deflated")} and \code{attr(result, "from_year")}
 before calling.}
 \item{Error — stale result object}{If the result object does not carry a
 survey year (\code{x$aux$year} is \code{NULL}), the function stops with
-a message asking you to re-run the originating function (\code{scf_mean()},
-\code{scf_median()}, etc.) under the current package version. This field
-was introduced in version 1.0.6.}
+a message asking you to re-run the originating function under the current
+package version.}
 \item{Error — unsupported class}{Passing an object of an unsupported class
-(e.g., a regression result or a frequency table) stops with a message
-listing the supported classes: \code{scf_mean}, \code{scf_median},
-\code{scf_percentile}, and \code{scf_ttest}.}
-\item{Error — year not in CPI table}{If \code{base_year} is not one of
-the valid triennial SCF survey years (1989--2022), the function stops
-and lists the valid options.}
+stops with a message listing the supported classes: \code{scf_mean},
+\code{scf_median}, \code{scf_percentile}, and \code{scf_ttest}.}
+\item{Error — year not in CPI table}{If \code{from_year} is not one of
+the valid triennial SCF survey years, the function stops and lists the
+valid options.}
 }
 }
 
@@ -86,13 +84,13 @@ src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Deflate a mean estimate to real 2022 dollars
+# Deflate a mean estimate to nominal survey-year dollars
 result <- scf_mean(scf2022, ~networth)
-result_real <- scf_deflate(result, base_year = 2022)
+result_nominal <- scf_deflate(result, from_year = 2022)
 
 # Works with median and percentile results
 med <- scf_median(scf2022, ~networth)
-med_real <- scf_deflate(med, base_year = 2022)
+med_nominal <- scf_deflate(med, from_year = 2022)
 
 # Do not implement these lines in real analysis: Cleanup for package check
 unlink(td, recursive = TRUE, force = TRUE)

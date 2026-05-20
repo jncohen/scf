@@ -1,3 +1,7 @@
+# scf 1.0.11
+
+* Fix `scf_deflate()`
+
 # scf 1.0.10
 
 * Fix to axis display in bivariate plot functions

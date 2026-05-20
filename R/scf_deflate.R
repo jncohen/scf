@@ -7,31 +7,36 @@
   `2013` = 3438, `2016` = 3548, `2019` = 3775, `2022` = 4376
 )
 
-.scf_deflation_factor <- function(survey_year, base_year) {
+.scf_deflation_factor <- function(survey_year, from_year = 2022) {
   sy <- as.character(survey_year)
-  by <- as.character(base_year)
+  fy <- as.character(from_year)
   valid <- names(.scf_cpi_urs)
+  
   if (!sy %in% valid)
     stop(sprintf(
       "Survey year %s not in CPI table. Valid SCF years: %s.",
       sy, paste(valid, collapse = ", ")
     ), call. = FALSE)
-  if (!by %in% valid)
+  
+  if (!fy %in% valid)
     stop(sprintf(
-      "base_year %s not in CPI table. Valid SCF years: %s.",
-      by, paste(valid, collapse = ", ")
+      "from_year %s not in CPI table. Valid SCF years: %s.",
+      fy, paste(valid, collapse = ", ")
     ), call. = FALSE)
-  unname(.scf_cpi_urs[by] / .scf_cpi_urs[sy])
+  
+  unname(.scf_cpi_urs[sy] / .scf_cpi_urs[fy])
 }
 
 
-#' Convert SCF Dollar Estimates to Real Terms
+#' Convert SCF Dollar Estimates to Nominal Survey-Year Dollars
 #'
-#' Multiplies dollar-valued point estimates and their standard errors by the
-#' CPI-U-RS deflation factor \code{CPI[base_year] / CPI[survey_year]},
-#' converting nominal survey-year dollars to real dollars of the chosen base
-#' year. The CPI-U-RS September values are taken directly from the Federal
-#' Reserve Board's SCF Bulletin SAS macro.
+#' Converts dollar-valued SCF estimates from real \code{from_year} dollars to
+#' nominal survey-year dollars. By default, \code{from_year = 2022}, because
+#' the Federal Reserve Summary Extract variables merged by \code{scf_download()}
+#' are already inflation-adjusted to 2022 dollars.
+#'
+#' The function multiplies dollar-valued point estimates and standard errors by
+#' the CPI-U-RS conversion factor \code{CPI[survey_year] / CPI[from_year]}.
 #'
 #' @details
 #' Standard errors rescale correctly under linear multiplication, so both
@@ -43,53 +48,49 @@
 #' \strong{Supported functions:} \code{scf_mean}, \code{scf_median},
 #' \code{scf_percentile}, and \code{scf_ttest} return dollar-valued estimates
 #' that transform correctly under scalar multiplication.
+#'
 #' \code{scf_freq}, \code{scf_xtab}, and \code{scf_prop_test} return
 #' proportions and are not supported. \code{scf_corr} returns a dimensionless
-#' coefficient and is not supported. The regression functions
+#' coefficient and is not supported. Regression functions
 #' (\code{scf_ols}, \code{scf_glm}, \code{scf_logit}, \code{scf_quantreg})
-#' are not supported because deflating coefficients post hoc is ambiguous
-#' when a model mixes dollar and non-dollar variables; for real-dollar
-#' regression results, deflate variables upstream with \code{scf_update()}
+#' are not supported because post-hoc dollar conversion is ambiguous when a
+#' model mixes dollar and non-dollar variables. For nominal-dollar regression
+#' results, convert dollar-valued variables upstream with \code{scf_update()}
 #' before fitting.
 #'
-#' \strong{Income note:} SCF income is measured in the prior calendar year,
-#' so a mean income estimate from the 2019 survey is in 2018 dollars, not
-#' 2019 dollars. \code{scf_deflate()} applies \code{CPI[base] / CPI[2019]},
-#' which is a close but not exact conversion for income. This is documented
-#' in the Federal Reserve's SAS macro, which applies a separate lag
-#' adjustment to income before the main deflation step.
+#' \strong{Income note:} SCF income is measured for the prior calendar year.
+#' A 2019 survey income estimate refers to 2018 income, while this function uses
+#' the 2019 SCF CPI-U-RS value. The result is therefore an approximate nominal
+#' conversion for income, not an exact prior-calendar-year conversion.
 #'
 #' @section Conditions:
 #' \describe{
-#'   \item{Warning — double deflation}{If the input object has already been
+#'   \item{Warning — repeated deflation}{If the input object has already been
 #'     deflated (\code{attr(x, "deflated")} is \code{TRUE}), \code{scf_deflate()}
 #'     issues a warning and proceeds. Applying the function twice compounds the
 #'     CPI adjustment and produces incorrect results. Check
-#'     \code{attr(result, "deflated")} and \code{attr(result, "base_year")}
+#'     \code{attr(result, "deflated")} and \code{attr(result, "from_year")}
 #'     before calling.}
 #'   \item{Error — stale result object}{If the result object does not carry a
 #'     survey year (\code{x$aux$year} is \code{NULL}), the function stops with
-#'     a message asking you to re-run the originating function (\code{scf_mean()},
-#'     \code{scf_median()}, etc.) under the current package version. This field
-#'     was introduced in version 1.0.6.}
+#'     a message asking you to re-run the originating function under the current
+#'     package version.}
 #'   \item{Error — unsupported class}{Passing an object of an unsupported class
-#'     (e.g., a regression result or a frequency table) stops with a message
-#'     listing the supported classes: \code{scf_mean}, \code{scf_median},
-#'     \code{scf_percentile}, and \code{scf_ttest}.}
-#'   \item{Error — year not in CPI table}{If \code{base_year} is not one of
-#'     the valid triennial SCF survey years (1989--2022), the function stops
-#'     and lists the valid options.}
+#'     stops with a message listing the supported classes: \code{scf_mean},
+#'     \code{scf_median}, \code{scf_percentile}, and \code{scf_ttest}.}
+#'   \item{Error — year not in CPI table}{If \code{from_year} is not one of
+#'     the valid triennial SCF survey years, the function stops and lists the
+#'     valid options.}
 #' }
 #'
 #' @param x An object of class \code{scf_mean}, \code{scf_median},
 #'   \code{scf_percentile}, or \code{scf_ttest}.
-#' @param base_year Integer. Reference year for real dollars. Must be a valid
-#'   SCF survey year (1989--2022, triennial). Default is \code{2022}.
+#' @param from_year Integer. Year whose real-dollar units are assumed for the
+#'   input estimate. Defaults to \code{2022}.
 #'
 #' @return The input object with dollar estimates, standard errors, and
-#'   confidence intervals rescaled to \code{base_year} dollars. Attributes
-#'   \code{"deflated"} (logical) and \code{"base_year"} (integer) are set on
-#'   the returned object.
+#'   confidence intervals rescaled to nominal survey-year dollars. Attributes
+#'   \code{"deflated"} and \code{"from_year"} are set on the returned object.
 #'
 #' @examples
 #' # Do not implement these lines in real analysis:
@@ -101,13 +102,13 @@
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Deflate a mean estimate to real 2022 dollars
+#' # Deflate a mean estimate to nominal survey-year dollars
 #' result <- scf_mean(scf2022, ~networth)
-#' result_real <- scf_deflate(result, base_year = 2022)
+#' result_nominal <- scf_deflate(result, from_year = 2022)
 #'
 #' # Works with median and percentile results
 #' med <- scf_median(scf2022, ~networth)
-#' med_real <- scf_deflate(med, base_year = 2022)
+#' med_nominal <- scf_deflate(med, from_year = 2022)
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
@@ -116,12 +117,12 @@
 #'   [scf_update()]
 #'
 #' @export
-scf_deflate <- function(x, base_year = 2022) {
+scf_deflate <- function(x, from_year = 2022) {
   UseMethod("scf_deflate")
 }
 
 #' @export
-scf_deflate.default <- function(x, base_year = 2022) {
+scf_deflate.default <- function(x, from_year = 2022) {
   stop(sprintf(
     paste0(
       "scf_deflate() does not support objects of class '%s'.\n",
@@ -132,101 +133,108 @@ scf_deflate.default <- function(x, base_year = 2022) {
 }
 
 #' @export
-scf_deflate.scf_mean <- function(x, base_year = 2022) {
-  if (isTRUE(attr(x, "deflated")))
+scf_deflate.scf_mean <- function(x, from_year = 2022) {
+  .scf_deflate_estimate_object(
+    x = x,
+    from_year = from_year,
+    rerun_function = "scf_mean"
+  )
+}
+
+#' @export
+scf_deflate.scf_percentile <- function(x, from_year = 2022) {
+  .scf_deflate_estimate_object(
+    x = x,
+    from_year = from_year,
+    rerun_function = "scf_percentile"
+  )
+}
+
+#' @export
+scf_deflate.scf_median <- function(x, from_year = 2022) {
+  scf_deflate.scf_percentile(x, from_year = from_year)
+}
+
+.scf_deflate_estimate_object <- function(x, from_year, rerun_function) {
+  if (isTRUE(attr(x, "deflated"))) {
     warning(
       "This object has already been deflated. ",
       "Applying scf_deflate() again will compound the adjustment.",
       call. = FALSE
     )
+  }
+  
   survey_year <- x$aux$year
-  if (is.null(survey_year))
+  
+  if (is.null(survey_year)) {
     stop(
       "Survey year not found in result object. ",
-      "Re-run scf_mean() with the current package version.",
+      "Re-run ", rerun_function, "() with the current package version.",
       call. = FALSE
     )
-  f <- .scf_deflation_factor(survey_year, base_year)
-
-  for (col in c("estimate", "se", "min", "max")) {
-    if (col %in% names(x$results))
-      x$results[[col]] <- x$results[[col]] * f
   }
+  
+  f <- .scf_deflation_factor(survey_year, from_year)
+  
+  for (col in c("estimate", "se", "min", "max")) {
+    if (col %in% names(x$results)) {
+      x$results[[col]] <- x$results[[col]] * f
+    }
+  }
+  
   x$imps <- lapply(x$imps, function(df) {
-    for (col in c("estimate", "se"))
-      if (col %in% names(df)) df[[col]] <- df[[col]] * f
+    for (col in c("estimate", "se")) {
+      if (col %in% names(df)) {
+        df[[col]] <- df[[col]] * f
+      }
+    }
     df
   })
-  attr(x, "deflated")  <- TRUE
-  attr(x, "base_year") <- as.integer(base_year)
+  
+  attr(x, "deflated") <- TRUE
+  attr(x, "from_year") <- as.integer(from_year)
+  
   x
 }
 
 #' @export
-scf_deflate.scf_percentile <- function(x, base_year = 2022) {
-  if (isTRUE(attr(x, "deflated")))
+scf_deflate.scf_ttest <- function(x, from_year = 2022) {
+  if (isTRUE(attr(x, "deflated"))) {
     warning(
       "This object has already been deflated. ",
       "Applying scf_deflate() again will compound the adjustment.",
       call. = FALSE
     )
-  survey_year <- x$aux$year
-  if (is.null(survey_year))
-    stop(
-      "Survey year not found in result object. ",
-      "Re-run scf_percentile() with the current package version.",
-      call. = FALSE
-    )
-  f <- .scf_deflation_factor(survey_year, base_year)
-
-  for (col in c("estimate", "se", "min", "max")) {
-    if (col %in% names(x$results))
-      x$results[[col]] <- x$results[[col]] * f
   }
-  x$imps <- lapply(x$imps, function(df) {
-    for (col in c("estimate", "se"))
-      if (col %in% names(df)) df[[col]] <- df[[col]] * f
-    df
-  })
-  attr(x, "deflated")  <- TRUE
-  attr(x, "base_year") <- as.integer(base_year)
-  x
-}
-
-#' @export
-scf_deflate.scf_median <- function(x, base_year = 2022) {
-  scf_deflate.scf_percentile(x, base_year = base_year)
-}
-
-#' @export
-scf_deflate.scf_ttest <- function(x, base_year = 2022) {
-  if (isTRUE(attr(x, "deflated")))
-    warning(
-      "This object has already been deflated. ",
-      "Applying scf_deflate() again will compound the adjustment.",
-      call. = FALSE
-    )
+  
   survey_year <- x$aux$year
-  if (is.null(survey_year))
+  
+  if (is.null(survey_year)) {
     stop(
       "Survey year not found in result object. ",
       "Re-run scf_ttest() with the current package version.",
       call. = FALSE
     )
-  f <- .scf_deflation_factor(survey_year, base_year)
-
-  # Scale estimate, SE, and confidence bounds; t, df, p are invariant
-  for (col in c("estimate", "std.error", "conf.low", "conf.high")) {
-    if (col %in% names(x$results))
-      x$results[[col]] <- x$results[[col]] * f
   }
-  # Scale group means (two-sample case)
-  if (!is.null(x$means) && "mean" %in% names(x$means))
+  
+  f <- .scf_deflation_factor(survey_year, from_year)
+  
+  for (col in c("estimate", "std.error", "conf.low", "conf.high")) {
+    if (col %in% names(x$results)) {
+      x$results[[col]] <- x$results[[col]] * f
+    }
+  }
+  
+  if (!is.null(x$means) && "mean" %in% names(x$means)) {
     x$means$mean <- x$means$mean * f
-  # Scale the null hypothesis value
-  x$fit$null.value <- x$fit$null.value * f
-
-  attr(x, "deflated")  <- TRUE
-  attr(x, "base_year") <- as.integer(base_year)
+  }
+  
+  if (!is.null(x$fit$null.value)) {
+    x$fit$null.value <- x$fit$null.value * f
+  }
+  
+  attr(x, "deflated") <- TRUE
+  attr(x, "from_year") <- as.integer(from_year)
+  
   x
 }
