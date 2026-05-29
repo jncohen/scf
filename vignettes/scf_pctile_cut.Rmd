@@ -1,0 +1,475 @@
+---
+title: "Percentile-Based Grouping in SCF Analysis"
+subtitle: "Introducing the Percentile Cut Function"
+date: May 27, 2026 
+
+author:
+  - name: "Joseph N. Cohen"
+
+author_dept:  "Department of Sociology"
+author_inst:  "Queens College, City University of New York"
+author_addr:  "65-30 Kissena Blvd., Queens, NY 11367"
+author_email: "joseph.cohen@qc.cuny.edu"
+author_web:   "https://jncohen.commons.gc.cuny.edu"
+author_orcid: "0000-0002-6197-4453"
+
+surname: "Cohen"
+runningtitle: "Percentile Cuts in SCF Analysis"
+
+
+abstract: |
+  This note examines the task of summarizing statistics by percentile-defined groups in Survey of Consumer Finances (SCF) microdata. Percentile-based grouping is a commonplace analytical operation, but its use in SCF analysis is complicated by the data's complex design. This note reviews three methods for making such comparisons: a naive threshold approach, implicate-wise estimation using Rubin's Rules, or the Federal Reserve's official "stacking" method. The function \mbox{\texttt{scf::scf\_pctile\_sum()}} offers a structured and transparent means for comparisons by percentile-based grouping variables in SCF analysis. The note demonstrates the function by comparing top-decile mean net worth estimates across SCF survey years to Federal Reserve published estimates and to the Federal Reserve-provided `nwcat` grouping variable.
+
+
+keywords:
+  - Survey of Consumer Finances
+  - multiple imputation
+  - missing data
+  - complex survey design
+  - percentiles
+  - Rstats
+
+acknowledgements: "Thank you to the correspondent whose feedback created the occasion for this new function."
+
+bibliography: bibliography.bib
+csl: default.csl
+fontpath: fonts/
+
+anonymize: false
+doublespace: false
+linenumbers: false
+numbersections: false
+maincolumns: 1
+fontset: methods
+
+output:
+  pdf_document:
+    template: hfwgtemplate.tex
+    latex_engine: xelatex
+    keep_tex: true
+
+header-includes:
+   - \usepackage{booktabs}
+---
+
+```{r setup, include = F}
+
+rm(list=ls())
+gc()
+
+library(scf)
+library(scales)
+library(dplyr)
+library(kableExtra)
+
+set.seed(123)
+
+scf_download(1989)
+scf_download(2022)
+
+hfwgtex::hfwg_use(overwrite = T)
+
+```
+
+# Introduction
+
+This technical note discusses the task of summarizing statistics by percentile groups in analyses of the *Survey of Consumer Finances* (SCF) public-use microdata [@Fed2023]. Examples of such an operation might be discerning health insurance coverage rates in the bottom 25\% of household income, or the mean financial investments among those in the top 1\% of net worth.  The Survey's complex design and use of multiple imputation to handle missing data complicate this task.  An analyst can make different choices about how percentile-group membership is operationalized and estimated, each of which produces similar but not identical results.
+
+Below, I describe three methods for calculating statistics across percentile-defined groups in SCF data: a "commonsense" approach, the Federal Reserve's official "stacking" method, and the implicate-wise method suggested by Rubin [-@Rubin1987]. In this exercise, the three methods render substantively similar results. The commonsense approach renders slightly imprecise decile groupings, and Rubin's Rules will render slightly different results than the stacking method. 
+
+In prior iterations of the `scf` package, users had to write their own code to implement percentile-based grouping procedures that respected the SCF's multiple-imputation and weighting structure [@Cohen2026]. Here, we introduce the new function `scf_pctile_sum()`, which automates these operations. The function allows users to choose between an implicate-wise workflow for ordinary analysis and a stacked workflow for reproducing the Federal Reserve's percentile-category convention.
+
+# Background
+
+A Federal Reserve-published chartbook estimates that, in 2022, the mean net worth among the top 10% was \$7,771,300 (rounded to nearest hundreds) [@FedDat2023]. In 1989, this figure was \$2,926,600^[in inflation-adjusted 2022 dollars].  Both figures represent statistical estimates based on percentile groupings.^[Note that these cited figures were produced with the SCF's publicly-available microdata, a privacy-conscious version of its internal-use data. As such, they may differ slightly and non-substantively from official estimates derived from the internal set.] How to reproduce this finding?
+
+The SCF is a complex survey that uses multiple imputation to deal with missing values.  As such, its wrangling and analysis requires an array of functions that correctly handle this nonstandard data [see @Cohen2026a].  Standard R functions that do not account for the data's complicated structure and analytical demands will produce incorrect estimates. The R package `scf` provides a comprehensive set of tools that correctly handle data. 
+
+## Commonsense Approach
+
+A commonsense strategy for producing estimates is through three steps: (1) estimate the 90th percentile values of net worth for the population, (2) identify households in the top decile if their net worth surpasses that threshold, and (3) estimate the mean net worth of the so-identified top decile group. The chunk below exemplifies that approach:
+
+```{r commonsense, message = F, warning = F}
+
+# Load the data
+scf2022 <- scf_load(2022)
+
+# scf_percentile() to discern percentile values: 
+temp_90p <- scf_percentile(scf2022, ~networth, q = 0.9) 
+
+# The `scf` functions return lists with multiple points of information.
+# The final results are stored under the list item `results`:
+threshold <- temp_90p$results$estimate
+
+# Create a variable demarcating a household as having a 
+# net worth that surpasses threshold
+scf2022 <- scf_update(scf2022, P90_networth = networth > threshold)
+
+# Calculate mean by group
+scf_mean(scf2022, ~networth, ~P90_networth)
+
+```
+
+This gives us a result of \$7,733,378.  This is close to the rounded official estimate of \$7,771,300, but it does not replicate it. This failure to replicate is the product of two issues.  First, the commonsense method is not best practice for estimating parameters across percentile-defined groups when using multiply imputed data.  Second, the method does not match SCF protocol for estimating percentile scores, which slightly diverges from the approach recommended in canonical missing data literature [@Little1987; @Rubin1987].  
+
+\newpage
+
+## Within-Implicate Method
+
+One issue is that we used our global estimate of the 90th percentile net worth value to set our cutoffs.  This is our estimate of the population-level 90th percentile net worth value after having processed each of the imputed sets and combined them to generate a global estimate.  Each individual implicate has its own 90th percentile estimate, which you can see in the object created by the function `scf_percentile()`:
+
+```{r show implicates}
+
+summary(temp_90p)
+
+```
+
+The population-level 90th percentile estimate ultimately settled on \$1,920,758, but that cutoff will not get you the top 10\% of each implicate.  For example, implicate #1 has an estimated 90th percentile wealth value of \$1,877,000, so you will exclude observations that are above that number but not greater than the global estimate.  The differences are extremely narrow, such that between 9.74\% and 10.81\% of individual implicates are scored as "top 10\%" in our estimates using this approach.  It will likely not lead to substantive differences, but will lead to estimates that do not fully replicate those generated by best practice.
+
+```{r very ranges 1, include = F}
+
+# Calculations of how much of each implicate was presented in top 10 percent
+# using global 90th percentile estimate as cutoff:
+summary(scf_freq(scf2022, ~P90_networth))
+
+```
+
+## Calculating Percentiles by Implicate
+
+A standard imputation-aware procedure is to perform the complete-data analysis separately on each implicate and then pool the resulting estimates. So we are supposed to calculate the mean net worth for the top 10 percent of each implicate separately, and then pool those five estimates using Rubin's [-@Rubin1987] rules. The threshold is treated as an intermediate quantity internal to each implicate's analysis, not as a single threshold value applied to each individual implicate.  The earlier versions (<=1.0.6) of the `scf` package have the function `scf_update_by_implicate()` which allows users to generate variables on an implicate-by-implicate basis, such that we can create a variable that properly demarcates the top 10% scores for each implicate.  
+
+
+```{r}
+
+# Function to demarcate the top 10% scores within each implicate
+scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+
+  # Create array of replicate weight column names
+  rep_cols <- grep("^wt1b", names(df), value = TRUE)
+
+  # Create an implicate-specific survey design object
+  design <- survey::svrepdesign(
+    weights = ~wgt,
+    repweights = as.matrix(df[, rep_cols]),
+    data = df,
+    type = "other",
+    scale = 1,
+    rscales = rep(1 / (length(rep_cols) - 1), length(rep_cols)),
+    mse = TRUE,
+    combined.weights = TRUE
+  )
+
+  # User `survey::svyquantile()` to calculate the 90th percentile 
+  # value for this implicate, and capture its value as a numeric object
+  p90 <- as.numeric(coef(
+    survey::svyquantile(~networth, design, quantiles = 0.9, se = FALSE)
+  ))
+
+  # Create a variable that demarcates the top 10% of this implicate
+  df$top10nw <- df$networth >= p90
+  df
+})
+
+# scf_mean will apply to each implicate with the correctly-identified
+# top decile
+scf_mean(scf2022, ~networth, ~top10nw)
+
+```
+
+The implicate-wise method results in an estimate of $7,766,387. This is close to, but distinct from, the published estimate because it targets a different workflow than the Federal Reserve's stacked percentile-category convention. The reason is that the SCF's official estimates are not generated by calculating the 90th percentile value for each implicate and then pooling those values. Instead of using Rubin's Rules, the SCF's macro stacks all five implicates, divides each row’s weight by five, sorts the stacked file by the target variable and household identifier, computes the cumulative weighted population share, and assigns percentile categories directly from that cumulative share. Published percentile-group summaries are then calculated over these assigned categories.  This procedure produces estimates that are substantively very similar to those generated by the implicate-wise workflow.
+
+# Introducing `scf_pctile_sum()`
+
+The above operations require functional programming.  The function `scf_pctile_sum()` automates percentile-based grouping in SCF data. With `method = "implicate"`, it computes survey-weighted quantile thresholds within each implicate using `svyquantile()` from Lumley's `survey` package [@Lumley2026], classifies households within implicates, and pools summary estimates using the package's multiple-imputation workflow. With `method = "stack"`, it follows the Federal Reserve convention: the five implicates are stacked, weights are divided by five, observations are sorted by the percentile variable and household identifier, percentile groups are assigned from the cumulative weighted population share, and flat weighted statistics are computed on the stacked data.
+
+```{r}
+
+scf2022 <- scf_load(2022)
+
+scf_pctile_sum(scf2022, ~networth,
+               probs    = c(0, 0.9, 1),
+               labels   = c("bottom90", "top10"),
+               method   = "implicate",
+               stat     = "mean",
+               stat_var = ~networth)
+
+```
+
+The resulting \$7,766,387 replicates the estimate using the implicate-wise method (above), but not the official estimate.  As noted, these do not replicate due to differences between how percentile values are estimated by the SCF.  To reproduce official estimates, use the "stacked" method:
+
+```{r stacked example}
+
+scf_pctile_sum(scf2022, ~networth,
+               probs    = c(0, 0.9, 1),
+               labels   = c("bottom90", "top10"),
+               method   = "stack",
+               stat     = "mean",
+               stat_var = ~networth)
+
+```
+
+The result is approximately \$7,771,160, or \$7,771.16K in the table below. This is within about \$0.13K of the published value. I repeat the exercise with the 1989 data, where the estimate matches the published value to the displayed precision used here:
+
+```{r stacked 1989}
+
+scf1989 <- scf_load(1989)
+
+scf_pctile_sum(scf1989, ~networth,
+               probs    = c(0, 0.9, 1),
+               labels   = c("bottom90", "top10"),
+               method   = "stack",
+               stat     = "mean",
+               stat_var = ~networth)
+
+```
+
+The result is $2,926,547.50, or $2,926.55K, matching the published value to the displayed precision used here. Table 1 compares the `scf_pctile_sum()` stacked estimates to published Federal Reserve values across SCF survey years. It also compares those estimates to means computed directly from the Federal Reserve-provided `nwcat` variable. This separates percentile-category assignment from upstream differences in public-use data values, source precision, or official-public processing.
+
+\begin{center}
+\textbf{[Insert Table 1 here]}
+\end{center}
+
+```{r, eval = F, include = F}
+
+# Calculate same test statistics for all other years
+# Save to table
+
+for (yr in c(1989, 1992, 1995, 1998, 2001, 2004, 
+             2007, 2010, 2013, 2016, 2019, 2022)) {
+  
+  scf_download(yr)
+  scf_year <- scf_load(yr)
+  
+  result <- scf_pctile_sum(scf_year, ~networth,
+                          probs    = c(0, 0.9, 1),
+                          labels   = c("bottom90", "top10"),
+                          method   = "stack",
+                          stat     = "mean",
+                          stat_var = ~networth)
+  
+  # Save result to object
+  assign(paste0("result_", yr), result)
+}
+
+# Verification by Joseph Cohen
+# 5/17/2026
+# Generally close but multiple failures to replicate
+Official <- c(2926.55, # 1989
+              2595.59, # 1992
+              2801.32, # 1995
+              3545.41, # 1998
+              4629.55, # 2001
+              4900.37, # 2004
+              5688.07, # 2007
+              5028.69, # 2010
+              5043.52, # 2013
+              6550.28, # 2016
+              6619.46, # 2019
+              7771.29) # 2022
+
+estimates <- c(round(result_1989$estimate[2]/1000, 2), # 1989
+               round(result_1992$estimate[2]/1000, 2), # 1992
+               round(result_1995$estimate[2]/1000, 2), # 1995
+               round(result_1998$estimate[2]/1000, 2), # 1998
+               round(result_2001$estimate[2]/1000, 2), # 2001
+               round(result_2004$estimate[2]/1000, 2), # 2004
+               round(result_2007$estimate[2]/1000, 2), # 2007
+               round(result_2010$estimate[2]/1000, 2), # 2010
+               round(result_2013$estimate[2]/1000, 2), # 2013
+               round(result_2016$estimate[2]/1000, 2), # 2016
+               round(result_2019$estimate[2]/1000, 2), # 2019
+               round(result_2022$estimate[2]/1000, 2)) # 2022
+
+# Estimates using Fed-provided nwcat variable directly
+nwcat_estimates <- c(
+
+  round(
+    scf_mean(
+      scf_load(1989),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(1992),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(1995),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(1998),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(2001),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(2004),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(2007),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(2010),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(2013),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(2016),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(2019),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  ),
+
+  round(
+    scf_mean(
+      scf_load(2022),
+      ~networth,
+      ~nwcat
+    )$results$estimate[2] / 1000, 2
+  )
+
+)
+
+comparison <- data.frame(
+  Year = c(1989, 1992, 1995, 1998, 2001,
+           2004, 2007, 2010, 2013,
+           2016, 2019, 2022),
+
+  Official = Official,
+
+  scf_estimate = estimates,
+
+  nwcat_estimate = nwcat_estimates
+)
+
+comparison$scf_difference <-
+  comparison$Official - comparison$scf_estimate
+
+comparison$nwcat_difference <-
+  comparison$Official - comparison$nwcat_estimate
+
+write.csv(comparison, "comparison.csv", row.names = F)
+```
+
+The revised stack implementation reproduces the Federal Reserve percentile-category assignment procedure in the public-use data. In years with small residual differences from published values, the same discrepancies appear when using the Fed-provided `nwcat` variable directly. This indicates that the remaining differences do not arise from `scf_pctile_sum()`'s percentile-grouping algorithm. They more likely reflect upstream differences in public-use data values, source precision, rounding, or official-public processing.
+
+# Summary
+This technical note discusses the task of summarizing statistics by percentile-defined groups in multiply imputed *Survey of Consumer Finances* microdata. It describes three approaches: a commonsense threshold method, implicate-wise estimation, and the Federal Reserve's official stacking method.
+
+The function `scf_pctile_sum()` provides two clearly distinguished workflows: an implicate-wise, imputation-aware approach for ordinary analysis, and a stacked approach for reproducing Federal Reserve percentile-group point estimates. Tests show that the stacked method reproduces the Federal Reserve percentile-category assignment procedure in the public-use data and closely approximates published top-decile mean net worth estimates across survey years.
+
+\clearpage
+
+::: {#refs}
+:::
+
+
+\clearpage
+
+```{r, echo = F}
+comparison <- read.csv("comparison.csv")
+
+comparison_fmt <- comparison
+
+comparison_fmt$Official <- scales::dollar(
+  comparison$Official,
+  accuracy = 0.01,
+  suffix = "K"
+)
+
+comparison_fmt$scf_estimate <- scales::dollar(
+  comparison$scf_estimate,
+  accuracy = 0.01,
+  suffix = "K"
+)
+
+comparison_fmt$nwcat_estimate <- scales::dollar(
+  comparison$nwcat_estimate,
+  accuracy = 0.01,
+  suffix = "K"
+)
+
+comparison_fmt$scf_difference <- scales::dollar(
+  comparison$scf_difference,
+  accuracy = 0.01,
+  suffix = "K"
+)
+
+comparison_fmt$nwcat_difference <- scales::dollar(
+  comparison$nwcat_difference,
+  accuracy = 0.01,
+  suffix = "K"
+)
+
+knitr::kable(
+  comparison_fmt,
+  format = "latex",
+  booktabs = TRUE,
+  align = c("r", "r", "r", "r", "r", "r"),
+  col.names = c(
+    "Year",
+    "Official",
+    "`scf_pctile_sum()`",
+    "`nwcat`",
+    "`scf` difference",
+    "`nwcat` difference"
+  ),
+  caption = "Comparison of Federal Reserve Published Estimates, scf Percentile-Group Estimates, and Fed-Provided nwcat Estimates for Mean Net Worth Among the Top 10 Percent of Households"
+) %>%
+  kableExtra::kable_styling(
+    latex_options = c("hold_position"),
+    full_width = FALSE,
+    position = "center"
+  )
+```

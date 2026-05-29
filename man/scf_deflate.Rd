@@ -51,6 +51,11 @@ before fitting.
 A 2019 survey income estimate refers to 2018 income, while this function uses
 the 2019 SCF CPI-U-RS value. The result is therefore an approximate nominal
 conversion for income, not an exact prior-calendar-year conversion.
+
+This function is experimental. Validation tests indicate that it closely
+reproduces official nominal-dollar SCF comparison figures, with remaining
+differences generally small and attributable to rounding, CPI vintage, or
+source-table conventions rather than the scalar conversion itself.
 }
 \section{Conditions}{
 

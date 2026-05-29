@@ -42,29 +42,33 @@ within each implicate, then pooled using Rubin’s Rules.  Use this function
 to test hypotheses about means in the SCF microdata.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("ttest_")
-dir.create(td)
+\donttest{
+if (interactive()) {
+  # Do not implement these lines in real analysis:
+  # Use functions `scf_download()` and `scf_load()`
+  td <- tempfile("ttest_")
+  dir.create(td)
 
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-scf2022 <- scf_load(2022, data_directory = td)
+  src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+  file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+  scf2022 <- scf_load(2022, data_directory = td)
 
-# Wrangle data for example: Derive analysis vars
-scf2022 <- scf_update(scf2022,
-  female = factor(hhsex, levels = 1:2, labels = c("Male","Female")),
-  over50 = age > 50
-)
+  # Wrangle data for example: Derive analysis vars
+  scf2022 <- scf_update(scf2022,
+    female = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
+    over50 = age > 50
+  )
 
-# Example for real analysis:  One-sample t-test
-scf_ttest(scf2022, ~income, mu = 75000)
+  # Example for real analysis: One-sample t-test
+  scf_ttest(scf2022, ~income, mu = 75000)
 
-# Example for real analysis:  Two-sample t-test
-scf_ttest(scf2022, ~income, group = ~female)
+  # Example for real analysis: Two-sample t-test
+  scf_ttest(scf2022, ~income, group = ~female)
 
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+  # Do not implement these lines in real analysis: Cleanup for package check
+  unlink(td, recursive = TRUE, force = TRUE)
+}
+}
 
 }
 \seealso{

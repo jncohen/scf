@@ -159,6 +159,7 @@ uncertainty and between-implicate imputation uncertainty.
 }
 
 \examples{
+\dontrun{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`
 td <- tempfile("qreg_")
@@ -176,12 +177,9 @@ summary(m_med)
 m_med$fit$r1
 m_med$fit$r1_adj
 
-# Example for real analysis: 75th-percentile regression
-m_75 <- scf_quantreg(scf2022, networth ~ age + factor(edcl), tau = 0.75)
-summary(m_75)
-
 # Do not implement these lines in real analysis: Cleanup for package check
 unlink(td, recursive = TRUE, force = TRUE)
+}
 
 }
 \references{

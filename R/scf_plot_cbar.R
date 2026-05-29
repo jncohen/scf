@@ -41,9 +41,6 @@
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Example for real analysis: Plot mean net worth by education level
-#' scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "mean")
-#'
 #' # Example for real analysis: Visualize 90th percentile of income by education
 #' scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9, fill = "#D55E00")
 #' 

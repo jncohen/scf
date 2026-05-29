@@ -57,21 +57,30 @@ the resulting pseudo-density.
 }
 
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("plot_smooth_")
-dir.create(td)
+\donttest{
+if (interactive()) {
+  # Do not implement these lines in real analysis:
+  # Use functions `scf_download()` and `scf_load()`
+  td <- tempfile("plot_smooth_")
+  dir.create(td)
 
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-scf2022 <- scf_load(2022, data_directory = td)
+  src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+  file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+  scf2022 <- scf_load(2022, data_directory = td)
 
-# Example for real analysis: Plot smoothed distribution
-scf_plot_smooth(scf2022, ~networth, xlim = c(0, 2e6),
-                method = "loess", span = 0.25)
-     
-# Do not implement these lines in real analysis: Cleanup for package check           
-unlink(td, recursive = TRUE, force = TRUE)
+  # Example for real analysis: Plot smoothed distribution
+  scf_plot_smooth(
+    scf2022,
+    ~networth,
+    xlim = c(0, 2e6),
+    method = "loess",
+    span = 0.25
+  )
+
+  # Do not implement these lines in real analysis: Cleanup for package check
+  unlink(td, recursive = TRUE, force = TRUE)
+}
+}
 
 }
 \seealso{
