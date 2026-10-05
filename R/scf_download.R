@@ -1,26 +1,17 @@
 #' Download and Prepare SCF Microdata for Local Analysis
 #'
-#' Downloads SCF public-use microdata from official servers.  For each year,
-#' this function retrieves five implicates, merges them with replicate weights
-#' and official summary variables, and saves them as `.rds` files ready for use
-#' with [scf_load()].
+#' Downloads SCF public-use data from the Federal Reserve and saves one `.rds`
+#' file per year for [scf_load()].
 #'
-#' @section Implementation:
-#' This function downloads from official servers three types of files for each
-#' year:
-#' - five versions of the dataset (one per implicate), each stored as a separate data frame in a list
-#' - a table of replicate weights, and
-#' - a data table with official derivative variables
+#' @details
+#' Run it once per survey year, before [scf_load()]. Requires an internet
+#' connection. Files go to the working directory; years already on disk are
+#' skipped unless `overwrite = TRUE`.
 #'
-#' These tables are collected to a list and saved to an `.rds` format file in
-#' the working directory.  By default, the function downloads all available
-#' years.
-#'
-#' @section Details:
-#' The SCF employs multiply-imputed data sets to address unit-level missing
-#' data. Each household appears in one of five implicates. This function ensures
-#' all implicates are downloaded, merged, and prepared for downstream analysis
-#' using [scf_load()], [scf_design()], and the `scf` workflow.
+#' For each year, the function downloads the full public data, the summary
+#' extract, and the replicate weights; merges them by household; multiplies
+#' each replicate weight by its multiplicity factor; and saves the five
+#' implicates as a list.
 #'
 #' @param years Integer vector of SCF years to download (e.g., `c(2016, 2019)`). Must be triennial from 1989 to 2022.
 #' @param overwrite Logical. If `TRUE`, re-download and overwrite existing `.rds` files. Default is `FALSE`.
@@ -30,13 +21,13 @@
 #' Each file contains a list of five implicate data frames ready for use with [scf_load()].
 #'
 #' @seealso [scf_load()], [scf_design()], [scf_update()]
-#' 
+#'
 #' @examples
 #' if (FALSE) {
 #'   # Download and prepare SCF data for 2022
 #'   td <- tempfile("download_")
 #'   dir.create(td)
-#' 
+#'
 #'   old <- getwd()
 #'   setwd(td)
 #'   scf_download(2022)
@@ -48,27 +39,13 @@
 #'   unlink(td, recursive = TRUE, force = TRUE)
 #'   setwd(old)
 #' }
-
-#' 
+#'
 #' @references
 #' U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
 #'   https://www.federalreserve.gov/econres/scfindex.htm
 #'
 #' @export
 scf_download <- function(years = seq(1989, 2022, 3), overwrite = FALSE, verbose = TRUE) {
-  pkgs <- c("httr", "haven", "utils")
-  missing <- pkgs[!vapply(pkgs, requireNamespace, FUN.VALUE = logical(1), quietly = TRUE)]
-  if (length(missing)) {
-     stop(
-       sprintf(
-             "Missing package%s: %s. Please install before using scf_download().",
-             if (length(missing) > 1) "s" else "",
-             paste(missing, collapse = ", ")
-           ),
-         call. = FALSE
-       )
-    }
-
   years <- intersect(years, seq(1989, 2022, 3))
   output_files <- character()
 
@@ -131,7 +108,8 @@ scf_download <- function(years = seq(1989, 2022, 3), overwrite = FALSE, verbose 
     download_and_unzip <- function(url, zip_name) {
       zip_path <- file.path(tmpdir, zip_name)
       tryCatch({
-        httr::GET(url, httr::write_disk(zip_path, overwrite = TRUE))
+        resp <- httr::GET(url, httr::write_disk(zip_path, overwrite = TRUE))
+        httr::stop_for_status(resp)
         unzip(zip_path, exdir = tmpdir)
         unlink(zip_path)
         TRUE

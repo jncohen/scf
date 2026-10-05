@@ -1,19 +1,10 @@
 #' Plot Bar Chart of a Discrete Variable from SCF Data
 #'
-#' @description
-#' Creates a bar chart that visualizes the distribution of a discrete variable.
+#' Plots the percent of households in each category of a discrete variable.
 #'
-#' @section Implementation:
-#' This function internally calls [scf_freq()] to compute population proportion
-#' estimates, which are then plotted using `ggplot2::geom_col()`. The default
-#' output is scaled to percent and can be customized via title, axis labels,
-#' angle, and color.
-#'
-#' @section Details:
-#' Produces a bar chart of category proportions from a one-way tabulation,
-#' pooled across SCF implicates using [scf_freq()]. This function summarizes
-#' weighted sample composition and communicates categorical distributions
-#' effectively in descriptive analysis.
+#' @details
+#' Use it to show how households divide across categories, such as education
+#' levels. Estimates come from [scf_freq()].
 #'
 #' @param design A `scf_mi_survey` object created by [scf_load()]. Must contain valid implicates.
 #' @param variable A one-sided formula specifying a categorical variable (e.g., `~racecl`).
@@ -26,9 +17,6 @@
 #'
 #' @return A `ggplot2` object representing the pooled bar chart.
 #'
-#' @section Dependencies: 
-#' Requires the `ggplot2` package.
-#'
 #' @seealso [scf_freq()], [scf_plot_bbar()], [scf_xtab()]
 #'
 #' @examples
@@ -36,17 +24,17 @@
 #' # Use functions `scf_download()` and `scf_load()`
 #' td <- tempfile("plot_dbar_")
 #' dir.create(td)
-#' 
+#'
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: Bar chart of education categories
 #' scf_plot_dbar(scf2022, ~edcl)
-#' 
+#'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
-#' 
+#'
 #' @export
 scf_plot_dbar <- function(design, variable,
                           title = NULL,
@@ -64,12 +52,6 @@ scf_plot_dbar <- function(design, variable,
     stop("Input must be a `scf_mi_survey` object.")
   }
 
-  if (isTRUE(attr(design, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
-
-
-  `%||%` <- function(a, b) if (!is.null(a)) a else b
   varname <- all.vars(variable)[1]
 
   freq <- scf_freq(design, variable, percent = TRUE)
@@ -79,20 +61,21 @@ scf_plot_dbar <- function(design, variable,
     stop("`scf_freq()` output must include a `proportion` column.")
   }
 
-  # Optional relabeling
+  df$category <- factor(df$category, levels = unique(df$category))
   if (!is.null(label_map)) {
-    df$category <- factor(df$category,
-                          levels = names(label_map),
-                          labels = unname(label_map))
+    df$category <- .scf_relabel(df$category, label_map)
   }
 
   df$yval <- df$proportion
 
-  p <- ggplot2::ggplot(df, ggplot2::aes(x = as.factor(category), y = yval)) +
+  if (is.null(title)) title <- paste("Distribution of", varname)
+  if (is.null(xlab)) xlab <- varname
+
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = category, y = yval)) +
     ggplot2::geom_col(fill = fill) +
     ggplot2::labs(
-      title = title %||% paste("Distribution of", varname),
-      x = xlab %||% varname,
+      title = title,
+      x = xlab,
       y = ylab
     ) +
     scf_theme() +

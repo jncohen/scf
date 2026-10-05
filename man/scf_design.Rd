@@ -22,14 +22,12 @@ An object of class "scf_mi_survey" with:
 }
 }
 \description{
-Wraps a list of replicate-weighted survey designs into an \code{scf_mi_survey}
-object. This is called internally by \code{\link[=scf_load]{scf_load()}}, but is also available
-directly for users who construct their own implicate-level designs outside
-the standard download-and-load workflow — for example, when integrating
-external or custom-prepared SCF data files.
-
-Each element of \code{design} must be a \code{\link[survey:svrepdesign]{survey::svrepdesign()}} object representing
-one SCF implicate with replicate weights.
+Wraps a list of implicate designs into an \code{scf_mi_survey} object.
+}
+\details{
+\code{\link[=scf_load]{scf_load()}} calls this function. Call it directly only when building
+implicate designs outside the download-and-load workflow. Each element of
+\code{design} must be a \code{\link[survey:svrepdesign]{survey::svrepdesign()}} object.
 }
 \examples{
 # Do not implement these lines in real analysis:
@@ -45,7 +43,7 @@ scf2022 <- scf_load(2022, data_directory = td)
 obj <- scf_design(
   design = scf2022$mi_design,
   year = 2022,
-  n_households = attr(scf2022, "n_households")
+  n_households = scf2022$n_households
 )
 class(obj)
 length(obj$mi_design)

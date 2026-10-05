@@ -10,7 +10,8 @@ scf_ttest(
   group = NULL,
   mu = 0,
   alternative = c("two.sided", "less", "greater"),
-  conf.level = 0.95
+  conf.level = 0.95,
+  variance = getOption("scf.variance", "fed")
 )
 }
 \arguments{
@@ -25,21 +26,33 @@ scf_ttest(
 \item{alternative}{Character. One of \code{"two.sided"} (default), \code{"less"}, or \code{"greater"}.}
 
 \item{conf.level}{Confidence level for the confidence interval. Default is \code{0.95}.}
+
+\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
 }
 \value{
 An object of class \code{scf_ttest} with:
 \describe{
-\item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, and confidence interval.}
+\item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, and confidence interval. For two-sample tests, the estimate is the first group minus the second.}
 \item{means}{Group-specific means (for two-sample tests only).}
 \item{fit}{List describing the test type, null hypothesis, confidence level, and alternative.}
 }
 }
 \description{
-Tests whether the mean of a continuous variable differs from a specified
-value (one-sample), or whether group means differ across a binary factor
-(two-sample). Estimates and standard errors are computed using \code{svymean()}
-within each implicate, then pooled using Rubin’s Rules.  Use this function
-to test hypotheses about means in the SCF microdata.
+Tests a mean against a null value, or the difference between two group
+means.
+}
+\details{
+Use it to test a claim about a mean, such as whether mean income differs
+between two groups. The one-sample estimate is the mean; the two-sample
+estimate is the first group's mean minus the second's. A small p-value
+means a difference this large is unlikely under the null hypothesis; the
+confidence interval gives the plausible range. Means of wealth and income
+are dominated by the top of the distribution and may not reflect the
+typical household.
+
+Means are estimated in each implicate with \code{survey::svymean()} and pooled
+(see \link{scf_variance}). The two-sample test accounts for the covariance
+between groups.
 }
 \examples{
 \donttest{

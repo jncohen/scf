@@ -7,8 +7,8 @@
 scf_regtable(
   ...,
   model.names = NULL,
-  digits = 0,
-  auto_digits = FALSE,
+  digits = NULL,
+  auto_digits = is.null(digits),
   labels = NULL,
   output = c("console", "markdown", "latex", "csv"),
   file = NULL
@@ -20,12 +20,12 @@ scf_regtable(
 \item{model.names}{Optional character vector naming the models. Defaults to
 \code{"Model 1"}, \code{"Model 2"}, etc.}
 
-\item{digits}{Integer specifying decimal places for numeric formatting when
-\code{auto_digits = FALSE}. Default is 0.}
+\item{digits}{Integer. Decimal places for every estimate. If NULL
+(default), decimal places are chosen by size (see \code{auto_digits}).}
 
 \item{auto_digits}{Logical; if \code{TRUE}, uses adaptive decimal places:
 0 digits for large numbers (>= 1000), 2 digits for moderate (>= 1),
-and 3 digits for smaller values.}
+3 digits for values of at least 0.001, and 2 significant digits below that.}
 
 \item{labels}{Optional named character vector or labeling function to replace
 term names with descriptive labels.}
@@ -41,30 +41,16 @@ term names with descriptive labels.}
 Invisibly returns a data frame with formatted regression results and fit statistics.
 }
 \description{
-This function formats and aligns coefficient estimates, standard errors, and
-significance stars from one or more SCF regression model objects
-(e.g., from \code{scf_ols()}, \code{scf_logit()}, \code{scf_quantreg()}, or \code{scf_glm()}).
+Formats one or more \code{scf} model results as a side-by-side table.
 }
 \details{
-It compiles a side-by-side table with terms matched across models, appends
-model fit statistics (sample size N, R-squared or pseudo-R-squared, quantile tau,
-and AIC where applicable), and outputs the results as console text, Markdown for
-R Markdown documents, LaTeX for PDF compilation, or a CSV file.
-
-The function aligns all unique coefficient terms across provided models, formats
-coefficients with significance stars and standard errors, appends model fit
-statistics as additional rows, and renders output in the specified format.
-
-Fit statistics rows are automatically selected based on model class:
-\describe{
-\item{All models}{Sample size (N)}
-\item{OLS models}{R-squared and AIC}
-\item{Logit/GLM models}{Pseudo-R-squared and AIC}
-\item{Quantile regression}{Quantile tau, R1(tau), and adjusted R1(tau)}
-}
-
-It avoids external dependencies by using base R formatting and simple text,
-Markdown, LaTeX, or CSV output.
+Use it to report several models together. Each cell shows the estimate,
+significance stars, and standard error in parentheses. Terms appear in the
+order first seen; terms absent from a model show "--". Fit statistics
+follow the coefficients: N for all models, R-squared and AIC for OLS, AIC
+and pseudo-R-squared for binomial models, and tau, R1, and adjusted R1 for
+quantile regression. Compare AIC only across models of the same type on the
+same data.
 }
 \examples{
 # Do not implement these lines in real analysis:
@@ -76,7 +62,7 @@ src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Wrangle data for example:  Perform OLS regression 
+# Wrangle data for example:  Perform OLS regression
 m1 <- scf_ols(scf2022, income ~ age)
 
 # Example for real analysis: Print regression results as a console table

@@ -4,62 +4,39 @@
 \alias{scf_logit}
 \title{Estimate Logistic Regression Model using SCF Microdata}
 \usage{
-scf_logit(object, formula, odds = TRUE, ...)
+scf_logit(object, formula, odds = TRUE)
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}} and \code{\link[=scf_design]{scf_design()}}.}
+\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}.}
 
 \item{formula}{A model formula specifying a binary outcome and predictors, e.g., \code{rich ~ age + factor(edcl)}.}
 
-\item{odds}{Logical. If \code{TRUE} (default), exponentiates coefficient estimates to produce odds ratios for interpretability.}
-
-\item{...}{Additional arguments passed to \code{\link[=scf_glm]{scf_glm()}}.}
+\item{odds}{Logical. If \code{TRUE} (default), exponentiates coefficient estimates to produce odds ratios.}
 }
 \value{
 An object of class \code{"scf_logit"} and \code{"scf_model_result"} with:
 \describe{
 \item{results}{A data frame of pooled estimates (log-odds or odds ratios), standard errors, and test statistics.}
-\item{fit}{Model diagnostics including AIC and pseudo-R-Squared (for binomial family).}
-\item{models}{List of implicate-level \code{svyglm} model objects.}
+\item{fit}{Fit statistics: mean and SD of AIC (\code{AIC}, \code{AIC.sd}) and pseudo-R-squared (\code{pseudo_r2}, \code{pseudo_r2.sd}) across implicates, observations per implicate (\code{nobs}), and their mean (\code{nobs_mean}).}
+\item{imps}{List of implicate-level \code{svyglm} model objects.}
 \item{call}{The matched function call.}
 }
 }
 \description{
-Fits a replicate-weighted logistic regression model to multiply-imputed SCF data,
-returning pooled coefficients or odds ratios with model diagnostics. Use this
-function to model a binary variable as a function of predictors.
+Fits a logistic regression to each implicate and pools the results with
+Rubin's rules. Returns odds ratios by default.
 }
-\section{Details}{
+\details{
+Use it for binary outcomes, such as homeownership. An odds ratio above 1
+means higher odds of the outcome per one-unit increase in the predictor;
+below 1, lower odds. An odds ratio of 1.5 means 50 percent higher odds. The
+p-value tests an odds ratio of 1 (no association).
 
-This function internally calls \code{scf_glm()} with \code{family = binomial()} and optionally
-exponentiates pooled log-odds to odds ratios.
-
-Logistic regression models the probability of a binary outcome using the
-logit link.
-
-Coefficients reflect the change in log-odds associated with a one-unit change
-in the predictor.
-
-When \code{odds = TRUE}, the coefficient estimates and standard errors are
-transformed from log-odds to odds ratios and approximate SEs.
+Calls \code{\link[=scf_glm]{scf_glm()}} with \code{family = binomial()}. With \code{odds = TRUE},
+estimates are exponentiated and standard errors converted to the
+odds-ratio scale. \code{vcov()} stays on the log-odds scale; \code{confint()} computes
+intervals on that scale and exponentiates them.
 }
-
-\section{Warning}{
-
-When modeling binary outcomes using survey-weighted logistic regression,
-users may encounter the warning:
-
-\code{"non-integer #successes in a binomial glm!"}
-
-This message is benign. It results from replicate-weighted survey designs
-where the implied number of "successes" is non-integer. The model is
-estimated correctly. Coefficients are valid and consistent with
-maximum likelihood.
-
-For background, see:
-https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-binomial-glm-survey-packages
-}
-
 \examples{
 \donttest{
 # Do not implement these lines in real analysis:
@@ -72,7 +49,7 @@ file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
 # Example for real analysis: Run logistic regression
-model <- suppressWarnings(scf_logit(scf2022, own ~ hhsex))
+model <- scf_logit(scf2022, own ~ hhsex)
 summary(model)
 
 # Do not implement these lines in real analysis: Cleanup for package check

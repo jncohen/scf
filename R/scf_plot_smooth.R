@@ -1,21 +1,16 @@
 #' Smoothed Distribution Plot of a Continuous Variable in SCF Data
 #'
-#' @description
-#' Draws a smoothed distribution plot of a continuous variable in the SCF. Use
-#' this function to visualize a single continuous variable's distribution. 
+#' Plots a smoothed curve of the share of households near each value.
 #'
-#' @section Implementation:
-#' Visualizes the weighted distribution of a continuous SCF variable by stacking implicates,
-#' binning observations, and smoothing pooled proportions. This function is useful for
-#' examining distribution shape, skew, or modality in variables like income or wealth.
-#'
-#' All implicates are stacked and weighted, binned across a data-driven or user-specified
-#' bin width. Each bin's weight share is calculated, and a smoothing curve is fit to
-#' the resulting pseudo-density.
+#' @details
+#' Use it to see the shape, skew, or peaks of a variable such as age or
+#' income. The curve shows shape, not exact shares. The implicates are
+#' stacked with weights divided by five and binned (by default with the
+#' Freedman-Diaconis width), and a smoothing curve is fit to the bin shares.
 #'
 #' @param design A `scf_mi_survey` object created by [scf_load()].
 #' @param variable A one-sided formula specifying a continuous variable (e.g., `~networth`).
-#' @param binwidth Optional bin width. Default uses Freedman–Diaconis rule.
+#' @param binwidth Optional bin width. Default uses Freedman-Diaconis rule.
 #' @param xlim Optional numeric vector of length 2 to truncate axis.
 #' @param method Character. Smoothing method: `"loess"` (default) or `"lm"`.
 #' @param span Numeric LOESS span. Default is `0.2`. Ignored if `method = "lm"`.
@@ -69,21 +64,15 @@ scf_plot_smooth <- function(design,
   stopifnot(inherits(design, "scf_mi_survey"))
   stopifnot(inherits(variable, "formula"))
 
-  if (isTRUE(attr(design, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
+  varname <- deparse(variable[[2]])
+  .scf_check_na(design$mi_design, variable)
 
-
-  `%||%` <- function(a, b) if (!is.null(a)) a else b
-  varname <- as.character(variable[[2]])
-
-  # Stack implicates
   stacked <- lapply(seq_along(design$mi_design), function(i) {
     d <- design$mi_design[[i]]
     df <- d$variables
     data.frame(
-      x = df[[varname]],
-      wgt = as.numeric(weights(d)),
+      x = eval(variable[[2]], df, environment(variable)),
+      wgt = as.numeric(weights(d, "sampling")) / length(design$mi_design),
       imp = i
     )
   })
@@ -95,7 +84,6 @@ scf_plot_smooth <- function(design,
   }
   if (nrow(df) == 0) stop("No valid data after subsetting.")
 
-  # Binwidth estimation
   if (is.null(binwidth)) {
     iqr <- IQR(df$x, na.rm = TRUE)
     n <- nrow(df)
@@ -105,7 +93,6 @@ scf_plot_smooth <- function(design,
     }
   }
 
-  # Create bins
   breaks <- seq(floor(min(df$x) / binwidth) * binwidth,
                 ceiling(max(df$x) / binwidth) * binwidth,
                 by = binwidth)
@@ -113,12 +100,12 @@ scf_plot_smooth <- function(design,
   df$bin_index <- cut(df$x, breaks = breaks, include.lowest = TRUE, labels = FALSE)
   df$bin_center <- mids[df$bin_index]
 
-  # Aggregate proportions
   agg <- aggregate(wgt ~ bin_center, data = df, sum)
   names(agg)[1] <- "x"
   agg$percent <- 100 * agg$wgt / sum(agg$wgt)
 
-  # Plot
+  if (is.null(xlab)) xlab <- varname
+
   ggplot2::ggplot(agg, ggplot2::aes(x = x, y = percent)) +
     ggplot2::geom_smooth(
       method = method,
@@ -128,7 +115,7 @@ scf_plot_smooth <- function(design,
     ) +
     ggplot2::labs(
       title = title,
-      x = xlab %||% varname,
+      x = xlab,
       y = ylab
     ) +
     scf_theme()

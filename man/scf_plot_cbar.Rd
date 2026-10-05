@@ -42,23 +42,14 @@ scf_plot_cbar(
 A \code{ggplot2} object.
 }
 \description{
-Computes and plots a grouped summary statistic (either a mean, median, or
-quantile) for a continuous variable across a discrete factor. Estimates are
-pooled across implicates using \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}}, or
-\code{\link[=scf_percentile]{scf_percentile()}}. Use this function to visualize the bivariate relationship
-between a discrete and a continuous variable.
+Plots a mean, median, or percentile of a continuous variable for each group.
 }
-\section{Implementation}{
-
-The user specifies a continuous outcome (\code{yvar}) and a discrete grouping
-variable (\code{xvar}) via one-sided formulas. Group means are plotted by default.
-Medians or other percentiles can be specified via the \code{stat} argument.
-
-Results are plotted using \code{ggplot2::geom_col()}, styled with \code{\link[=scf_theme]{scf_theme()}},
-and optionally customized with additional arguments (e.g., axis labels,
-color, angles).
+\details{
+Use it to show how a variable differs across groups, such as median net
+worth by education. Bar heights are point estimates from \code{\link[=scf_mean]{scf_mean()}},
+\code{\link[=scf_median]{scf_median()}}, or \code{\link[=scf_percentile]{scf_percentile()}} with \code{by}; run those functions for
+standard errors.
 }
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

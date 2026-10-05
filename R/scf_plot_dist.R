@@ -1,24 +1,18 @@
 #' Plot a Univariate Distribution of an SCF Variable
 #'
-#' @description
-#' This function provides a unified plotting interface for visualizing the
-#' distribution of a single variable from multiply-imputed SCF data. Discrete
-#' variables produce bar charts of pooled proportions; continuous variables
-#' produce binned histograms.  Use this function to visualize the univariate
-#' distribution of an SCF variable.
+#' Plots the percent of households in each category or bin of a variable.
 #'
-#' @section Implementation:
-#' For discrete variables (factor or numeric with <= 25 unique values), the
-#' function uses [scf_freq()] to calculate category proportions and produces a
-#' bar chart.  For continuous variables, it bins values across implicates and
-#' estimates Rubin-pooled frequencies for each bin.
-#'
-#' Users may supply a named vector of custom axis labels using the `labels` argument.
+#' @details
+#' Use it for a quick look at any variable. Factors and numeric variables
+#' with 25 or fewer values are treated as discrete and plotted with
+#' [scf_freq()]. Continuous variables are binned with the same breaks in every
+#' implicate and pooled.
 #'
 #' @param design A `scf_mi_survey` object created by [scf_load()].
 #' @param variable A one-sided formula specifying the variable to plot.
-#' @param bins Number of bins for continuous variables. Default is 30.
-#' @param title Optional plot title. 
+#' @param bins Approximate number of bins for continuous variables; the
+#'   breaks are set by [pretty()]. Default is 30.
+#' @param title Optional plot title.
 #' @param xlab Optional x-axis label.
 #' @param ylab Optional y-axis label. Default is "Percent".
 #' @param angle Angle for x-axis tick labels. Default is 30.
@@ -56,20 +50,16 @@ scf_plot_dist <- function(design, variable, bins = 30,
   stopifnot(inherits(design, "scf_mi_survey"))
   stopifnot(inherits(variable, "formula"))
 
-  if (isTRUE(attr(design, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
-
-
-  `%||%` <- function(a, b) if (!is.null(a)) a else b
   varname <- all.vars(variable)[1]
-  xlab <- xlab %||% varname
-  title <- title %||% paste("Distribution of", varname)
+  .scf_check_na(design$mi_design, variable)
+  if (is.null(xlab)) xlab <- varname
+  if (is.null(title)) title <- paste("Distribution of", varname)
 
   values <- design$mi_design[[1]]$variables[[varname]]
 
   n_distinct <- function(x) length(unique(x[!is.na(x)]))
-  is_discrete <- is.factor(values) || (is.numeric(values) && n_distinct(values) <= 25)
+  is_discrete <- is.factor(values) || is.character(values) || is.logical(values) ||
+    (is.numeric(values) && n_distinct(values) <= 25)
 
   if (is_discrete) {
     freq <- scf_freq(design, variable, percent = TRUE)
@@ -77,17 +67,11 @@ scf_plot_dist <- function(design, variable, bins = 30,
     df$yval <- df$proportion
     df$xval <- factor(df$category, levels = unique(df$category))
 
-
-    # Apply custom labels if supplied
     if (!is.null(labels)) {
-      df$xval <- factor(as.character(df$xval),
-                        levels = names(labels),
-                        labels = unname(labels))
+      df$xval <- .scf_relabel(df$xval, labels)
     }
 
-
   } else {
-    # Continuous: bin and pool
     all_vals <- unlist(lapply(design$mi_design, function(d) d$variables[[varname]]))
     rng <- range(all_vals, na.rm = TRUE)
     cutpoints <- pretty(rng, bins)
@@ -108,14 +92,14 @@ scf_plot_dist <- function(design, variable, bins = 30,
 
     long <- do.call(rbind, binned)
     pooled <- lapply(split(long, long$bin), function(df) {
-      qbar <- mean(df$prop)
-      ubar <- mean(df$var)
-      b <- var(df$prop)
-      m <- length(df$implicate)
-      se <- sqrt(ubar + (1 + 1/m) * b)
+      df <- df[order(df$implicate), ]
+      pooled_b <- .scf_pool(df$prop, df$var, .scf_variance_method(NULL))
+      qbar <- pooled_b$estimate
+      se <- pooled_b$se
       data.frame(xval = df$bin[1], yval = 100 * qbar, se = 100 * se)
     })
     df <- do.call(rbind, pooled)
+    df$xval <- factor(df$xval, levels = labels_seq)
   }
 
   ggplot2::ggplot(df, ggplot2::aes(x = xval, y = yval)) +

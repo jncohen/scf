@@ -36,29 +36,12 @@ scf_plot_dbar(
 A \code{ggplot2} object representing the pooled bar chart.
 }
 \description{
-Creates a bar chart that visualizes the distribution of a discrete variable.
+Plots the percent of households in each category of a discrete variable.
 }
-\section{Implementation}{
-
-This function internally calls \code{\link[=scf_freq]{scf_freq()}} to compute population proportion
-estimates, which are then plotted using \code{ggplot2::geom_col()}. The default
-output is scaled to percent and can be customized via title, axis labels,
-angle, and color.
+\details{
+Use it to show how households divide across categories, such as education
+levels. Estimates come from \code{\link[=scf_freq]{scf_freq()}}.
 }
-
-\section{Details}{
-
-Produces a bar chart of category proportions from a one-way tabulation,
-pooled across SCF implicates using \code{\link[=scf_freq]{scf_freq()}}. This function summarizes
-weighted sample composition and communicates categorical distributions
-effectively in descriptive analysis.
-}
-
-\section{Dependencies}{
-
-Requires the \code{ggplot2} package.
-}
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

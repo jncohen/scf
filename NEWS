@@ -1,3 +1,55 @@
+# scf 1.1.0
+
+## New features
+
+* Add `variance` option to choose the Fed's method (default) or Rubin's rules for standard errors; see `?scf_variance`
+* Add `scf_ratio()` for ratios of totals
+* Add `scf_real()` to convert raw `x` dollar variables to 2022 dollars
+* Add `confint()` for models, `summary()` for `scf_prop_test` and `scf_ratio`, and `print()` for `scf_MIcombine` results
+* Add observation counts (`nobs`, `nobs_mean`) to model fit statistics
+
+## Changes that may affect existing code
+
+* Rename `scf_deflate()` to `scf_nominal()`; `scf_deflate()` still works but is deprecated
+* `scf_nominal()` stops if a result is for a variable not in 2022 dollars, unless `force = TRUE`
+* Rename the first argument of `scf_update()` to `.object`
+* `scf_glm()`, `scf_logit()`, and `scf_prop_test()` report t and Rubin's degrees of freedom; `z.value` is now `t.value`
+* `scf_quantreg()` uses replicate-weight standard errors by default and no longer reports AIC
+* `scf_regtable()` chooses decimal places by size unless `digits` is given, and lists terms in model order
+* Functions stop if a variable has missing values, or if a model or estimate fails in any implicate
+* Mock data give one message from `scf_load()` instead of a warning from every function
+* `scf_glm()` reports each distinct warning once, with the implicates it came from
+* Remove `...` from `scf_logit()`; drop the `rlang` dependency
+
+## Major fixes
+
+* Fix replicate-weight standard errors to match the Fed's method; previous standard errors were too large
+* Fix weight scale so totals and household counts are correct
+* Fix standard errors in `scf_xtab`, `scf_corr`, `scf_prop_test`, and two-sample `scf_ttest`
+* Fix `confint()` for `scf_logit` odds ratios
+
+## Bug fixes
+
+* `scf_quantreg`: R1, and stop on collinear terms
+* `scf_regtable`: AIC, LaTeX and Markdown output, mixed model types
+* `scf_corr`: use survey weights
+* `scf_pctile_sum`: tied values at group boundaries
+* `scf_nominal`: stack-method percentiles and dollar label
+* Grouped results and `scf_freq` when a group is missing from some implicates
+* Models: stop when a factor level is missing from some implicates, instead of dropping the term
+* `scf_subset`: local variables, empty subsets, object size
+* `scf_implicates` for `scf_glm`, `scf_quantreg`, `scf_xtab`, and `scf_corr`
+* `scf_MIcombine`: `missinfo` with several coefficients
+* `predict()`, and `summary()` for two-sample `scf_ttest` and `scf_logit` with `odds = FALSE`
+* Transformed variables such as `~log(income + 1)` in `scf_corr`, `scf_ttest`, and `scf_prop_test`
+* `scf_xtab` labels containing a colon
+* `scf_load` when the first year is not a survey year
+* `scf_logit` printed p-values
+* Plots: weights in `scf_plot_hex` and `scf_plot_smooth`; bar order in `scf_plot_cbar`, `scf_plot_dbar`, and `scf_plot_dist`; empty bins in `scf_plot_hist`; label maps
+* Pass on warnings from `scf_glm` and `scf_percentile`
+* Re-export `survey::SE`
+* Reduce size of stored model objects
+
 # scf 1.0.11
 
 * Fix `scf_deflate()`
@@ -37,7 +89,7 @@
 * Added S3 methods for `"scf_model_result"` (`coef`, `vcov`, `predict`, `AIC`, `residuals`, `formula`) and updated model output structure accordingly.
 * Standardized temporary-directory handling and safe file cleanup across all examples.
 
-# scf 1.0.4 
+# scf 1.0.4
 
 * First version successfully published to CRAN.
 

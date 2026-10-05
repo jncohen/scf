@@ -10,7 +10,8 @@ scf_percentile(
   q = 0.5,
   by = NULL,
   verbose = FALSE,
-  method = c("implicate", "stack")
+  method = c("implicate", "stack"),
+  variance = getOption("scf.variance", "fed")
 )
 }
 \arguments{
@@ -21,24 +22,18 @@ contain the list of replicate-weighted designs for each implicate in
 \item{var}{A one-sided formula naming the continuous variable to
 summarize (for example \code{~networth}).}
 
-\item{q}{Numeric percentile in between 0 and 1. Default 0.5 (median).}
+\item{q}{Percentile, between 0 and 1. Default 0.5 (median).}
 
 \item{by}{Optional one-sided formula naming a categorical grouping
 variable. If supplied, the percentile is estimated separately within
 each group.}
 
-\item{verbose}{Logical. If TRUE, include implicate-level estimates in
-the returned object for inspection. Default FALSE.}
+\item{verbose}{Logical. If TRUE, print implicate-level estimates.
+Default FALSE.}
 
-\item{method}{Character. One of \code{"implicate"} (default) or
-\code{"stack"}. The implicate method averages percentile estimates
-across the five implicates using the SCF Bulletin variance convention.
-The stack method pools all five implicates into a single dataset with
-weights divided by five and computes a single weighted quantile,
-replicating the Federal Reserve's published figures. When
-\code{method = "stack"} no standard error is returned, as the stacked
-estimate is a deterministic weighted quantile rather than a
-model-based estimate.}
+\item{method}{\code{"implicate"} (default) or \code{"stack"}. See Details.}
+
+\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
 }
 \value{
 An object of class \code{"scf_percentile"} containing:
@@ -54,43 +49,24 @@ should be printed by \code{print()} or \code{summary()}.}
 }
 }
 \description{
-This function estimates a weighted percentile of a continuous variable
-in the Survey of Consumer Finances (SCF). Two methods are available.
-The default \code{"implicate"} method estimates the percentile separately
-within each implicate using \code{\link[survey:svyquantile]{survey::svyquantile()}} and pools the results
-following the SCF Bulletin variance convention. The \code{"stack"} method
-replicates the Federal Reserve's published convention by pooling all five
-implicates with weights divided by five and computing a single weighted
-quantile from the combined sample. The two methods will generally produce
-similar but not identical results. Use \code{method = "stack"} when exact
-replication of Federal Reserve published figures is required.
+Estimates a weighted percentile of a continuous variable, overall or by
+group.
 }
 \details{
-The implicate method computes estimates as follows:
-\enumerate{
-\item For each implicate, estimate the requested percentile using
-\code{\link[survey:svyquantile]{survey::svyquantile()}} with \code{se = TRUE}.
-\item The reported point estimate is the mean of the M implicate-specific
-percentile estimates.
-\item The standard error follows the SCF Bulletin SAS macro convention:
+Use it for points of a distribution other than the middle, such as the
+90th percentile of net worth. With \code{q = 0.9}, 90 percent of households are
+below the estimate. Dollar amounts are in 2022 dollars.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{V_total = V1 + ((M + 1) / M) * B
-}\if{html}{\out{</div>}}
+\code{method = "implicate"} estimates the percentile in each implicate with
+\code{\link[survey:svyquantile]{survey::svyquantile()}} and pools the estimates (see \link{scf_variance}).
+\code{method = "stack"} stacks the implicates with weights divided by five and
+computes one weighted percentile without a standard error; it reproduces
+the Fed's published figures.
 
-where:
-\itemize{
-\item V1 is the replicate-weight sampling variance of the percentile
-from the first implicate only.
-\item B  is the between-implicate variance of the percentile estimates.
-}
-
-The reported standard error is sqrt(V_total).
-\item If a grouping variable is supplied, the same logic is applied
-separately within each group.
-}
-
-The stack method returns no standard error, as the estimate is a
-deterministic weighted quantile rather than a model-based estimate.
+Warnings from \code{\link[survey:svyquantile]{survey::svyquantile()}} are passed on with the implicate
+number. One notice, "Not all replicate weight designs give valid standard
+errors for quantiles", is dropped; it concerns jackknife weights, and the
+SCF's are bootstrap weights.
 }
 \examples{
 # Do not implement these lines in real analysis:
@@ -114,8 +90,9 @@ rm(scf2022)
 
 }
 \references{
-Federal Reserve Board. 2023c. "SAS Macro: Variable Definitions."
-https://www.federalreserve.gov/econres/files/bulletin.macro.txt
+Board of Governors of the Federal Reserve System. SAS macro for SCF
+Bulletin variable definitions (bulletin.macro.txt).
+\url{https://www.federalreserve.gov/econres/files/bulletin.macro.txt}
 }
 \seealso{
 \code{\link[=scf_median]{scf_median()}}, \code{\link[=scf_mean]{scf_mean()}}

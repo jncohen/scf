@@ -9,41 +9,27 @@ scf_subset(scf, expr)
 \arguments{
 \item{scf}{A \code{scf_mi_survey} object, typically created by \code{\link[=scf_load]{scf_load()}}.}
 
-\item{expr}{A logical expression used to filter rows, evaluated separately in each implicate's variable frame (e.g., \code{age < 65 & own == 1}).}
+\item{expr}{A logical expression used to filter rows, evaluated separately in each implicate's variable frame (e.g., \code{age < 65 & own == 1}). It can also use variables from the calling environment.}
 }
 \value{
 A new \code{scf_mi_survey} object (see \code{\link[=scf_design]{scf_design()}})
 }
 \description{
-Subsetting refers to the process of retaining only those observations that
-satisfy a logical (TRUE/FALSE) condition. This function applies such a
-filter independently to each implicate in an \code{scf_mi_survey} object created
-by \code{\link[=scf_design]{scf_design()}} via \code{\link[=scf_load]{scf_load()}}. The result is a new multiply-imputed,
-replicate-weighted survey object with appropriately restricted designs.
+Keeps households that meet a condition, in every implicate.
 }
-\section{Implementation}{
+\details{
+Use it to study one part of the population, such as renters or an age
+range. Estimates from a subset describe that group only: a mean from
+\code{scf_subset(scf2022, age >= 65)} is the mean among senior-headed
+households. To compare groups side by side, use \code{by} in the estimating
+functions instead.
 
-Use \code{scf_subset()} to focus analysis on analytically meaningful
-sub-populations. For example, to analyze only households headed by seniors:
-
-\preformatted{
-scf2022_seniors <- scf_subset(scf2022, age >= 65)
+The condition is applied in each implicate separately, so a household with
+imputed values can be in the subset in some implicates and not others.
+Rows where the condition is \code{NA} are dropped. The function stops if no rows
+meet the condition in an implicate. \code{n_households} is the weighted count,
+averaged across implicates.
 }
-
-This is especially useful when analyzing populations such as renters, homeowners, specific age brackets,
-or any group defined by logical expressions over SCF variables.
-}
-
-\section{Details}{
-
-Filtering is conducted separately in each implicate. This preserves valid design structure but means
-that the same household may fall into or out of the subset depending on imputed values.
-For example, a household with five different age imputations—say, 64, 66, 63, 65, and 67—would be
-classified as a senior in only three of five implicates if subsetting on \code{age >= 65}.
-
-Empty subsets in any implicate can cause downstream analysis to fail. Always check subgroup sizes after subsetting.
-}
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

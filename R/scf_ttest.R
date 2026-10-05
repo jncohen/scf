@@ -1,11 +1,20 @@
 #' T-Test of Means using SCF Microdata
 #'
-#' @description
-#' Tests whether the mean of a continuous variable differs from a specified
-#' value (one-sample), or whether group means differ across a binary factor
-#' (two-sample). Estimates and standard errors are computed using `svymean()`
-#' within each implicate, then pooled using Rubin’s Rules.  Use this function
-#' to test hypotheses about means in the SCF microdata. 
+#' Tests a mean against a null value, or the difference between two group
+#' means.
+#'
+#' @details
+#' Use it to test a claim about a mean, such as whether mean income differs
+#' between two groups. The one-sample estimate is the mean; the two-sample
+#' estimate is the first group's mean minus the second's. A small p-value
+#' means a difference this large is unlikely under the null hypothesis; the
+#' confidence interval gives the plausible range. Means of wealth and income
+#' are dominated by the top of the distribution and may not reflect the
+#' typical household.
+#'
+#' Means are estimated in each implicate with `survey::svymean()` and pooled
+#' (see [scf_variance]). The two-sample test accounts for the covariance
+#' between groups.
 #'
 #' @param design A `scf_mi_survey` object created by [scf_load()].
 #' @param var A one-sided formula specifying a numeric variable (e.g., `~income`).
@@ -13,10 +22,11 @@
 #' @param mu Numeric. Null hypothesis value. Default is `0`.
 #' @param alternative Character. One of `"two.sided"` (default), `"less"`, or `"greater"`.
 #' @param conf.level Confidence level for the confidence interval. Default is `0.95`.
+#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
 #'
 #' @return An object of class `scf_ttest` with:
 #' \describe{
-#'   \item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, and confidence interval.}
+#'   \item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, and confidence interval. For two-sample tests, the estimate is the first group minus the second.}
 #'   \item{means}{Group-specific means (for two-sample tests only).}
 #'   \item{fit}{List describing the test type, null hypothesis, confidence level, and alternative.}
 #' }
@@ -54,37 +64,31 @@
 #' @export
 scf_ttest <- function(design, var, group = NULL, mu = 0,
                       alternative = c("two.sided", "less", "greater"),
-                      conf.level = 0.95) {
+                      conf.level = 0.95,
+                      variance = getOption("scf.variance", "fed")) {
+  variance <- .scf_variance_method(variance)
 
   stopifnot(inherits(design, "scf_mi_survey"))
   stopifnot(inherits(var, "formula"))
 
-  if (isTRUE(attr(design, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
-
   alternative <- match.arg(alternative)
   varname <- all.vars(var)[1]
+  .scf_check_na(design$mi_design, var, group)
 
-  # Check variable type
-  if (!is.numeric(design$mi_design[[1]]$variables[[varname]])) {
+  if (!is.numeric(.scf_eval(var, design$mi_design[[1]]$variables))) {
     stop(sprintf("Variable '%s' must be numeric.", varname))
   }
 
   if (is.null(group)) {
-    # One-sample t-test
     stats <- lapply(design$mi_design, function(d) {
-      est <- survey::svymean(as.formula(paste0("~", varname)), d)
+      est <- survey::svymean(var, d)
       data.frame(est = coef(est), se = survey::SE(est))
     })
     stats_df <- do.call(rbind, stats)
-    m <- length(stats_df$est)
-    qbar <- mean(stats_df$est)
-    ubar <- mean(stats_df$se^2)
-    b <- var(stats_df$est)
-    tvar <- ubar + (1 + 1/m) * b
-    se <- sqrt(tvar)
-    df <- (m - 1) * (1 + ubar / ((1 + 1/m) * b))^2
+    pooled <- .scf_pool(stats_df$est, stats_df$se^2, variance)
+    qbar <- pooled$estimate
+    se <- pooled$se
+    df <- pooled$df
     tval <- (qbar - mu) / se
     pval <- switch(alternative,
                    "two.sided" = 2 * pt(-abs(tval), df),
@@ -97,35 +101,34 @@ scf_ttest <- function(design, var, group = NULL, mu = 0,
     means_df <- NULL
 
   } else {
-    # Two-sample t-test
     stopifnot(inherits(group, "formula"))
-    groupname <- all.vars(group)[1]
-    levels_detected <- levels(factor(design$mi_design[[1]]$variables[[groupname]]))
+    levels_detected <- levels(factor(.scf_eval(group, design$mi_design[[1]]$variables)))
     if (length(levels_detected) != 2) {
       stop("Grouping variable must have exactly two levels.")
     }
 
-    stats <- lapply(design$mi_design, function(d) {
-      d$variables[[groupname]] <- factor(d$variables[[groupname]], levels = levels_detected)
-      d1 <- subset(d, d$variables[[groupname]] == levels_detected[1])
-      d2 <- subset(d, d$variables[[groupname]] == levels_detected[2])
-      est1 <- survey::svymean(as.formula(paste0("~", varname)), d1)
-      est2 <- survey::svymean(as.formula(paste0("~", varname)), d2)
+    stats <- lapply(seq_along(design$mi_design), function(i) {
+      d <- design$mi_design[[i]]
+      d$variables$.g <- factor(.scf_eval(group, d$variables), levels = levels_detected)
+      by <- survey::svyby(var, ~.g, d,
+                          survey::svymean, covmat = TRUE)
+      if (length(coef(by)) != 2) {
+        stop(sprintf("Both groups must appear in every implicate; implicate %d has only one.", i),
+             call. = FALSE)
+      }
+      dif <- survey::svycontrast(by, c(1, -1))
       data.frame(
-        diff = coef(est1) - coef(est2),
-        se = sqrt(survey::SE(est1)^2 + survey::SE(est2)^2),
-        m1 = coef(est1),
-        m2 = coef(est2)
+        diff = unname(coef(dif)),
+        se = unname(sqrt(as.matrix(stats::vcov(dif))[1, 1])),
+        m1 = unname(coef(by)[1]),
+        m2 = unname(coef(by)[2])
       )
     })
     stats_df <- do.call(rbind, stats)
-    m <- nrow(stats_df)
-    qbar <- mean(stats_df$diff)
-    ubar <- mean(stats_df$se^2)
-    b <- var(stats_df$diff)
-    tvar <- ubar + (1 + 1/m) * b
-    se <- sqrt(tvar)
-    df <- (m - 1) * (1 + ubar / ((1 + 1/m) * b))^2
+    pooled <- .scf_pool(stats_df$diff, stats_df$se^2, variance)
+    qbar <- pooled$estimate
+    se <- pooled$se
+    df <- pooled$df
     tval <- (qbar - mu) / se
     pval <- switch(alternative,
                    "two.sided" = 2 * pt(-abs(tval), df),
@@ -149,9 +152,7 @@ scf_ttest <- function(design, var, group = NULL, mu = 0,
     p.value = pval,
     conf.low = ci[1],
     conf.high = ci[2],
-    stars = cut(pval,
-                breaks = c(-Inf, 0.001, 0.01, 0.05, 0.10, Inf),
-                labels = c("***", "**", "*", "^", ""), right = FALSE)
+    stars = .scf_stars(pval)
   )
 
   structure(list(
@@ -163,21 +164,22 @@ scf_ttest <- function(design, var, group = NULL, mu = 0,
       conf.level = conf.level,
       alternative = alternative
     ),
-    aux = list(year = design$year)
+    aux = list(year = design$year, varname = varname)
   ), class = "scf_ttest")
 }
 
 #' @export
 print.scf_ttest <- function(x, digits = 4, ...) {
-  dollar_label <- if (isTRUE(attr(x, "deflated")))
-    sprintf(" (%d$)", attr(x, "base_year")) else ""
+  dollar_label <- if (isTRUE(attr(x, "nominal")))
+    sprintf(" (nominal %d dollars)", x$aux$year) else ""
   cat(sprintf("SCF %s%s\n", x$fit$method, dollar_label))
-  cat("Alternative hypothesis:",
+  what <- if (is.null(x$means)) "mean" else "difference in means"
+  cat("Alternative hypothesis:", what,
       switch(x$fit$alternative,
-             "two.sided" = "mean is not equal to",
-             "less" = "mean is less than",
-             "greater" = "mean is greater than"),
-      x$fit$null.value, "\n\n")
+             "two.sided" = "is not equal to",
+             "less" = "is less than",
+             "greater" = "is greater than"),
+      format(x$fit$null.value, big.mark = ",", scientific = FALSE), "\n\n")
 
   if (!is.null(x$means)) {
     cat("Group means:\n")
@@ -190,8 +192,10 @@ print.scf_ttest <- function(x, digits = 4, ...) {
 
   cat(sprintf("Estimate: %.2f", x$results$estimate), "\n")
   cat(sprintf("Standard Error: %.2f", x$results$std.error), "\n")
-  cat(sprintf("t = %.2f, df = %.1f, p = %.4f %s",
-              x$results$t.value, x$results$df, x$results$p.value, x$results$stars), "\n")
+  p_txt <- format.pval(x$results$p.value, digits = 4, eps = 1e-4)
+  if (!startsWith(p_txt, "<")) p_txt <- paste("=", p_txt)
+  cat(sprintf("t = %.2f, df = %.1f, p %s %s",
+              x$results$t.value, x$results$df, p_txt, x$results$stars), "\n")
   cat(sprintf("CI (%.0f%%): [%.2f, %.2f]",
               100 * x$fit$conf.level,
               x$results$conf.low,
@@ -199,17 +203,19 @@ print.scf_ttest <- function(x, digits = 4, ...) {
   invisible(x)
 }
 
-
 #' @export
 summary.scf_ttest <- function(object, ...) {
   cat("SCF", object$fit$method, "\n")
-  cat("Null hypothesis: mu =", object$fit$null.value, "\n")
+  cat("Null hypothesis: mu =", format(object$fit$null.value, big.mark = ",", scientific = FALSE), "\n")
   cat("Alternative hypothesis:", object$fit$alternative, "\n")
   cat(sprintf("Confidence level: %.0f%%\n\n", 100 * object$fit$conf.level))
 
   if (!is.null(object$means)) {
     cat("Group-specific means:\n")
-    print(round(object$means, 2))
+    means <- object$means
+    num_cols <- sapply(means, is.numeric)
+    means[num_cols] <- round(means[num_cols], 2)
+    print(means, row.names = FALSE)
     cat("\n")
   }
 

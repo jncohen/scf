@@ -4,7 +4,13 @@
 \alias{scf_median}
 \title{Estimate the Population Median of a Continuous SCF Variable}
 \usage{
-scf_median(scf, var, by = NULL, verbose = FALSE)
+scf_median(
+  scf,
+  var,
+  by = NULL,
+  verbose = FALSE,
+  variance = getOption("scf.variance", "fed")
+)
 }
 \arguments{
 \item{scf}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must contain five implicates.}
@@ -14,6 +20,8 @@ scf_median(scf, var, by = NULL, verbose = FALSE)
 \item{by}{Optional one-sided formula for a categorical grouping variable.}
 
 \item{verbose}{Logical; if TRUE, show implicate-level results.}
+
+\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
 }
 \value{
 A list of class \code{"scf_median"} with:
@@ -24,36 +32,17 @@ A list of class \code{"scf_median"} with:
 }
 }
 \description{
-Estimates the median (50th percentile) of a continuous SCF variable. Use this
-operation to characterize a typical or average value.  In contrast to
-\code{\link[=scf_mean]{scf_mean()}}, this function is both uninfluenced by, and insensitive to,
-outliers.
+Estimates the weighted median of a continuous variable, overall or by group.
 }
-\section{Implementation}{
+\details{
+Use it for skewed variables such as wealth and income, where it describes
+the typical household better than the mean. Half of households are below
+the estimate and half above. Dollar amounts are in 2022 dollars.
 
-This function wraps \code{\link[=scf_percentile]{scf_percentile()}} with \code{q = 0.5}. The user supplies a
-\code{scf_mi_survey} object and a one-sided formula for the variable of interest,
-with an optional grouping formula. Output includes pooled medians,
-standard errors, min/max across implicates, and implicate-level values.
-Point estimates are the mean of the five implicate medians. Standard errors
-are computed using the Survey of Consumer Finances convention described
-below, not Rubin’s Rules.
+Calls \code{\link[=scf_percentile]{scf_percentile()}} with \code{q = 0.5}. The estimate is the mean of the
+five implicate medians; the standard error combines sampling and imputation
+variance (see \link{scf_variance}).
 }
-
-\section{Statistical Notes}{
-
-Median estimates follow the Federal Reserve Board’s SCF variance convention.
-For each implicate, the median is computed with replicate weights via
-\code{\link[survey:svyquantile]{survey::svyquantile()}}. The pooled estimate is the average of the five
-implicate medians. The pooled variance is
-V_total = V1 + ((m + 1) / m) * B,
-where V1 is the replicate-weight sampling variance from the first implicate
-and B is the between-implicate variance of the five implicate medians, with
-m = 5 implicates. The reported standard error is sqrt(V_total). This matches
-the Federal Reserve Board's published SAS macro for SCF descriptive
-statistics and is not Rubin’s Rules.
-}
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

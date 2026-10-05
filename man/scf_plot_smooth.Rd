@@ -22,7 +22,7 @@ scf_plot_smooth(
 
 \item{variable}{A one-sided formula specifying a continuous variable (e.g., \code{~networth}).}
 
-\item{binwidth}{Optional bin width. Default uses Freedman–Diaconis rule.}
+\item{binwidth}{Optional bin width. Default uses Freedman-Diaconis rule.}
 
 \item{xlim}{Optional numeric vector of length 2 to truncate axis.}
 
@@ -42,20 +42,14 @@ scf_plot_smooth(
 A \code{ggplot2} object.
 }
 \description{
-Draws a smoothed distribution plot of a continuous variable in the SCF. Use
-this function to visualize a single continuous variable's distribution.
+Plots a smoothed curve of the share of households near each value.
 }
-\section{Implementation}{
-
-Visualizes the weighted distribution of a continuous SCF variable by stacking implicates,
-binning observations, and smoothing pooled proportions. This function is useful for
-examining distribution shape, skew, or modality in variables like income or wealth.
-
-All implicates are stacked and weighted, binned across a data-driven or user-specified
-bin width. Each bin's weight share is calculated, and a smoothing curve is fit to
-the resulting pseudo-density.
+\details{
+Use it to see the shape, skew, or peaks of a variable such as age or
+income. The curve shows shape, not exact shares. The implicates are
+stacked with weights divided by five and binned (by default with the
+Freedman-Diaconis width), and a smoothing curve is fit to the bin shares.
 }
-
 \examples{
 \donttest{
 if (interactive()) {

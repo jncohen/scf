@@ -8,6 +8,7 @@
 \alias{residuals.scf_model_result}
 \alias{predict.scf_model_result}
 \alias{formula.scf_model_result}
+\alias{confint.scf_model_result}
 \title{S3 Methods for scf_model_result Objects}
 \usage{
 \method{formula}{scf_model_result}(x, ...)
@@ -21,6 +22,8 @@
 \method{AIC}{scf_model_result}(object, k = 2, ...)
 
 \method{predict}{scf_model_result}(object, newdata, type = "link", ...)
+
+\method{confint}{scf_model_result}(object, parm, level = 0.95, ...)
 }
 \arguments{
 \item{x}{An object of class \code{"scf_model_result"} (for \code{formula}).}
@@ -29,23 +32,36 @@
 
 \item{object}{An object of class \code{"scf_model_result"}.}
 
-\item{k}{Penalty term passed to \code{AIC()} (default 2 for AIC, \code{log(n)} for BIC).}
+\item{k}{Not used. The AIC is the mean of the implicate AICs, with the
+usual penalty of 2.}
 
 \item{newdata}{Optional data frame of new observations for \code{predict()}.
 If missing, predictions are made on the original training data.}
 
 \item{type}{Prediction scale for \code{predict()}: \code{"link"} (default)
-or \code{"response"}.}
+or \code{"response"}. For a logistic model, \code{"response"} gives
+predicted probabilities.}
+
+\item{parm}{Coefficients to include, by name or position. Defaults to all.}
+
+\item{level}{Confidence level for \code{confint()}. Defaults to 0.95.}
 }
 \description{
 Generic S3 methods dispatched on objects of class \code{"scf_model_result"},
-as returned by \code{\link{scf_ols}}, \code{\link{scf_glm}},
-\code{\link{scf_logit}}, and \code{\link{scf_quantreg}}.
+as returned by \code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}},
+\code{\link[=scf_logit]{scf_logit()}}, and \code{\link[=scf_quantreg]{scf_quantreg()}}. Use them as you
+would on any fitted model in R.
 
 \describe{
 \item{\code{coef()}}{Pooled coefficient estimates (Rubin's Rules).}
-\item{\code{vcov()}}{Pooled variance-covariance matrix.}
-\item{\code{AIC()}}{Mean AIC across implicates.}
+\item{\code{vcov()}}{Pooled variance-covariance matrix. For
+\code{scf_logit} it is on the log-odds scale, even when the estimates
+are odds ratios.}
+\item{\code{confint()}}{Confidence intervals from the t distribution
+with Rubin's degrees of freedom. For odds ratios, the interval is
+computed on the log-odds scale and then exponentiated.}
+\item{\code{AIC()}}{Mean AIC across implicates. Compare it only across
+models fit to the same outcome and data; lower is better.}
 \item{\code{residuals()}}{Residuals from the first implicate model (diagnostic use only).}
 \item{\code{predict()}}{Mean predictions pooled across all five implicate models.}
 \item{\code{formula()}}{The model formula.}

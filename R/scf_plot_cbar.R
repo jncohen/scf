@@ -1,20 +1,12 @@
 #' Bar Plot of Summary Statistics by Grouping Variable in SCF Data
 #'
-#' @description
-#' Computes and plots a grouped summary statistic (either a mean, median, or
-#' quantile) for a continuous variable across a discrete factor. Estimates are
-#' pooled across implicates using [scf_mean()], [scf_median()], or
-#' [scf_percentile()]. Use this function to visualize the bivariate relationship
-#' between a discrete and a continuous variable.
+#' Plots a mean, median, or percentile of a continuous variable for each group.
 #'
-#' @section Implementation:
-#' The user specifies a continuous outcome (`yvar`) and a discrete grouping
-#' variable (`xvar`) via one-sided formulas. Group means are plotted by default.
-#' Medians or other percentiles can be specified via the `stat` argument.
-#'
-#' Results are plotted using `ggplot2::geom_col()`, styled with [scf_theme()],
-#' and optionally customized with additional arguments (e.g., axis labels,
-#' color, angles).
+#' @details
+#' Use it to show how a variable differs across groups, such as median net
+#' worth by education. Bar heights are point estimates from [scf_mean()],
+#' [scf_median()], or [scf_percentile()] with `by`; run those functions for
+#' standard errors.
 #'
 #' @param design A `scf_mi_survey` object from [scf_load()].
 #' @param yvar One-sided formula for the continuous variable (e.g., `~networth`).
@@ -36,14 +28,14 @@
 #' # Use functions `scf_download()` and `scf_load()`
 #' td <- tempfile("plot_cbar_")
 #' dir.create(td)
-#' 
+#'
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: Visualize 90th percentile of income by education
 #' scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9, fill = "#D55E00")
-#' 
+#'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
 #'
@@ -60,29 +52,18 @@ scf_plot_cbar <- function(design, yvar, xvar,
   stopifnot(inherits(design, "scf_mi_survey"))
   stopifnot(inherits(yvar, "formula"), inherits(xvar, "formula"))
 
-  if (isTRUE(attr(design, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
-
-
-  `%||%` <- function(a, b) if (!is.null(a)) a else b
 
   yname <- all.vars(yvar)[1]
   xname <- all.vars(xvar)[1]
 
-  # Validate that xvar is discrete
   xvals <- design$mi_design[[1]]$variables[[xname]]
   if (is.numeric(xvals) && length(unique(xvals)) > 25) {
     stop("Grouping variable appears continuous. Please use a factor or discrete variable.")
   }
 
-  # Capture factor levels from first implicate
-  x_levels <- if (is.factor(xvals)) levels(xvals) else unique(xvals)
-
-  # Dispatch to appropriate estimator
   results <- switch(
     as.character(stat),
-    mean   = scf_mean(design, yvar, by = xvar),
+    mean = scf_mean(design, yvar, by = xvar),
     median = scf_median(design, yvar, by = xvar),
     {
       if (is.numeric(stat) && stat > 0 && stat < 1) {
@@ -98,30 +79,29 @@ scf_plot_cbar <- function(design, yvar, xvar,
     stop("Estimation failed: expected 'group' and 'estimate' columns not found.")
   }
 
-  # Coerce to factor and preserve ordering
-  df$group <- factor(df$group, levels = x_levels)
+  df$group <- factor(df$group, levels = unique(df$group))
 
-  # Optional x-axis relabeling
   if (!is.null(label_map)) {
-    df$group <- factor(df$group,
-                       levels = names(label_map),
-                       labels = unname(label_map))
+    df$group <- .scf_relabel(df$group, label_map)
   }
 
-  # Auto-generate y-axis label if not provided
-  y_label <- ylab %||% switch(
+  y_label <- ylab
+  if (is.null(y_label)) y_label <- switch(
     as.character(stat),
-    "mean"   = paste("Mean of", yname),
+    "mean" = paste("Mean of", yname),
     "median" = paste("Median of", yname),
     paste0(100 * stat, "th Percentile of ", yname)
   )
 
-  # Construct ggplot
+  if (is.null(title)) title <- paste("Distribution of", yname, "by", xname)
+  if (is.null(xlab)) xlab <- xname
+
   ggplot2::ggplot(df, ggplot2::aes(x = group, y = estimate)) +
     ggplot2::geom_col(fill = fill) +
+    ggplot2::scale_y_continuous(labels = .scf_comma) +
     ggplot2::labs(
-      title = title %||% paste("Distribution of", yname, "by", xname),
-      x = xlab %||% xname,
+      title = title,
+      x = xlab,
       y = y_label
     ) +
     scf_theme() +

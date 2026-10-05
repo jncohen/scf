@@ -7,7 +7,7 @@
 scf_ols(object, formula)
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}} and \code{\link[=scf_design]{scf_design()}}. Must contain five implicates with replicate weights.}
+\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}.}
 
 \item{formula}{A model formula specifying a continuous outcome and predictor variables (e.g., \code{networth ~ income + age}).}
 }
@@ -15,38 +15,27 @@ scf_ols(object, formula)
 An object of class \code{"scf_ols"} and \code{"scf_model_result"} with:
 \describe{
 \item{results}{A data frame of pooled coefficients, standard errors, t-values, p-values, and significance stars.}
-\item{fit}{A list of model diagnostics including mean AIC, standard deviation of AIC, mean R-squared, and its standard deviation.}
+\item{fit}{Fit statistics: mean and SD of AIC (\code{AIC}, \code{AIC.sd}) and R-squared (\code{r.squared}, \code{r.squared.sd}) across implicates, observations per implicate (\code{nobs}), and their mean (\code{nobs_mean}).}
 \item{imps}{A list of implicate-level \code{svyglm} model objects.}
 \item{call}{The matched call used to produce the model.}
 }
 }
 \description{
-Computes an OLS regression on SCF data using \code{svyglm()} across the SCF's
-five implicates.  Returns coefficient estimates, standard errors, test
-statistics, and model diagnostics.
+Fits a linear regression to each implicate with \code{survey::svyglm()} and
+pools the results with Rubin's rules.
 }
 \details{
-Fits a replicate-weighted linear regression model to each implicate of
-multiply-imputed SCF data and pools coefficients and standard errors using
-Rubin’s Rules.
+Use it for continuous outcomes. For binary outcomes use \code{\link[=scf_logit]{scf_logit()}}; for
+skewed outcomes such as wealth, consider \code{\link[=scf_quantreg]{scf_quantreg()}} or a log
+transform.
+
+Each coefficient is the expected change in the outcome for a one-unit
+increase in the predictor, holding the others constant. The p-value tests
+whether a coefficient is zero, using a t distribution with Rubin's degrees
+of freedom. R-squared is the share of variance explained and AIC compares
+models of the same outcome (lower is better); both are averaged across
+implicates. Pooling is described in \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
 }
-\section{Implementation}{
-
-Ordinary least squares (OLS) regression estimates the linear relationship
-between a continuous outcome and one or more predictor variables. Each
-coefficient represents the expected change in the outcome for a one-unit
-increase in the corresponding predictor, holding all other predictors
-constant.
-
-Use this function to model associations between SCF variables while
-accounting for complex survey design and multiple imputation.
-
-This function takes a \code{scf_mi_survey} object and a model formula. Internally,
-it fits a weighted linear regression to each implicate using
-\code{survey::svyglm()}, extracts coefficients and variance-covariance matrices,
-and pools them via \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
-}
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

@@ -11,7 +11,7 @@ scf_plot_hist(
   xlim = NULL,
   title = NULL,
   xlab = NULL,
-  ylab = "Weighted Count",
+  ylab = "Proportion of Households",
   fill = "#0072B2"
 )
 }
@@ -28,31 +28,22 @@ scf_plot_hist(
 
 \item{xlab}{Optional x-axis label. Defaults to the variable name.}
 
-\item{ylab}{Optional y-axis label. Defaults to "Weighted Count".}
+\item{ylab}{Optional y-axis label. Defaults to "Proportion of Households".}
 
 \item{fill}{Fill color for bars (default: \code{"#0072B2"}).}
 }
 \value{
-A \code{ggplot2} object representing the Rubin-pooled histogram.
+A \code{ggplot2} object.
 }
 \description{
-Produces a histogram of a continuous SCF variable by binning across implicates,
-pooling weighted bin counts using \code{\link[=scf_freq]{scf_freq()}}, and plotting the result.
-Values outside \code{xlim} are clamped into the nearest endpoint to ensure all
-observations are included and replicate-weighted bins remain stable.
+Plots the pooled share of households in each bin of a continuous variable.
 }
-\section{Implementation}{
-
-This function bins a continuous variable (after clamping to \code{xlim} if supplied),
-applies the same \code{cut()} breaks across implicates using \code{\link[=scf_update_by_implicate]{scf_update_by_implicate()}},
-and computes Rubin-pooled frequencies with \code{\link[=scf_freq]{scf_freq()}}. Results are filtered to
-remove bins with undefined proportions and then plotted using \code{ggplot2::geom_col()}.
-
-The logic here is specific to operations where the bin assignment must be computed
-\strong{within} each implicate, not after pooling. This approach ensures consistent binning
-and stable pooled estimation in the presence of multiply-imputed microdata.
+\details{
+Use it to see the shape of a variable such as age. For very skewed
+variables, such as net worth, set \code{xlim}; values outside it are moved to
+the nearest endpoint. Empty bins stay on the axis. Bins use the same breaks
+in every implicate and are pooled with \code{\link[=scf_freq]{scf_freq()}}.
 }
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

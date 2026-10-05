@@ -9,13 +9,13 @@ scf_implicates(x, long = FALSE)
 \arguments{
 \item{x}{A result object containing implicate-level estimates. Three types are supported:
 \describe{
-\item{Data frame results}{Objects from \code{\link[=scf_freq]{scf_freq()}}, \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}},
-\code{\link[=scf_percentile]{scf_percentile()}}, \code{\link[=scf_corr]{scf_corr()}}, and \code{\link[=scf_xtab]{scf_xtab()}}, whose \verb{$imps} slot contains
-a list of data frames.}
+\item{Descriptive results}{Objects from \code{\link[=scf_freq]{scf_freq()}}, \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}},
+and \code{\link[=scf_percentile]{scf_percentile()}}. Also \code{\link[=scf_corr]{scf_corr()}} (one correlation per implicate) and
+\code{\link[=scf_xtab]{scf_xtab()}} (weighted cell counts per implicate).}
 \item{Survey statistic results}{Objects whose \verb{$imps} slot contains \code{svystat}
 objects (e.g., raw outputs from \code{survey::svymean()}).}
 \item{Model results}{Objects from \code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, \code{\link[=scf_logit]{scf_logit()}}, and
-\code{\link[=scf_quantreg]{scf_quantreg()}}, whose \verb{$imps} or \verb{$models} slot contains \code{svyglm} fits.}
+\code{\link[=scf_quantreg]{scf_quantreg()}}.}
 }}
 
 \item{long}{Logical. If TRUE, returns stacked data frame. If FALSE, returns list.}
@@ -24,22 +24,14 @@ objects (e.g., raw outputs from \code{survey::svymean()}).}
 A list of implicate-level data frames, or a single stacked data frame if \code{long = TRUE}.
 }
 \description{
-Returns implicate-level outputs from SCF result objects produced by functions
-in the \code{scf} suite. Supports result objects containing implicate-level data
-frames, \code{svystat} summaries, or \code{svyglm} model fits.
+Returns the five implicate-level estimates behind an \code{scf} result.
 }
-\section{Usage}{
-
-This function allows users to inspect how estimates vary across the SCF’s five implicates,
-which is important for diagnostics, robustness checks, and transparent reporting.
-
-For example:
-
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{scf_implicates(scf_mean(scf2022, ~income))
-scf_implicates(scf_ols(scf2022, networth ~ age + income), long = TRUE)
-}\if{html}{\out{</div>}}
+\details{
+Use it to check how much imputation affects a result. Implicate estimates
+close together mean imputation adds little uncertainty; estimates far apart
+mean the result depends on imputed values, and its standard error is
+larger. Works on results from the descriptive functions and the models.
 }
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

@@ -234,6 +234,19 @@ To create or change variable values, use the `scf_update()` function. Below, a l
 scf2022 <- scf_update(scf2022, senior = age >= 65)
 
 ```
+
+### Dollar Values
+
+The SCF data mix two kinds of dollars. Summary variables made by the Federal Reserve, such as `income`, `networth`, and `asset`, are in 2022 dollars in every survey year. Raw survey variables, named `x` followed by a number, are in dollars of the year the survey was taken. A raw variable should not be compared across years, or combined with summary variables, until it is converted. `scf_real()` converts raw dollar variables to 2022 dollars with the same rules the Federal Reserve uses for the summary variables. Income items, which are reported for the year before the survey, are listed in `income`:
+
+```{r real dollars example, eval = FALSE}
+
+scf2016 <- scf_real(scf2016, ~x5702 + x3915, income = ~x5702)
+
+```
+
+To report a result in dollars of the survey year, as in the Federal Reserve's nominal-dollar tables, use `scf_nominal()` on the result. Both functions stop with an error if given the wrong kind of variable, unless `force = TRUE`.
+
 ## Describing Estimated Population Distributions
 
 The suite contains a range of functions designed to extract descriptors of the estimated population distributions suggested by the microdata. 

@@ -1,40 +1,57 @@
+## Release summary
+This is a minor release (1.0.10 to 1.1.0). It corrects standard errors and
+other results across the package and adds new features.
+
+Corrections:
+* Standard errors now follow the Fed's replicate-weight method. Earlier
+  versions put the main and replicate weights on different scales and
+  overstated standard errors.
+* Fixes to `scf_xtab`, `scf_corr`, `scf_prop_test`, `scf_ttest`,
+  `scf_quantreg`, `scf_regtable`, `scf_pctile_sum`, `scf_deflate`, several
+  plots, `confint()`, and AIC reporting.
+* Functions stop with a clear error when a variable has missing values, or
+  when a model or estimate fails in any implicate, instead of pooling the
+  rest.
+
+New features:
+* `scf_ratio()` estimates ratios of totals.
+* `scf_real()` converts raw SCF dollar variables to 2022 dollars, following
+  the Fed's SAS macro.
+* A `variance` option chooses the Fed's method (default) or Rubin's rules;
+  see `?scf_variance`.
+
+Changes that may affect user code:
+* The first argument of `scf_update()` is renamed `.object`.
+* `scf_deflate()` is renamed `scf_nominal()`; `scf_deflate()` still works
+  with a deprecation warning.
+* `scf_prop_test()`, `scf_glm()`, and `scf_logit()` report t and Rubin's
+  degrees of freedom instead of z; the `z.value` column is now `t.value`.
+* `scf_quantreg()` uses replicate-weight standard errors by default and no
+  longer reports AIC.
+* `scf_regtable()` chooses decimal places by size unless `digits` is given.
+* `scf_pctile_cut()`, renamed `scf_pctile_sum()` in 1.0.7, now gives a
+  deprecation warning.
+* The `rlang` dependency is dropped.
 
 ## Test environments
-* Local: R 4.3.1 on Windows 11 x86_64
-* R-hub: windows-x86_64-devel, ubuntu-gcc-release
-* Win-builder: R-devel, R-release
+* Local: R 4.5.1 on Windows 11 x86_64
+* Win-builder: R-devel (2026-09-30 r90605)
+* Win-builder: R-release (R 4.6.1)
 
 ## R CMD check results
-There were no ERRORs or WARNINGs.
+0 errors | 0 warnings | 0 notes
 
-## Notes
-Source files use Windows (CRLF) line endings, as the package is developed on
-Windows. This is a pre-existing condition accepted in prior CRAN releases.
+## Reverse dependencies
+There are no reverse dependencies on CRAN.
 
-## Warnings with scf_logit() and scf_glm()
-A known benign warning ("non-integer #successes in a binomial glm!") may 
-appear when using `svyglm(family = binomial())` with replicate weights. This 
-does not affect results or inference. 
-See: https://stackoverflow.com/questions/12953045
+## Mock data
+This package includes a small mock data set (`inst/extdata/scf2022_mock_raw.rds`)
+for examples and tests. The full data are too large for CRAN's 5 MB limit.
+The mock set is a 200-row subset of each of the five implicates of the 2022
+SCF public-use data, with all 999 replicate weights. It has the same
+structure as the full data, so the functions run as intended.
 
-## Mock Data
-
-This package includes a small mock dataset (`mock_scf2022.rds`) for testing 
-purposes. The size and complexity of this data make it difficult to produce a
-tarball under CRAN's 5Mb limit. The mock set is a truncated subset of the 
-actual 2022 SCF public-use data, which includes the first 75 observations of 
-the set, recorded in a complex data object that includes all five implicates, 
-each with 999 replicate weights. It preserves the structure of the full data, 
-allowing the `scf` functions to operate as intended. 
-
-Because the mock dataset is small by design, certain functions (especially 
-`scf_logit()` on rare outcomes) may produce warnings or fail, but this does 
-not reflect problems in the real-SCF workflow.
-
-## Fast Update 1.0.8 after 1.0.7
-
-This is a maintenance release submitted shortly after the previous release to fix
-package metadata/build configuration and improve CRAN-readiness. A regrettable
-oversight caused 1.0.7 to ship with an unpushed, highly functional change that
-involves no changes to the user interface. My apologies to the hard-working 
-people at CRAN.
+Because the mock data are small, some model examples may produce
+convergence warnings. This does not reflect problems with the full SCF data.
+Tests that refit models with all 999 replicate weights are skipped on CRAN
+to keep check time down.

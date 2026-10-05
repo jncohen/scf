@@ -7,7 +7,7 @@
 scf_glm(object, formula, family = binomial())
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object, typically created using \code{\link[=scf_load]{scf_load()}} and \code{\link[=scf_design]{scf_design()}}.}
+\item{object}{A \code{scf_mi_survey} object, created with \code{\link[=scf_load]{scf_load()}}.}
 
 \item{formula}{A valid model formula, e.g., \code{rich ~ age + factor(edcl)}.}
 
@@ -16,65 +16,35 @@ scf_glm(object, formula, family = binomial())
 \value{
 An object of class \code{"scf_glm"} and \code{"scf_model_result"} with:
 \describe{
-\item{results}{A data frame of pooled coefficients, standard errors, z-values, p-values, and significance stars.}
-\item{fit}{A list of fit diagnostics including mean and SD of AIC; for binomial models, pseudo-R2 and its SD.}
+\item{results}{A data frame of pooled coefficients, standard errors, t-values, p-values, and significance stars. P-values use a t distribution with Rubin's degrees of freedom (see \link{scf_MIcombine}).}
+\item{fit}{Fit statistics: mean and SD of AIC (\code{AIC}, \code{AIC.sd}) across implicates, pseudo-R-squared (\code{pseudo_r2}, \code{pseudo_r2.sd}; binomial models only), observations per implicate (\code{nobs}), and their mean (\code{nobs_mean}).}
 \item{models}{A list of implicate-level \code{svyglm} model objects.}
 \item{call}{The matched function call.}
 }
 }
 \description{
-Estimates generalized linear models (GLMs) with SCF public-use microdata.
-Use this function when modeling outcomes that follow non-Gaussian
-distributions (e.g., binary or count data). Rubin's Rules are used to combine
-implicate-level coefficient and variance estimates.
-
-GLMs are performed across SCF implicates using \code{svyglm()} and returns
-pooled coefficients, standard errors, z-values, p-values, and fit diagnostics
-including AIC and pseudo-R-Squared when applicable.
+Fits a generalized linear model to each implicate with \code{survey::svyglm()}
+and pools the results with Rubin's rules.
 }
-\section{Implementation}{
+\details{
+Use it for outcomes that are not continuous, such as binary outcomes or
+counts. \code{family} sets the link and error distribution: \code{binomial()} for
+binary outcomes, \code{poisson()} for counts, \code{gaussian()} for linear
+regression. For odds ratios, use \code{\link[=scf_logit]{scf_logit()}}.
 
-This function fits a GLM to each implicate in a \code{scf_mi_survey} object
-using \code{survey::svyglm()}. The user specifies a model formula and a valid GLM
-family (e.g., \code{binomial()}, \code{poisson()}, \code{gaussian()}). Coefficients and
-variance-covariance matrices are extracted from each implicate and pooled
-using Rubin's Rules.
-}
-
-\section{Details}{
-
-Generalized linear models (GLMs) extend linear regression to accommodate
-non-Gaussian outcome distributions. The choice of \code{family} determines the
-link function and error distribution. For example:
-\itemize{
-\item \code{binomial()} fits logistic regression for binary outcomes
-\item \code{poisson()} models count data
-\item \code{gaussian()} recovers standard OLS behavior
-}
-
-Model estimation is performed independently on each implicate using
-\code{svyglm()} with replicate weights. Rubin's Rules are used to pool coefficient
-estimates and variance matrices. For the pooling procedure, see
+Coefficients are on the link scale (log-odds for \code{binomial()}, log counts
+for \code{poisson()}). A positive coefficient means the outcome rises with the
+predictor, holding the others constant. The p-value tests whether a
+coefficient is zero, using a t distribution with Rubin's degrees of
+freedom. AIC is averaged across implicates; compare it only across models
+of the same outcome, where lower is better. Pooling is described in
 \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
+
+Each distinct warning from \code{svyglm()} is reported once, with the implicates
+it came from. "non-integer #successes in a binomial glm!", which survey
+weights always produce, is dropped. The function stops if the model fails
+in any implicate.
 }
-
-\section{Internal Suppression}{
-
-
-For CRAN compliance and to prevent diagnostic overload during package checks,
-this function internally wraps each implicate-level model call in \code{suppressWarnings()}.
-This suppresses the known benign warning:
-
-\code{"non-integer #successes in a binomial glm!"}
-
-which arises from using replicate weights with \code{family = binomial()}. This suppression
-does not affect model validity or inference. Users wishing to inspect warnings can
-run \code{survey::svyglm()} directly on individual implicates via \code{model$models[[i]]}.
-
-For further background, see:
-https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-binomial-glm-survey-packages
-}
-
 \examples{
 \donttest{
 # Do not implement these lines in real analysis:
@@ -87,7 +57,7 @@ file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
 # Example for real analysis: Run logistic regression
-model <- suppressWarnings(scf_glm(scf2022, own ~ hhsex, family = binomial()))
+model <- scf_glm(scf2022, own ~ hhsex, family = binomial())
 summary(model)
 
 # Do not implement these lines in real analysis: Cleanup for package check

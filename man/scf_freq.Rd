@@ -4,7 +4,13 @@
 \alias{scf_freq}
 \title{Estimate the Frequencies of a Discrete Variable from SCF Microdata}
 \usage{
-scf_freq(scf, var, by = NULL, percent = TRUE)
+scf_freq(
+  scf,
+  var,
+  by = NULL,
+  percent = TRUE,
+  variance = getOption("scf.variance", "fed")
+)
 }
 \arguments{
 \item{scf}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must contain five replicate-weighted implicates.}
@@ -14,6 +20,8 @@ scf_freq(scf, var, by = NULL, percent = TRUE)
 \item{by}{Optional one-sided formula specifying a discrete grouping variable (e.g., \code{~own}).}
 
 \item{percent}{Logical. If \code{TRUE} (default), scales results and standard errors to percentages.}
+
+\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
 }
 \value{
 A list of class \code{"scf_freq"} with:
@@ -24,35 +32,19 @@ A list of class \code{"scf_freq"} with:
 }
 }
 \description{
-This function estimates the relative frequency (proportion) of each category
-in a discrete variable from the SCF public-use microdata.  Use this function
-to discern the univariate distribution of a discrete variable.
+Estimates the share of households in each category of a discrete variable,
+overall or by group.
 }
 \details{
-Computes weighted proportions and standard errors for a discrete variable
-in multiply-imputed SCF data, optionally stratified by a grouping variable.
-Proportions and standard errors are computed separately within each
-implicate using \code{svymean()}, then averaged across
-implicates using SCF-recommended pooling logic. Group-wise frequencies are
-supported, but users may find the features of \code{\link[=scf_xtab]{scf_xtab()}} to be more useful.
+Use it to describe how households divide across categories, such as
+education levels. Each estimate is the share of households in a category;
+with \code{by}, shares sum to 1 (or 100) within each group. A share plus or
+minus two standard errors gives a rough 95 percent range. No tests are
+reported. For two-way tables, use \code{\link[=scf_xtab]{scf_xtab()}}.
+
+Proportions are estimated in each implicate with \code{survey::svymean()} and
+pooled across implicates (see \link{scf_variance}).
 }
-\section{Details}{
-
-Proportions are estimated within each implicate using \code{survey::svymean()},
-then pooled using the standard MI formula for proportions. When a grouping
-variable is provided via \code{by}, estimates are produced separately for each
-group-category combination. Results may be scaled to percentages using the
-\code{percent} argument.
-
-Estimates are pooled using the standard formula:
-\itemize{
-\item The mean of implicate-level proportions is the point estimate
-\item The standard error reflects both within-implicate variance and across-implicate variation
-}
-
-Unlike means or model parameters, category proportions do not use Rubin's full combination rules (e.g., degrees of freedom).
-}
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

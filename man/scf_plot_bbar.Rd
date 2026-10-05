@@ -27,7 +27,7 @@ scf_plot_bbar(
 
 \item{scale}{Character. One of \code{"percent"} (default) or \code{"count"}.}
 
-\item{percent_by}{Character. One of \code{"total"} (default), \code{"row"}, or \code{"col"} — determines normalization base when \code{scale = "percent"}.}
+\item{percent_by}{Character. One of \code{"total"} (default), \code{"row"}, or \code{"col"}. Sets what the percentages are shares of when \code{scale = "percent"}.}
 
 \item{title}{Optional character string for the plot title.}
 
@@ -45,17 +45,15 @@ scf_plot_bbar(
 A \code{ggplot2} object.
 }
 \description{
-Visualizes a discrete-discrete bivariate distribution using stacked bars
-based on pooled cross-tabulations from \code{\link[=scf_xtab]{scf_xtab()}}. Use this function to
-visualize the relationship between two discrete variables.
+Plots a pooled two-way table as stacked bars.
 }
-\section{Implementation}{
-
-This function calls \code{\link[=scf_xtab]{scf_xtab()}} to estimate the joint distribution of two
-categorical variables across multiply-imputed SCF data. The result is translated
-into a \code{ggplot2} stacked bar chart using pooled counts or normalized percentages.
+\details{
+Use it to show how two discrete variables relate, such as homeownership by
+education. Each bar is a category of \code{rowvar}, split by \code{colvar}. Heights
+are percentages of all households, or of each row or column
+(\code{percent_by}), or estimated counts (\code{scale = "count"}). Estimates come
+from \code{\link[=scf_xtab]{scf_xtab()}}.
 }
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`
@@ -69,11 +67,13 @@ scf2022 <- scf_load(2022, data_directory = td)
 # Example for real analysis: Stacked bar chart: education by ownership
 scf_plot_bbar(scf2022, ~own, ~edcl)
 
+\donttest{
 # Example for real analysis: Column percentages instead of total percent
 scf_plot_bbar(scf2022, ~own, ~edcl, percent_by = "col")
 
 # Example for real analysis: Raw counts (estimated number of households)
 scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
+}
 
 # Do not implement these lines in real analysis: Cleanup for package check
 unlink(td, recursive = TRUE, force = TRUE)

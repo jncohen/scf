@@ -8,28 +8,20 @@ scf_quantreg(
   object,
   formula,
   tau = 0.5,
-  se = c("nid", "iid", "ker", "boot", "replicate"),
+  se = c("replicate", "nid", "iid", "ker", "boot"),
   ...
 )
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}} or
-\code{\link[=scf_design]{scf_design()}}.}
+\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}.}
 
 \item{formula}{A model formula specifying the outcome and predictors,
 e.g., \code{networth ~ age + factor(edcl)}. The outcome should be numeric.}
 
-\item{tau}{Numeric scalar in (0, 1) specifying the quantile to estimate.
-Defaults to \code{0.5} (median regression). To estimate multiple quantiles,
-call \code{scf_quantreg()} separately for each. Analytical SE methods (\code{"nid"},
-\code{"iid"}, \code{"ker"}, \code{"boot"}) may be unreliable at quantiles with high mass
-points; prefer \code{se = "replicate"} in such cases.}
+\item{tau}{Quantile to estimate, between 0 and 1. Default 0.5 (median).}
 
-\item{se}{Character string specifying the standard error estimation method
-for within-implicate variance. One of \code{"nid"} (default), \code{"iid"},
-\code{"ker"}, \code{"boot"}, or \code{"replicate"}. See the \strong{Standard Error Methods}
-section for details. \code{"replicate"} is theoretically preferred for quantile
-regression but is computationally intensive.}
+\item{se}{Within-implicate covariance method: \code{"replicate"} (default),
+\code{"nid"}, \code{"iid"}, \code{"ker"}, or \code{"boot"}. See Details.}
 
 \item{...}{Additional arguments passed to \code{\link[quantreg:rq]{quantreg::rq()}}.}
 }
@@ -40,124 +32,55 @@ An object of class \code{"scf_quantreg"} and \code{"scf_model_result"} with:
 t-values, p-values, and significance stars.}
 \item{\code{tau}}{The quantile estimated.}
 \item{\code{se_method}}{The SE method used.}
-\item{\code{fit}}{A list of goodness-of-fit statistics. See the
-\strong{Goodness of Fit} section for details. Components: \code{rho},
-\code{rho_null}, \code{r1}, \code{r1_adj}, \code{nobs}, \code{nobs_mean}.}
+\item{\code{fit}}{Fit statistics: \code{rho}, \code{rho_null}, \code{r1}, \code{r1_adj},
+\code{nobs}, \code{nobs_mean}. See Details.}
 \item{\code{models}}{A list of implicate-level \code{rq} model objects for
 direct inspection.}
-\item{\code{fit_errors}}{Character vector of any implicate-level errors.}
+\item{\code{imp_vcov}}{A list of implicate-level variance-covariance matrices.}
 \item{\code{call}}{The matched call.}
 \item{\code{formula}}{The model formula.}
 }
 }
 \description{
-\code{scf_quantreg()} estimates a linear quantile regression at a user-specified
-quantile (\code{tau}) across the five SCF implicates. Each implicate is fit
-independently via \code{\link[quantreg:rq]{quantreg::rq()}} using the SCF final sampling weights.
-Coefficient estimates and variance-covariance matrices are then pooled across
-implicates using \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
-
-Unlike \code{\link[=scf_ols]{scf_ols()}}, which models the conditional mean, quantile regression
-models the conditional quantile of the outcome distribution. This makes it
-especially useful for analyzing wealth and income data, which are highly
-right-skewed: the conditional median (\code{tau = 0.5}) and upper quantiles
-(\code{tau = 0.75}, \code{tau = 0.90}) describe the distribution more completely than
-the mean alone.
+Fits a weighted quantile regression to each implicate with
+\code{\link[quantreg:rq]{quantreg::rq()}} and pools the results with Rubin's rules.
 }
 \details{
-Fits a survey-weighted quantile regression to each implicate of
-multiply-imputed SCF data and pools coefficients and standard errors using
-Rubin's Rules.
-}
-\section{Standard Error Methods}{
+Use it for skewed outcomes such as wealth and income, where the mean is
+pulled by a few very wealthy households. Each coefficient is the change in
+the \code{tau} quantile of the outcome per one-unit increase in the predictor;
+with \code{tau = 0.5}, the change in the median. Comparing several values of
+\code{tau} shows whether a predictor matters more at the top or bottom of the
+distribution. Estimate each quantile in a separate call. P-values use a t
+distribution with Rubin's degrees of freedom. The function stops if the
+predictors are collinear.
 
-
-The \code{se} argument controls how within-implicate variance is estimated.
-All methods produce a variance-covariance matrix passed to \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
-
+\code{se} sets the within-implicate covariance:
 \describe{
-\item{\code{"replicate"} (recommended)}{Replication-based variance estimation.
-For each implicate, the model is re-fit using each of the SCF's 999
-replicate weight vectors. Variance is accumulated as the weighted sum of
-squared deviations from the full-weight estimate, matching the SCF's own
-published variance methodology via \code{\link[survey:withReplicates]{survey::withReplicates()}}.
-This method is theoretically preferred for quantile regression because
-replication-based variance estimators are consistent for sample quantiles,
-whereas analytical (sandwich) estimators are not guaranteed consistent for
-nonsmooth statistics (Rust and Rao, 1996).
-Computationally intensive (~5,000 model fits for five implicates).}
-\item{\code{"nid"} (default)}{Non-iid sandwich estimator. Allows the
-conditional sparsity (density of the error distribution at the quantile)
-to vary across observations. Appropriate when the shape of the error
-distribution differs across the covariate space, which is typical for
-skewed outcomes such as wealth and income. Unreliable near quantiles
-with high mass points (e.g., \code{tau <= 0.25} when net worth has substantial
-mass at zero); use \code{se = "replicate"} in such cases.}
-\item{\code{"iid"}}{Assumes identically distributed errors, i.e., constant
-sparsity across all observations. Implements the covariance formula from
-Koenker and Bassett (1978, Theorem 4.2): \eqn{[\theta(1-\theta)/f(\xi(\theta))^2] Q^{-1}},
-where \eqn{f(\xi(\theta))} is the density of the error distribution at its
-\eqn{\theta}-quantile and \eqn{Q = \lim T^{-1}X'X}. Fastest analytical
-option; subject to the same mass-point caveat as \code{"nid"}.}
-\item{\code{"ker"}}{Kernel smoothing estimate of the conditional sparsity.
-More data-adaptive than \code{"nid"} but slower. Suitable for large samples.}
-\item{\code{"boot"}}{Pairs bootstrap over observations. Provides
-distribution-free variance estimates but is the slowest analytical
-option. Useful for robustness checks.}
-}
+\item{\code{"replicate"} (default)}{Refits the model with each of the 999
+replicate weights (see \link{scf_variance}). The only method that uses the
+SCF's design, and consistent for quantiles (Rust and Rao 1996). About
+5,000 fits; several minutes on the full data.}
+\item{\code{"nid"}, \code{"iid"}, \code{"ker"}, \code{"boot"}}{From
+\code{\link[quantreg:summary.rq]{quantreg::summary.rq()}}. These treat the weighted sample as a simple
+random sample. \code{"nid"} allows the error density to vary; \code{"iid"}
+assumes it is constant (Koenker and Bassett 1978); \code{"ker"} uses a kernel
+estimate; \code{"boot"} is a pairs bootstrap. Analytic methods are unreliable
+at quantiles with mass points, such as low quantiles of net worth.}
 }
 
-\section{Goodness of Fit}{
-
-
-The \code{fit} component of the returned object contains per-quantile goodness-of-fit
-measures following Koenker and Machado (1999). These are computed by comparing
-the full model to an intercept-only null model at the same \code{tau}.
-
+Fit statistics (Koenker and Machado 1999) compare the model with an
+intercept-only model at the same \code{tau}:
 \describe{
-\item{\code{rho}}{Mean minimized weighted sum of absolute residuals
-(\eqn{\sum \rho_\tau(y_i - x_i'\hat\beta)}) from the full model, averaged
-across implicates. This is the quantile regression analog of the residual
-sum of squares.}
-\item{\code{rho_null}}{Same quantity from the intercept-only null model. Larger
-values relative to \code{rho} indicate greater explanatory power.}
-\item{\code{r1}}{The Koenker-Machado R\eqn{^1(\tau)} statistic:
-\eqn{1 - \bar{V}(\tau) / \tilde{V}(\tau)}, where \eqn{\bar{V}} is the
-mean full-model objective and \eqn{\tilde{V}} is the mean null-model
-objective, each averaged across implicates. Ranges from 0 to 1. Measures
-the proportional reduction in the weighted sum of absolute residuals due
-to the covariates at quantile \code{tau}. This is a \emph{local} measure for the
-specific quantile estimated; it is not a global summary of fit across
-the distribution.}
-\item{\code{r1_adj}}{Degrees-of-freedom-adjusted R\eqn{^1(\tau)}:
-\eqn{1 - (1 - R^1) \cdot n / (n - p)}, where \eqn{n} is the mean
-number of observations and \eqn{p} is the number of estimated parameters.
-Penalizes model complexity analogously to adjusted R\eqn{^2} in OLS.
-Note: this adjustment is not derived from the asymptotic theory in
-Koenker and Machado (1999) and should be interpreted descriptively.}
-\item{\code{nobs}}{Integer vector of per-implicate sample sizes.}
-\item{\code{nobs_mean}}{Mean sample size across successful implicates.}
+\item{\code{rho}, \code{rho_null}}{Weighted check-loss of the model and the null
+model, averaged across implicates. Weights are scaled to mean 1.}
+\item{\code{r1}}{\eqn{1 - \rho / \rho_{null}}. A local measure of fit at
+\code{tau}, from 0 to 1.}
+\item{\code{r1_adj}}{\eqn{1 - (1 - R^1) n / (n - p)}. A descriptive
+adjustment, not derived from Koenker and Machado.}
+\item{\code{nobs}, \code{nobs_mean}}{Observations per implicate and their mean.}
 }
 }
-
-\section{Implementation}{
-
-For each implicate:
-\enumerate{
-\item Extracts the survey data and final sampling weights from the
-\code{svyrep.design} object.
-\item Fits \code{\link[quantreg:rq]{quantreg::rq()}} at quantile \code{tau} with the final weights.
-\item Estimates the within-implicate variance-covariance matrix using
-the method specified by \code{se}.
-\item Fits an intercept-only \code{\link[quantreg:rq]{quantreg::rq()}} at the same \code{tau} and
-weights to obtain the null-model objective value for goodness-of-fit.
-}
-SCF public-use microdata contain no missing values; each implicate is a
-complete dataset. Pooled estimates follow Rubin's Rules (see
-\code{\link[=scf_MIcombine]{scf_MIcombine()}}): the total variance combines within-implicate sampling
-uncertainty and between-implicate imputation uncertainty.
-}
-
 \examples{
 \dontrun{
 # Do not implement these lines in real analysis:

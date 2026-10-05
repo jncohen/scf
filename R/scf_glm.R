@@ -1,43 +1,35 @@
 #' Estimate Generalized Linear Model from SCF Microdata
 #'
-#' @description
-#' Estimates generalized linear models (GLMs) with SCF public-use microdata.
-#' Use this function when modeling outcomes that follow non-Gaussian
-#' distributions (e.g., binary or count data). Rubin's Rules are used to combine
-#' implicate-level coefficient and variance estimates. 
+#' Fits a generalized linear model to each implicate with `survey::svyglm()`
+#' and pools the results with Rubin's rules.
 #'
-#' GLMs are performed across SCF implicates using `svyglm()` and returns
-#' pooled coefficients, standard errors, z-values, p-values, and fit diagnostics
-#' including AIC and pseudo-R-Squared when applicable.
+#' @details
+#' Use it for outcomes that are not continuous, such as binary outcomes or
+#' counts. `family` sets the link and error distribution: `binomial()` for
+#' binary outcomes, `poisson()` for counts, `gaussian()` for linear
+#' regression. For odds ratios, use [scf_logit()].
 #'
-#' @section Implementation:
-#' This function fits a GLM to each implicate in a `scf_mi_survey` object
-#' using `survey::svyglm()`. The user specifies a model formula and a valid GLM
-#' family (e.g., `binomial()`, `poisson()`, `gaussian()`). Coefficients and
-#' variance-covariance matrices are extracted from each implicate and pooled
-#' using Rubin's Rules.
-#'
-#' @section Details:
-#' Generalized linear models (GLMs) extend linear regression to accommodate
-#' non-Gaussian outcome distributions. The choice of `family` determines the
-#' link function and error distribution. For example:
-#' - `binomial()` fits logistic regression for binary outcomes
-#' - `poisson()` models count data
-#' - `gaussian()` recovers standard OLS behavior
-#'
-#' Model estimation is performed independently on each implicate using
-#' `svyglm()` with replicate weights. Rubin's Rules are used to pool coefficient
-#' estimates and variance matrices. For the pooling procedure, see
+#' Coefficients are on the link scale (log-odds for `binomial()`, log counts
+#' for `poisson()`). A positive coefficient means the outcome rises with the
+#' predictor, holding the others constant. The p-value tests whether a
+#' coefficient is zero, using a t distribution with Rubin's degrees of
+#' freedom. AIC is averaged across implicates; compare it only across models
+#' of the same outcome, where lower is better. Pooling is described in
 #' [scf_MIcombine()].
 #'
-#' @param object A `scf_mi_survey` object, typically created using [scf_load()] and [scf_design()].
+#' Each distinct warning from `svyglm()` is reported once, with the implicates
+#' it came from. "non-integer #successes in a binomial glm!", which survey
+#' weights always produce, is dropped. The function stops if the model fails
+#' in any implicate.
+#'
+#' @param object A `scf_mi_survey` object, created with [scf_load()].
 #' @param formula A valid model formula, e.g., `rich ~ age + factor(edcl)`.
 #' @param family A GLM family object such as [binomial()], [poisson()], or [gaussian()]. Defaults to `binomial()`.
 #'
 #' @return An object of class `"scf_glm"` and `"scf_model_result"` with:
 #' \describe{
-#'   \item{results}{A data frame of pooled coefficients, standard errors, z-values, p-values, and significance stars.}
-#'   \item{fit}{A list of fit diagnostics including mean and SD of AIC; for binomial models, pseudo-R2 and its SD.}
+#'   \item{results}{A data frame of pooled coefficients, standard errors, t-values, p-values, and significance stars. P-values use a t distribution with Rubin's degrees of freedom (see [scf_MIcombine]).}
+#'   \item{fit}{Fit statistics: mean and SD of AIC (`AIC`, `AIC.sd`) across implicates, pseudo-R-squared (`pseudo_r2`, `pseudo_r2.sd`; binomial models only), observations per implicate (`nobs`), and their mean (`nobs_mean`).}
 #'   \item{models}{A list of implicate-level `svyglm` model objects.}
 #'   \item{call}{The matched function call.}
 #' }
@@ -48,33 +40,18 @@
 #' # Use functions `scf_download()` and `scf_load()`
 #' td <- tempfile("glm_")
 #' dir.create(td)
-#' 
+#'
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: Run logistic regression
-#' model <- suppressWarnings(scf_glm(scf2022, own ~ hhsex, family = binomial()))
+#' model <- scf_glm(scf2022, own ~ hhsex, family = binomial())
 #' summary(model)
-#' 
+#'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
 #' }
-#'
-#' @section Internal Suppression:
-#'
-#' For CRAN compliance and to prevent diagnostic overload during package checks,
-#' this function internally wraps each implicate-level model call in `suppressWarnings()`.
-#' This suppresses the known benign warning:
-#'
-#'   `"non-integer #successes in a binomial glm!"`
-#'
-#' which arises from using replicate weights with `family = binomial()`. This suppression
-#' does not affect model validity or inference. Users wishing to inspect warnings can
-#' run `survey::svyglm()` directly on individual implicates via `model$models[[i]]`.
-#'
-#' For further background, see:
-#' https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-binomial-glm-survey-packages
 #'
 #' @seealso [scf_ols()], [scf_logit()], [scf_regtable()]
 #'
@@ -87,58 +64,66 @@ scf_glm <- function(object, formula, family = binomial()) {
   if (!inherits(family, "family"))
     stop("Family must be a valid GLM family object (e.g., binomial())")
 
-  if (isTRUE(attr(object, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
-
   designs <- object$mi_design
 
-  models <- lapply(designs, function(imp) {
-    tryCatch(
-      suppressWarnings(survey::svyglm(formula, design = imp, family = family)),
-      error = function(e) NULL
+  .scf_check_na(designs, formula)
+
+  warn_msg <- character(0)
+  warn_imp <- integer(0)
+  models <- lapply(seq_along(designs), function(i) {
+    withCallingHandlers(
+      tryCatch(
+        survey::svyglm(formula, design = designs[[i]], family = family),
+        error = function(e) .scf_fit_error(i, e)
+      ),
+      warning = function(w) {
+        msg <- conditionMessage(w)
+        if (!grepl("non-integer #successes", msg)) {
+          warn_msg <<- c(warn_msg, msg)
+          warn_imp <<- c(warn_imp, i)
+        }
+        invokeRestart("muffleWarning")
+      }
     )
   })
-  models <- Filter(Negate(is.null), models)
-  if (length(models) < 2)
-    stop("Too few successful implicate-level models to pool.")
+  for (msg in unique(warn_msg)) {
+    imps <- sort(unique(warn_imp[warn_msg == msg]))
+    warning(sprintf("%s (implicate%s %s)", msg, if (length(imps) > 1) "s" else "",
+                    paste(imps, collapse = ", ")), call. = FALSE)
+  }
 
   coefs_list <- lapply(models, coef)
-  vars_list  <- lapply(models, vcov)
-  common_terms <- Reduce(intersect, lapply(coefs_list, names))
-  coefs_list <- lapply(coefs_list, function(x) x[common_terms])
-  vars_list  <- lapply(vars_list, function(v) v[common_terms, common_terms, drop = FALSE])
-
-  # Drop the survey design from each model object after extracting what is
-  # needed. svyglm stores the full svrepdesign (data + 999 replicate weights)
-  # in $survey.design; keeping it multiplies object size by ~5x for no benefit.
-  models <- lapply(models, function(m) { m$survey.design <- NULL; m })
+  vars_list <- lapply(models, vcov)
+  aligned <- .scf_align_terms(coefs_list, vars_list)
+  coefs_list <- aligned$coefs
+  vars_list <- aligned$vars
 
   pooled <- scf_MIcombine(coefs_list, vars_list)
 
-  est  <- coef(pooled)
-  se   <- SE(pooled)
-  zval <- est / se
-  pval <- 2 * pnorm(-abs(zval))
+  est <- coef(pooled)
+  se <- SE(pooled)
+  tval <- est / se
+  pval <- 2 * pt(-abs(tval), df = pooled$df)
 
   coef_table <- data.frame(
     term = names(est),
     estimate = est,
     std.error = se,
-    z.value = zval,
+    t.value = tval,
     p.value = pval,
-    stars = cut(pval,
-                breaks = c(-Inf, 0.001, 0.01, 0.05, 0.10, Inf),
-                labels = c("***", "**", "*", ".", ""),
-                right = FALSE),
+    stars = .scf_stars(pval),
     stringsAsFactors = FALSE
   )
 
   aics <- sapply(models, function(m) {
-    suppressWarnings(
-      tryCatch(AIC(m), error = function(e) NA_real_)
-    )
+    tryCatch(suppressWarnings(AIC(m)[["AIC"]]), error = function(e) {
+      warning("AIC could not be computed for an implicate: ",
+              conditionMessage(e), call. = FALSE)
+      NA_real_
+    })
   })
+
+  models <- lapply(models, function(m) { m$survey.design <- NULL; m$data <- NULL; m })
 
   pseudo_r2 <- if (identical(family$family, "binomial")) {
     sapply(models, function(m) 1 - m$deviance / m$null.deviance)
@@ -146,17 +131,22 @@ scf_glm <- function(object, formula, family = binomial()) {
     rep(NA_real_, length(models))
   }
 
+  nobs_vec <- sapply(models, nobs)
+
   fit_stats <- list(
     pseudo_r2 = if (all(!is.na(pseudo_r2))) mean(pseudo_r2) else NA_real_,
     pseudo_r2.sd = if (all(!is.na(pseudo_r2))) sd(pseudo_r2) else NA_real_,
     AIC = if (all(!is.na(aics))) mean(aics) else NA_real_,
-    AIC.sd = if (all(!is.na(aics))) sd(aics) else NA_real_
+    AIC.sd = if (all(!is.na(aics))) sd(aics) else NA_real_,
+    nobs = nobs_vec,
+    nobs_mean = mean(nobs_vec)
   )
 
   out <- list(
     results = coef_table,
     fit = fit_stats,
     vcov = pooled$variance,
+    df = unname(pooled$df),
     models = models,
     call = match.call(),
     formula = formula
@@ -170,12 +160,12 @@ print.scf_glm <- function(x, digits = 4, ...) {
   cat("--------------------------------------------------\n")
 
   df <- x$results
-  df$estimate   <- round(df$estimate, digits)
-  df$std.error  <- round(df$std.error, digits)
-  df$z.value    <- round(df$z.value, digits)
-  df$p.value    <- format.pval(df$p.value, digits = digits)
+  df$estimate <- round(df$estimate, digits)
+  df$std.error <- round(df$std.error, digits)
+  df$t.value <- round(df$t.value, digits)
+  df$p.value <- format.pval(df$p.value, digits = digits)
 
-  print(df[, c("term", "estimate", "std.error", "z.value", "p.value", "stars")], row.names = FALSE)
+  print(df[, c("term", "estimate", "std.error", "t.value", "p.value", "stars")], row.names = FALSE)
 
   cat("\nModel Fit Diagnostics:\n")
   if (!is.null(x$fit$pseudo_r2) && !is.na(x$fit$pseudo_r2)) {
@@ -187,7 +177,7 @@ print.scf_glm <- function(x, digits = 4, ...) {
         " (SD: ", formatC(x$fit$AIC.sd, digits = 0, format = "f"), ")\n", sep = "")
   }
 
-  cat("\nNote: Model fit pooled across implicates via Rubin's Rules.\n")
+  cat("\nNote: Coefficients pooled with Rubin's rules; fit statistics averaged across implicates.\n")
   cat("      Inspect individual models via `object$models[[i]]`.\n")
   invisible(x)
 }
@@ -198,13 +188,13 @@ summary.scf_glm <- function(object, digits = 4, ...) {
   cat("------------------------------------\n")
 
   df <- object$results
-  df$estimate   <- round(df$estimate, digits)
-  df$std.error  <- round(df$std.error, digits)
-  df$z.value    <- round(df$z.value, digits)
-  df$p.value    <- format.pval(df$p.value, digits = digits)
+  df$estimate <- round(df$estimate, digits)
+  df$std.error <- round(df$std.error, digits)
+  df$t.value <- round(df$t.value, digits)
+  df$p.value <- format.pval(df$p.value, digits = digits)
 
   cat("Pooled Coefficient Estimates:\n")
-  print(df[, c("term", "estimate", "std.error", "z.value", "p.value", "stars")], row.names = FALSE)
+  print(df[, c("term", "estimate", "std.error", "t.value", "p.value", "stars")], row.names = FALSE)
 
   cat("\nModel Diagnostics:\n")
   if (!is.null(object$fit$pseudo_r2) && !is.na(object$fit$pseudo_r2)) {

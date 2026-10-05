@@ -4,8 +4,7 @@
 \alias{scf_imports}
 \title{Internal Import Declarations}
 \description{
-Declares functions from base packages used in nonstandard evaluation or
-dynamic contexts across \code{scf} package functions. Ensures all used base
-functions are properly registered in the NAMESPACE.
+Declares functions from other packages used across \code{scf} functions, so
+they are registered in the NAMESPACE.
 }
 \keyword{internal}

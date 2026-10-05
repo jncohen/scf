@@ -5,16 +5,18 @@
 \alias{summary.scf_corr}
 \title{Estimate Correlation Between Two Continuous Variables in SCF Microdata}
 \usage{
-scf_corr(scf, var1, var2)
+scf_corr(scf, var1, var2, variance = getOption("scf.variance", "fed"))
 
 \method{summary}{scf_corr}(object, ...)
 }
 \arguments{
-\item{scf}{An \code{scf_mi_survey} object, created by \code{\link[=scf_load]{scf_load()}}}
+\item{scf}{A \code{scf_mi_survey} object, created by \code{\link[=scf_load]{scf_load()}}}
 
 \item{var1}{One-sided formula specifying the first variable}
 
 \item{var2}{One-sided formula specifying the second variable}
+
+\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
 
 \item{object}{A \code{scf_corr} object returned by \code{\link[=scf_corr]{scf_corr()}}.}
 
@@ -30,47 +32,26 @@ t-statistic, degrees of freedom, p-value, and minimum/maximum values across impl
 }
 }
 \description{
-This function estimates the linear association between two continuous variables
-using Pearson's correlation. Estimates are computed within each implicate and then
-pooled across implicates to account for imputation uncertainty.
+Estimates the weighted Pearson correlation between two variables, with a
+t-test of zero correlation.
 }
 \details{
-Computes the Pearson correlation coefficient between two continuous variables using
-multiply-imputed, replicate-weighted SCF data. Returns pooled estimates and standard errors
-using Rubin’s Rules.
-}
-\note{
-Degrees of freedom are approximated using a simplified Barnard–Rubin
-adjustment, since correlation is a scalar quantity. Interpret cautiously with
-few implicates.
-}
-\section{Implementation}{
+Use it to measure how closely two variables move together, such as income
+and net worth. \eqn{r} runs from -1 to 1: the sign gives the direction,
+values near 0 mean little linear association. A small p-value means the
+population correlation is unlikely to be zero. \eqn{r} measures linear
+association only, is sensitive to outliers, and does not adjust for other
+variables; for that, use \code{\link[=scf_ols]{scf_ols()}}.
 
-\itemize{
-\item Inputs: an \code{scf_mi_survey} object and two one-sided formulas (e.g., \code{~income})
-\item Correlation computed using \code{cor(..., use = "complete.obs")} within each implicate
-\item Rubin’s Rules applied to pool results across implicates
+In each implicate, the weighted correlation is
+
+\deqn{r = \frac{\sum w_i (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum w_i (x_i - \bar{x})^2 \sum w_i (y_i - \bar{y})^2}}}{r = sum(w (x - xbar)(y - ybar)) / sqrt(sum(w (x - xbar)^2) sum(w (y - ybar)^2))}
+
+where \eqn{w_i} is the household weight and \eqn{\bar{x}}, \eqn{\bar{y}}
+are weighted means. The sampling variance comes from the 999 replicate
+weights (see \link{scf_variance}). The five estimates are pooled (see
+\link{scf_MIcombine}). The t-statistic is \eqn{r} divided by its standard error.
 }
-}
-
-\section{Interpretation}{
-
-Pearson’s \verb{$r$} ranges from -1 to +1 and reflects the strength and
-direction of a linear bivariate association between two continuous variables.
-Values near 0 indicate weak linear association. Note that the operation is
-sensitive to outliers and does not capture nonlinear relationships nor adjust
-for covariates.
-}
-
-\section{Statistical Notes}{
-
-Correlation is computed within each implicate using complete cases. Rubin’s
-Rules are applied manually to pool estimates and calculate total variance.
-This function does not use \code{\link[=scf_MIcombine]{scf_MIcombine()}}, which is intended
-for vector-valued estimates; direct pooling is more appropriate for
-scalar statistics like correlation coefficients.
-}
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

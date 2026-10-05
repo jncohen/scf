@@ -1,51 +1,39 @@
 #' Estimate Correlation Between Two Continuous Variables in SCF Microdata
 #'
-#' Computes the Pearson correlation coefficient between two continuous variables using
-#' multiply-imputed, replicate-weighted SCF data. Returns pooled estimates and standard errors
-#' using Rubin’s Rules.
+#' Estimates the weighted Pearson correlation between two variables, with a
+#' t-test of zero correlation.
 #'
-#' @description
-#' This function estimates the linear association between two continuous variables
-#' using Pearson's correlation. Estimates are computed within each implicate and then
-#' pooled across implicates to account for imputation uncertainty.
+#' @details
+#' Use it to measure how closely two variables move together, such as income
+#' and net worth. \eqn{r} runs from -1 to 1: the sign gives the direction,
+#' values near 0 mean little linear association. A small p-value means the
+#' population correlation is unlikely to be zero. \eqn{r} measures linear
+#' association only, is sensitive to outliers, and does not adjust for other
+#' variables; for that, use [scf_ols()].
 #'
-#' @section Implementation:
-#' - Inputs: an `scf_mi_survey` object and two one-sided formulas (e.g., `~income`)
-#' - Correlation computed using `cor(..., use = "complete.obs")` within each implicate
-#' - Rubin’s Rules applied to pool results across implicates
+#' In each implicate, the weighted correlation is
 #'
-#' @section Interpretation:
-#' Pearson’s `$r$` ranges from -1 to +1 and reflects the strength and
-#' direction of a linear bivariate association between two continuous variables.
-#' Values near 0 indicate weak linear association. Note that the operation is
-#' sensitive to outliers and does not capture nonlinear relationships nor adjust
-#' for covariates.
+#' \deqn{r = \frac{\sum w_i (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum w_i (x_i - \bar{x})^2 \sum w_i (y_i - \bar{y})^2}}}{r = sum(w (x - xbar)(y - ybar)) / sqrt(sum(w (x - xbar)^2) sum(w (y - ybar)^2))}
 #'
-#' @param scf An `scf_mi_survey` object, created by [scf_load()]
+#' where \eqn{w_i} is the household weight and \eqn{\bar{x}}, \eqn{\bar{y}}
+#' are weighted means. The sampling variance comes from the 999 replicate
+#' weights (see [scf_variance]). The five estimates are pooled (see
+#' [scf_MIcombine]). The t-statistic is \eqn{r} divided by its standard error.
+#'
+#' @param scf A `scf_mi_survey` object, created by [scf_load()]
 #' @param var1 One-sided formula specifying the first variable
 #' @param var2 One-sided formula specifying the second variable
-#'
-#'
-#' @section Statistical Notes:
-#' Correlation is computed within each implicate using complete cases. Rubin’s
-#' Rules are applied manually to pool estimates and calculate total variance.
-#' This function does not use [scf_MIcombine()], which is intended
-#' for vector-valued estimates; direct pooling is more appropriate for
-#' scalar statistics like correlation coefficients.
+#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
 #'
 #' @seealso [scf_plot_hex()], [scf_ols()]
 #'
-#' @return An object of class `scf_corr`, containing: 
+#' @return An object of class `scf_corr`, containing:
 #' \describe{
-#'   \item{results}{Data frame with pooled correlation estimate, standard error, 
+#'   \item{results}{Data frame with pooled correlation estimate, standard error,
 #'     t-statistic, degrees of freedom, p-value, and minimum/maximum values across implicates.}
 #'   \item{imps}{Named vector of implicate-level correlations.}
 #'   \item{aux}{Variable names used in the estimation.}
 #' }
-#'
-#' @note Degrees of freedom are approximated using a simplified Barnard–Rubin 
-#' adjustment, since correlation is a scalar quantity. Interpret cautiously with 
-#' few implicates.
 #'
 #' @examples
 #' # Do not implement these lines in real analysis:
@@ -64,38 +52,47 @@
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
-#' 
+#'
 #' @export
-scf_corr <- function(scf, var1, var2) {
-  if (isTRUE(attr(scf, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
-
+scf_corr <- function(scf, var1, var2, variance = getOption("scf.variance", "fed")) {
   if (!inherits(scf, "scf_mi_survey") ||
       !is.list(scf$mi_design) ||
       !all(sapply(scf$mi_design, inherits, "svyrep.design"))) {
     stop("Input must be an 'scf_mi_survey' object with valid replicate-weighted designs.")
   }
+  variance <- .scf_variance_method(variance)
 
-  v1 <- all.vars(var1)[1]
-  v2 <- all.vars(var2)[1]
+  v1 <- deparse(var1[[2]])
+  v2 <- deparse(var2[[2]])
+  .scf_check_na(scf$mi_design, var1, var2)
   designs <- scf$mi_design
   nimp <- length(designs)
 
-  cors <- sapply(seq_along(designs), function(i) {
-    d <- designs[[i]]
-    dvars <- d$variables
-    stats::cor(dvars[[v1]], dvars[[v2]], use = "complete.obs")
+  wcor <- function(x, y, w) {
+    ok <- !is.na(x) & !is.na(y) & !is.na(w)
+    x <- x[ok]
+    y <- y[ok]
+    w <- w[ok]
+    mx <- sum(w * x) / sum(w)
+    my <- sum(w * y) / sum(w)
+    sum(w * (x - mx) * (y - my)) /
+      sqrt(sum(w * (x - mx)^2) * sum(w * (y - my)^2))
+  }
+
+  est <- lapply(designs, function(d) {
+    rep_est <- survey::withReplicates(d, theta = function(w, data) {
+      wcor(.scf_eval(var1, data), .scf_eval(var2, data), w)
+    })
+    c(cor = unname(coef(rep_est)), var = unname(as.matrix(stats::vcov(rep_est))[1, 1]))
   })
+  cors <- vapply(est, function(e) e[["cor"]], numeric(1))
+  vars <- vapply(est, function(e) e[["var"]], numeric(1))
   names(cors) <- paste0("imp", seq_len(nimp))
 
-  qbar <- mean(cors)
-  b <- var(cors)
-  se <- sqrt(b * (1 + 1/nimp))
-
-  # Rubin degrees of freedom
-  r <- (1 + 1/nimp) * b / (b / nimp)
-  df <- (nimp - 1) * (1 + 1/r)^2
+  pooled <- .scf_pool(cors, vars, variance)
+  qbar <- pooled$estimate
+  se <- pooled$se
+  df <- pooled$df
   tval <- qbar / se
   pval <- 2 * stats::pt(-abs(tval), df = df)
 

@@ -26,40 +26,23 @@ scf_theme(base_size = 13, base_family = "sans", grid = TRUE, axis = TRUE, ...)
 its side effect of setting the session-wide \code{ggplot2} theme.
 }
 \description{
-The theme is designed to:
-\itemize{
-\item Render cleanly in \strong{print} (single-column or wrapped layout)
-\item Scale well on \strong{HD desktop} monitors without visual clutter
-\item Remain \strong{legible on mobile} with clear fonts and sufficient contrast
-}
-
-The default figure dimensions assumed for export are \strong{5.5 inches by 5.5 inches}
-at \strong{300 dpi}, which balances compactness with accessibility across media.
-
-All theme settings are exposed via comments to enable easy brand customization.
+The \code{ggplot2} theme used by all \verb{scf_plot_*()} functions.
 }
 \details{
-Defines the SCF package's default \code{ggplot2} theme, optimized for legibility,
-clarity, and aesthetic coherence across print, desktop, and mobile platforms.
+Based on \code{theme_minimal()} and sized for 5.5 by 5.5 inch figures at 300
+dpi. Add a \code{ggplot2::theme()} call to change settings.
+\code{\link[=scf_activate_theme]{scf_activate_theme()}} sets it as the session default.
 }
-\section{Global activation}{
-
-\code{scf_activate_theme()} sets \code{scf_theme()} as the default
-\code{ggplot2} theme for all plots in the current R session — equivalent
-to \code{ggplot2::theme_set(scf_theme())}. The effect lasts only for the
-session and does not persist across sessions. All \code{scf_plot_*()} functions
-apply \code{scf_theme()} internally, so this is most useful when producing
-custom plots alongside the package's built-in visualizations.
-}
-
 \examples{
 library(ggplot2)
 ggplot(mtcars, aes(factor(cyl))) +
   geom_bar(fill = "#0072B2") +
   scf_theme()
 
-# Activate globally for the session:
+# Activate globally for the session, then restore the previous theme:
+old <- ggplot2::theme_get()
 scf_activate_theme()
+ggplot2::theme_set(old)
 
 }
 \seealso{

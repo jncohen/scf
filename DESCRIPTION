@@ -1,6 +1,6 @@
 Package: scf
 Title: Analyzing the Survey of Consumer Finances
-Version: 1.0.11
+Version: 1.1.0
 Authors@R:
     c(person("Joseph","Cohen", role = c("aut","cre"),
              email = "joseph.cohen@qc.cuny.edu"))
@@ -19,7 +19,6 @@ Imports:
     ggplot2,
     haven,
     httr,
-    rlang,
     stats,
     survey,
     utils,

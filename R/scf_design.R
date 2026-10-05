@@ -1,14 +1,11 @@
 #' Construct an SCF Multiply-Imputed Survey Object
 #'
-#' @description
-#' Wraps a list of replicate-weighted survey designs into an `scf_mi_survey`
-#' object. This is called internally by [scf_load()], but is also available
-#' directly for users who construct their own implicate-level designs outside
-#' the standard download-and-load workflow — for example, when integrating
-#' external or custom-prepared SCF data files.
+#' Wraps a list of implicate designs into an `scf_mi_survey` object.
 #'
-#' Each element of `design` must be a [survey::svrepdesign()] object representing
-#' one SCF implicate with replicate weights.
+#' @details
+#' [scf_load()] calls this function. Call it directly only when building
+#' implicate designs outside the download-and-load workflow. Each element of
+#' `design` must be a [survey::svrepdesign()] object.
 #'
 #' @param design A list of five [survey::svrepdesign()] objects (one per implicate).
 #' @param year Numeric SCF survey year (e.g., 2022).
@@ -35,7 +32,7 @@
 #' obj <- scf_design(
 #'   design = scf2022$mi_design,
 #'   year = 2022,
-#'   n_households = attr(scf2022, "n_households")
+#'   n_households = scf2022$n_households
 #' )
 #' class(obj)
 #' length(obj$mi_design)
@@ -56,9 +53,9 @@ scf_design <- function(design, year, n_households) {
 print.scf_mi_survey <- function(x, ...) {
   cat("SCF Multiply-Imputed Survey Object\n")
   cat("----------------------------------\n")
-  cat("Year:          ", x$year, "\n", sep = "")
-  cat("Households (N):", format(x$n_households, big.mark = ","), "\n", sep = "")
-  cat("Implicates:    ", length(x$mi_design), "\n", sep = "")
+  cat("Year:           ", x$year, "\n", sep = "")
+  cat("Households (N): ", format(x$n_households, big.mark = ","), "\n", sep = "")
+  cat("Implicates:     ", length(x$mi_design), "\n", sep = "")
   cat("Replicate weights per implicate:",
       ncol(x$mi_design[[1]]$repweights), "\n")
   invisible(x)

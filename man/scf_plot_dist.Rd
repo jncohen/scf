@@ -21,7 +21,8 @@ scf_plot_dist(
 
 \item{variable}{A one-sided formula specifying the variable to plot.}
 
-\item{bins}{Number of bins for continuous variables. Default is 30.}
+\item{bins}{Approximate number of bins for continuous variables; the
+breaks are set by \code{\link[=pretty]{pretty()}}. Default is 30.}
 
 \item{title}{Optional plot title.}
 
@@ -39,22 +40,14 @@ scf_plot_dist(
 A \code{ggplot2} object.
 }
 \description{
-This function provides a unified plotting interface for visualizing the
-distribution of a single variable from multiply-imputed SCF data. Discrete
-variables produce bar charts of pooled proportions; continuous variables
-produce binned histograms.  Use this function to visualize the univariate
-distribution of an SCF variable.
+Plots the percent of households in each category or bin of a variable.
 }
-\section{Implementation}{
-
-For discrete variables (factor or numeric with <= 25 unique values), the
-function uses \code{\link[=scf_freq]{scf_freq()}} to calculate category proportions and produces a
-bar chart.  For continuous variables, it bins values across implicates and
-estimates Rubin-pooled frequencies for each bin.
-
-Users may supply a named vector of custom axis labels using the \code{labels} argument.
+\details{
+Use it for a quick look at any variable. Factors and numeric variables
+with 25 or fewer values are treated as discrete and plotted with
+\code{\link[=scf_freq]{scf_freq()}}. Continuous variables are binned with the same breaks in every
+implicate and pooled.
 }
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

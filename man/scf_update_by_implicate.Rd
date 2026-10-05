@@ -18,31 +18,14 @@ used to rebuild the replicate-weighted survey design.}
 A modified \code{scf_mi_survey} object with updated implicate-level designs.
 }
 \description{
-Each household in SCF data is represented by five \emph{implicates}, which reflect
-uncertainty from the imputation process. Most transformations — such as computing
-log income or assigning categorical bins — can be applied uniformly across implicates
-using \code{\link[=scf_update]{scf_update()}}. However, some operations depend on the \emph{internal distribution}
-of variables within each implicate. For those, you need to modify each one separately.
-
-This function extracts each implicate from the replicate-weighted survey design,
-applies your transformation, and rebuilds the survey design objects accordingly.
+Applies a function to each implicate's data frame.
 }
 \details{
-Applies a user-defined transformation to each implicate's data frame separately.
-This is useful when you need to compute values that depend on the distribution
-within each implicate — such as ranks, percentiles, or groupwise comparisons —
-which cannot be computed reliably using \code{\link[=scf_update]{scf_update()}}.
+Use for variables that depend on the distribution within each implicate,
+such as ranks, implicate-specific quantiles, or group z-scores. The
+function must return a data frame with the same number of rows. The result
+is a new object; assign it back to keep the changes.
 }
-\section{Use this When}{
-
-\itemize{
-\item You need implicate-specific quantiles (e.g., flag households in the top 10\% of wealth)
-\item You want to assign percentile ranks (e.g., income percentile by implicate)
-\item You are computing statistics within groups (e.g., groupwise z-scores)
-\item You need to derive a variable based on implicate-specific thresholds or bins
-}
-}
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

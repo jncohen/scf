@@ -6,160 +6,169 @@
 \alias{scf}
 \title{Analyzing Survey of Consumer Finances Public-Use Microdata}
 \description{
-This package provides functions to analyze the U.S. Federal Reserve's
-Survey of Consumer Finances (SCF) public-use microdata. It encapsulates
-the SCF’s multiply-imputed, replicate-weighted structure in a custom
-object class (\code{scf_mi_survey}) and supports estimation of population-level
-statistics, including univariate and bivariate distributions,
-hypothesis tests, data visualizations, and regression models.
+Functions to analyze the Federal Reserve's Survey of Consumer Finances
+(SCF) public-use microdata. The package stores the SCF's five implicates and
+replicate weights in one object (\code{scf_mi_survey}) and provides means,
+medians, percentiles, frequencies, cross-tabs, ratios, tests, regression
+models, and plots.
 
-Designed for generalist analysts, the package assumes familiarity with
-standard statistical methods but not with the complexities of
-multiply-imputed or survey-weighted data. All functions prioritize
-transparency, reproducibility, and pedagogical clarity.
+It is written for analysts who know standard statistics but not the
+details of multiply imputed or survey-weighted data.
 }
 \section{Methodological Background}{
 
 
-The SCF is one of the most detailed and methodologically rigorous sources of
-data on U.S. household finances. It is nationally representative, includes an
-oversample of high-wealth households and households in predominantly Black
-communities, and provides multiply-imputed estimates for item nonresponse.
-These features increase the analytical value of the data set but also
-introduce methodological complexity. Valid inference requires attention to:
+The SCF is a detailed source of data on U.S. household finances. It is
+nationally representative, oversamples wealthy households, and fills in
+missing answers by multiple imputation. Valid estimates need three things:
 \itemize{
-\item \strong{Survey Weights:} The SCF employs a dual-frame, stratified, and clustered
-probability sample. Analysts must apply the provided sampling weights to
-produce population-representative estimates.
-\item \strong{Replicate Weights:} Each observation is associated with 999 replicate weights,
-generated using a custom replication method developed by the Federal
-Reserve. These are used to estimate sampling variance.
-\item \strong{Multiple Imputation:} The SCF uses multiple imputation to address item nonresponse,
-providing five implicates per household. Estimates must be pooled across
-implicates to obtain valid point estimates and standard errors.
+\item Sampling weights. The SCF uses a dual-frame probability sample, so
+estimates must use the weights.
+\item Replicate weights. Each household has 999 bootstrap replicate weights,
+built by the Fed, for estimating sampling variance.
+\item Multiple imputation. Each household appears in five implicates.
+Estimates are pooled across them to get point estimates and standard
+errors.
 }
 
-The \code{scf} package provides a structured, user-friendly interface for handling
-these design complexities, enabling applied researchers and generalist
-analysts to conduct principled and reproducible analysis of SCF microdata
-using familiar statistical workflows.
+The package handles all three. See \link{scf_variance} for how standard errors
+are computed.
 }
 
-\section{Package Architecture and Workflow}{
+\section{Workflow}{
 
 
-This section recommends a sequence of operations enacted through the package's
-functions.  For an in-depth discussion of the methodological considerations
-involved in these functions' formulation, see Cohen (2026).
+For the methods behind these functions, see Cohen (2026).
 \enumerate{
-\item \strong{Data Acquisition}:  Download the data from Federal Reserve servers to your working directory using \code{\link[=scf_download]{scf_download()}}.
-\item \strong{Data Loading}: Load the data into R using \code{\link[=scf_load]{scf_load()}}. This function returns an \code{scf_mi_survey} object (described below).
-\item \strong{Data Wrangling}: Use \code{\link[=scf_update]{scf_update()}} to modify the data, or \code{\link[=scf_subset]{scf_subset()}} to filter it. These functions return new \code{scf_mi_survey} objects.
-\item \strong{Descriptive Statistics}: Compute univariate and bivariate statistics using functions like \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}}, \code{\link[=scf_percentile]{scf_percentile()}}, \code{\link[=scf_freq]{scf_freq()}}, \code{\link[=scf_xtab]{scf_xtab()}}, and \code{\link[=scf_corr]{scf_corr()}}.
-\item \strong{Basic Inferential Tests}: Conduct hypothesis tests using \code{\link[=scf_ttest]{scf_ttest()}} for means and \code{\link[=scf_prop_test]{scf_prop_test()}} for proportions.
-\item \strong{Regression Modeling}: Fit regression models using \code{\link[=scf_ols]{scf_ols()}} for linear regression, \code{\link[=scf_logit]{scf_logit()}} for logistic regression, and \code{\link[=scf_glm]{scf_glm()}} for generalized linear models.
-\item \strong{Data Visualization}: Create informative visualizations using \code{\link[=scf_plot_dist]{scf_plot_dist()}} for distributions, \code{\link[=scf_plot_cbar]{scf_plot_cbar()}} and \code{\link[=scf_plot_bbar]{scf_plot_bbar()}} for categorical data, \code{\link[=scf_plot_smooth]{scf_plot_smooth()}} for smoothers, and \code{\link[=scf_plot_hex]{scf_plot_hex()}} for hexbin plots.
-\item \strong{Diagnostics and Infrastructure}: Use \code{\link[=scf_MIcombine]{scf_MIcombine()}} to pool results across implicates.
+\item Download the data with \code{\link[=scf_download]{scf_download()}}.
+\item Load it with \code{\link[=scf_load]{scf_load()}}, which returns a \code{scf_mi_survey} object.
+\item Change variables with \code{\link[=scf_update]{scf_update()}} or \code{\link[=scf_update_by_implicate]{scf_update_by_implicate()}}, and
+keep a subset of households with \code{\link[=scf_subset]{scf_subset()}}.
+\item Describe the data with \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}}, \code{\link[=scf_percentile]{scf_percentile()}},
+\code{\link[=scf_freq]{scf_freq()}}, \code{\link[=scf_xtab]{scf_xtab()}}, \code{\link[=scf_ratio]{scf_ratio()}}, \code{\link[=scf_corr]{scf_corr()}}, and
+\code{\link[=scf_pctile_sum]{scf_pctile_sum()}}.
+\item Test hypotheses with \code{\link[=scf_ttest]{scf_ttest()}} and \code{\link[=scf_prop_test]{scf_prop_test()}}.
+\item Fit models with \code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_logit]{scf_logit()}}, \code{\link[=scf_glm]{scf_glm()}}, and
+\code{\link[=scf_quantreg]{scf_quantreg()}}, and tabulate them with \code{\link[=scf_regtable]{scf_regtable()}}.
+\item Plot with \code{\link[=scf_plot_dist]{scf_plot_dist()}}, \code{\link[=scf_plot_hist]{scf_plot_hist()}}, \code{\link[=scf_plot_dbar]{scf_plot_dbar()}},
+\code{\link[=scf_plot_cbar]{scf_plot_cbar()}}, \code{\link[=scf_plot_bbar]{scf_plot_bbar()}}, \code{\link[=scf_plot_smooth]{scf_plot_smooth()}}, and
+\code{\link[=scf_plot_hex]{scf_plot_hex()}}.
+\item Convert raw \code{x} dollar variables to 2022 dollars with \code{\link[=scf_real]{scf_real()}},
+and dollar results to nominal survey-year dollars with \code{\link[=scf_nominal]{scf_nominal()}}.
 }
 }
 
-\section{Core Data Object and Its Structure}{
+\section{Households}{
+
+The SCF's unit is the primary economic unit: the person or couple at the
+economic center of the household and everyone financially dependent on
+them. The Fed calls this unit a "family"; this package calls it a
+household.
+}
+
+\section{Dollars}{
+
+Summary variables made by the Fed, such as \code{income}, \code{networth}, and
+\code{asset}, are in 2022 dollars in every survey year, so they can be compared
+across years as they are. Raw survey variables, named \code{x} followed by a
+number, are in dollars of the survey year. Convert them with \code{\link[=scf_real]{scf_real()}}
+before comparing years or combining them with summary variables.
+}
+
+\section{Data Object}{
 
 
-This suite of functions operate from a custom object class, \code{scf_mi_survey},
-which is created by \code{\link[=scf_design]{scf_design()}} via \code{\link[=scf_load]{scf_load()}}.  Specifically, the
-object is a structured list containing the elements:
+Functions work on a \code{scf_mi_survey} object, made by \code{\link[=scf_design]{scf_design()}} via
+\code{\link[=scf_load]{scf_load()}}. It is a list with:
 \itemize{
-\item \code{mi_design}: A list of five \code{survey::svrepdesign()} objects (one per implicate)
-\item \code{year}: Year of survey
-\item \code{n_households}: Estimated number of U.S. households in that year, per data from the Federal Reserve Economic Data (FRED) series TTLHH, accessed 6/17/2025.
+\item \code{mi_design}: five \code{\link[survey:svrepdesign]{survey::svrepdesign()}} objects, one per implicate
+\item \code{year}: the survey year
+\item \code{n_households}: the weighted number of households
 }
 }
 
 \section{Imputed Missing Data}{
 
 
-The SCF addresses item nonresponse using multiple imputation
-(see Kennickell 1998). This procedure generates five completed data sets,
-each containing distinct but plausible values for the missing entries. The
-method applies a predictive model to the observed data, simulates variation
-in both model parameters and residuals, and generates five independent
-estimates for each missing value. These completed data sets—called
-\emph{implicates}—reflect both observed relationships and the uncertainty in
-estimating them. See \code{\link[=scf_MIcombine]{scf_MIcombine()}} for details.
+The SCF fills in missing answers by multiple imputation (Kennickell 1998).
+A model of the observed data is used to draw five plausible values for each
+missing answer, giving five complete data sets, called implicates. The
+spread across implicates shows how uncertain the filled-in values are. See
+\link{scf_variance} and \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
 }
 
 \section{Mock Data for Testing}{
 
 
-A mock SCF dataset (\code{scf2022_mock_raw.rds}) is bundled in \verb{inst/extdata/} for
-internal testing purposes. It is a structurally valid \code{scf_mi_survey} object
-created by retaining only the first ~200 rows per implicate and only variables
-used in examples and tests.
-
-This object is intended solely for package development and documentation rendering.
-It is \strong{not suitable for analytical use or valid statistical inference.}
+A mock SCF data set (\code{scf2022_mock_raw.rds}) in \verb{inst/extdata/} is used in
+examples and tests. It keeps the first 200 rows of each implicate and only
+the variables the examples use. It is not suitable for analysis or
+inference.
 }
 
-\section{Theming and Visual Style}{
+\section{Plot Theme}{
 
-All built-in graphics follow a common aesthetic set by \code{\link[=scf_theme]{scf_theme()}}. Users
-may modify the default theme by calling \code{scf_theme()} explicitly within their
-scripts. See \code{\link[=scf_theme]{scf_theme()}} documentation for customization options.
+All plots use \code{\link[=scf_theme]{scf_theme()}}. See its help page to change the theme.
 }
 
-\section{Pedagogical Design}{
+\section{Teaching}{
 
 
-The package is designed to support instruction in advanced methods courses
-on complex survey analysis and missing data. It promotes pedagogical
-transparency through several features:
+The package can be used to teach survey analysis and missing data, because
+each step can be inspected:
 \itemize{
-\item Each implicate’s design object is accessible via \code{scf_mi_survey$mi_design[[i]]}
-\item Raw implicate-level data can be viewed directly through \code{scf_mi_survey$mi_design[[i]]$variables}
-\item Users can execute analyses on individual implicates or combine them using Rubin’s Rules
-\item Key functions implement design-based estimation strategies explicitly, such as replicate-weight variance estimation
-\item Minimal abstraction is used, so each step remains visible and tractable
+\item Each implicate's design is in \code{x$mi_design[[i]]}.
+\item Each implicate's data is in \code{x$mi_design[[i]]$variables}.
+\item Results keep implicate-level estimates (see \code{\link[=scf_implicates]{scf_implicates()}}).
+\item Standard errors come from replicate weights and the spread across
+implicates, so students can follow how each part adds to the total.
 }
-
-These features allow instructors to demonstrate how survey weights, replicate
-designs, and multiple imputation contribute to final results. Students can
-follow the full analytic path from raw inputs to pooled estimates using
-transparent, inspectable code and data structures.
 }
 
 \references{
-Cohen JN. Analyzing the Survey of Consumer Finances with \pkg{scf}. 2026.
-\url{https://osf.io/azrsn}
+Cohen JN. Analyzing the Survey of Consumer Finances with \pkg{scf}:
+Methodology, User Guide, and Package Validation. Working paper, CUNY
+Queens College; 2026. \url{https://academicworks.cuny.edu/qc_pubs/695/}
 
-Barnard J, Rubin DB. Small-sample degrees of freedom with multiple imputation.
-\doi{10.1093/biomet/86.4.948}.
+Barnard J, Rubin DB. Small-sample degrees of freedom with multiple
+imputation. \emph{Biometrika}. 1999;86(4):948--955.
+\doi{10.1093/biomet/86.4.948}
 
-Bricker J, Henriques AM, Moore KB. Updates to the sampling of wealthy families in the Survey of Consumer Finances.
-Finance and Economics Discussion Series 2017-114.
-https://www.federalreserve.gov/econres/scfindex.htm
+Board of Governors of the Federal Reserve System. Codebook for the 2022
+Survey of Consumer Finances.
+\url{https://www.federalreserve.gov/econres/scfindex.htm}
 
-Kennickell AB, McManus DA, Woodburn RL. Weighting design for the 1992 Survey of Consumer Finances.
-U.S. Federal Reserve.
-\url{https://www.federalreserve.gov/Pubs/OSS/oss2/papers/weight92.pdf}
+Bricker J, Henriques AM, Moore KB. Updates to the sampling of wealthy
+families in the Survey of Consumer Finances. Finance and Economics
+Discussion Series 2017-114. Board of Governors of the Federal Reserve
+System; 2017.
 
 Kennickell AB. Multiple imputation in the Survey of Consumer Finances.
-Statistical Journal of the IAOS 33(1):143-151.
-\doi{10.3233/SJI-160278}.
+Board of Governors of the Federal Reserve System; 1998.
 
-Little RJA, Rubin DB. Statistical analysis with missing data.
-ISBN: 9780470526798.
+Kennickell AB. Multiple imputation in the Survey of Consumer Finances.
+\emph{Statistical Journal of the IAOS}. 2017;33(1):143--151.
+\doi{10.3233/SJI-160278}
 
-Lumley T. survey: Analysis of complex survey samples. R package version 4.1-1.
+Kennickell AB, McManus DA, Woodburn RL. Weighting design for the 1992
+Survey of Consumer Finances. Board of Governors of the Federal Reserve
+System; 1996.
+\url{https://www.federalreserve.gov/Pubs/OSS/oss2/papers/weight92.pdf}
+
+Little RJA, Rubin DB. \emph{Statistical Analysis with Missing Data}.
+3rd ed. Wiley; 2019. ISBN: 9780470526798.
+
+Lumley T. Analysis of complex survey samples. \emph{Journal of
+Statistical Software}. 2004;9(8):1--19. \doi{10.18637/jss.v009.i08}
+
+Lumley T. \emph{Complex Surveys: A Guide to Analysis Using R}. Wiley;
+2010. ISBN: 9781118210932.
+
+Lumley T. survey: Analysis of complex survey samples. R package.
 \url{https://CRAN.R-project.org/package=survey}
 
-Lumley T. Analysis of complex survey samples.
-\doi{10.18637/jss.v009.i08}.
-
-Lumley T. Complex surveys: A guide to analysis using R. ISBN: 9781118210932.
-
-U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
-https://www.federalreserve.gov/econres/scfindex.htm
+Rubin DB. \emph{Multiple Imputation for Nonresponse in Surveys}. Wiley;
+1987.
 }
 \seealso{
 Useful links:

@@ -8,9 +8,10 @@ scf_prop_test(
   design,
   var,
   group = NULL,
-  p = 0.5,
+  p = NULL,
   alternative = c("two.sided", "less", "greater"),
-  conf.level = 0.95
+  conf.level = 0.95,
+  variance = getOption("scf.variance", "fed")
 )
 }
 \arguments{
@@ -25,26 +26,33 @@ scf_prop_test(
 \item{alternative}{Character. One of \code{"two.sided"} (default), \code{"less"}, or \code{"greater"}.}
 
 \item{conf.level}{Confidence level for the confidence interval. Default is \code{0.95}.}
+
+\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
 }
 \value{
 An object of class \code{"scf_prop_test"} with:
 \describe{
-\item{results}{A data frame with the pooled estimate, standard error, z-statistic, p-value, confidence interval, and significance stars.}
+\item{results}{Estimate, standard error, t-statistic, degrees of freedom, p-value, confidence interval, and stars. For two-sample tests, the estimate is the first group minus the second.}
 \item{proportions}{(Only in two-sample tests) A data frame of pooled proportions by group.}
 \item{fit}{A list describing the method, null value, alternative hypothesis, and confidence level.}
 }
 }
 \description{
-Tests a binary variable's proportion against a null hypothesis (one-sample),
-or compares proportions across two groups (two-sample). Supports two-sided,
-less-than, or greater-than alternatives.
+Tests a proportion against a null value, or the difference between two
+groups.
 }
-\section{Statistical Notes}{
+\details{
+Use it for yes/no variables, such as whether a household owns its home,
+and to compare two groups, such as homeownership among men and women. The
+one-sample estimate is the share with the trait; the two-sample estimate is
+the first group's share minus the second's. A small p-value means a
+difference this large is unlikely under the null hypothesis; the confidence
+interval gives the plausible range.
 
-Proportions are computed in each implicate using weighted means, and variances are approximated under the binomial model.
-Rubin’s Rules are applied to pool point estimates and standard errors. For pooling details, see \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
+The variable must be logical or coded 0/1. Proportions are estimated in
+each implicate with the replicate weights and pooled (see \link{scf_variance}).
+The two-sample test accounts for the covariance between groups.
 }
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

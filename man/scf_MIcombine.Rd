@@ -2,19 +2,16 @@
 % Please edit documentation in R/scf_MIcombine.R
 \name{scf_MIcombine}
 \alias{scf_MIcombine}
-\alias{SE}
 \alias{SE.scf_MIresult}
-\title{Combine Estimates Across SCF Implicates Using Rubin's Rules}
+\title{Combine Estimates Across SCF Implicates}
 \usage{
 scf_MIcombine(results, variances, call = sys.call(), df.complete = Inf)
-
-SE(object, ...)
 
 \method{SE}{scf_MIresult}(object, ...)
 }
 \arguments{
-\item{results}{A list of implicate-level model outputs. Each element must be a named numeric vector
-or an object with methods for \code{coef()} and \code{vcov()}. Typically generated internally by modeling functions.}
+\item{results}{A list of implicate-level results. Each element is an object with \code{coef()} and
+\code{vcov()} methods, or a named numeric vector when \code{variances} is given.}
 
 \item{variances}{Optional list of variance-covariance matrices. If omitted, extracted using \code{vcov()}.}
 
@@ -32,98 +29,96 @@ An object of class \code{"scf_MIresult"} with components:
 \describe{
 \item{coefficients}{Pooled point estimates across implicates.}
 \item{variance}{Pooled variance-covariance matrix.}
-\item{df}{Degrees of freedom for each parameter, adjusted using Barnard-Rubin formula.}
+\item{df}{Degrees of freedom for each parameter.}
 \item{missinfo}{Estimated fraction of missing information for each parameter.}
 \item{nimp}{Number of implicates used in pooling.}
-\item{call}{Function call recorded for reproducibility.}
+\item{call}{The function call.}
 }
 
-Supports \code{coef()}, \code{\link[=SE]{SE()}}, \code{confint()}, and \code{summary()} methods.
+Supports \code{coef()}, \code{vcov()}, \code{confint()} (t distribution with Rubin's
+degrees of freedom), and \code{\link[=SE]{SE()}}.
 }
 \description{
-This function implements \strong{Rubin’s Rules} for combining multiply-imputed
-survey model results in the \code{scf} package. It pools point estimates,
-variance-covariance matrices, and degrees of freedom across the SCF’s
-five implicates.
+The SCF comes as five implicates: five complete copies of the data that
+differ only in the values the Fed filled in for missing answers. Every
+\code{scf} estimate is computed on each implicate and the five results are
+combined into a consolidated, final result. This page explains how these
+results are produced. To see how variance is computed, see \link{scf_variance}.
+
+\code{scf_MIcombine()} does the combining for the regression models. It can
+also be called directly on any list of implicate results. For univariate
+and bivariate inferential statistics, the results are combined within the
+functions that compute them, such as \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_ratio]{scf_ratio()}}, as these
+operations can differ depending on the statistic. Call it yourself when you
+need a statistic or model that \code{scf} does not provide: compute it on each
+implicate and pass the list of results.
 }
-\section{Scope}{
+\section{The estimate}{
 
-\code{scf_MIcombine()} is used for \strong{model-based analyses} such as
-\code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, and \code{\link[=scf_logit]{scf_logit()}}, where each implicate’s model
-output includes both parameter estimates and replicate-weighted sampling
-variances.
+The final estimate is the average of the implicate estimates:
 
-Descriptive estimators—functions such as \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_percentile]{scf_percentile()}},
-and \code{\link[=scf_median]{scf_median()}}—do \strong{not} apply Rubin’s Rules. They follow the Survey of
-Consumer Finances convention used in the Federal Reserve Board’s SAS macro,
-combining (i) the replicate-weight sampling variance from implicate 1 with
-(ii) the between-implicate variance scaled by (m + 1)/m.
+\deqn{\bar{Q} = \frac{1}{m} \sum_{i=1}^{m} Q_i}{Qbar = (1/m) sum(Q_i)}
 
-This separation is intentional: descriptive statistics in \code{scf} aim to
-reproduce the Survey of Consumer Finances' published standard errors,
-whereas model-based functions use Rubin's Rules.
+where \eqn{Q_i} is the estimate from implicate \eqn{i} and \eqn{m} is the
+number of implicates (5).
 }
 
-\section{Implementation}{
+\section{The standard error}{
 
-\code{scf_MIcombine()} pools a set of implicate-level estimates and their
-associated variance-covariance matrices using Rubin’s Rules.
+The total variance adds two parts:
 
-This includes:
+\deqn{T = U + \left(1 + \frac{1}{m}\right) B}{T = U + (1 + 1/m) B}
+
+\eqn{U} is the sampling variance, from the replicate weights (see
+\link{scf_variance}). \eqn{B} is the variance of the \eqn{m} implicate
+estimates around \eqn{\bar{Q}}, which measures how much the filled-in
+values move the answer. The factor \eqn{1 + 1/m} allows for having only
+five implicates. The standard error is \eqn{\sqrt{T}}. The Fed's codebook
+uses the same formula, written as \eqn{U + (6/5) B}.
+}
+
+\section{Tests and confidence intervals}{
+
+Tests and intervals use a t distribution. Its degrees of freedom are:
+
+\deqn{\nu = (m - 1) \left(1 + \frac{U}{(1 + 1/m) B}\right)^2}{nu = (m - 1) (1 + U / ((1 + 1/m) B))^2}
+
+It depends on the ratio of sampling variance (\eqn{U}) to imputation
+variance (\eqn{B}). When imputation adds little variance, \eqn{\nu} is
+large and the t is close to normal. When it adds a lot, \eqn{\nu} can be
+small. If \code{df.complete} is given, the Barnard-Rubin small-sample version
+is used instead.
+
+The fraction of missing information (\code{missinfo}) is the share of the
+total variance that comes from the missing data. Values near 0 mean the
+imputation adds little uncertainty. Large values mean the result leans
+heavily on imputed answers.
+}
+
+\section{Regression models}{
+
+\code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, \code{\link[=scf_logit]{scf_logit()}}, and \code{\link[=scf_quantreg]{scf_quantreg()}} fit the
+model separately on each implicate, then combine the results the same way,
+with vectors and matrices in place of single numbers:
 \itemize{
-\item Calculation of pooled point estimates
-\item Total variance from within- and between-imputation components
-\item Degrees of freedom via Barnard-Rubin method
-\item Fraction of missing information
+\item The coefficients are the average of the implicate coefficients.
+\item \eqn{U} is the average of the implicate variance-covariance matrices.
+\item \eqn{B} is the covariance matrix of the coefficients across implicates.
+\item \eqn{T = U + (1 + 1/m) B}, and each coefficient gets its own \eqn{\nu}.
 }
 
-Inputs are typically produced by modeling functions such as \code{\link[=scf_ols]{scf_ols()}},
-\code{\link[=scf_glm]{scf_glm()}}, or \code{\link[=scf_logit]{scf_logit()}}, which return implicate-level coefficient
-vectors and variance-covariance matrices.
+This is what the Fed's codebook does for regressions (the MISECOMP SAS
+macro). Models always average \eqn{U} over all implicates.
 
-This function is primarily used internally, but may be called directly by
-advanced users constructing custom estimation routines from implicate-level
-results.
+Fit statistics, such as R-squared, are summarized across implicates
+rather than combined with Rubin's rules. Each model's help page says how.
 }
 
-\section{Details}{
+\section{Groups missing from some implicates}{
 
-The SCF provides five implicates per survey wave, each a plausible version
-of the population under a specific missing-data model. Analysts conduct the
-same statistical procedure on each implicate, producing a set of five
-estimates \eqn{ Q_1, Q_2, ..., Q_5 }. These are then combined using Rubin’s
-Rules, a procedure to combine results across these implicates with an
-attempt to account for:
-\itemize{
-\item \strong{Within-imputation variance}: Uncertainty from complex sample design
-\item \strong{Between-imputation variance}: Uncertainty due to missing data
-}
-
-For a scalar quantity \eqn{ Q }, the pooled estimate and
-total variance are calculated as:
-
-\deqn{ \bar{Q} = \frac{1}{M} \sum Q_m }
-\deqn{ \bar{U} = \frac{1}{M} \sum U_m }
-\deqn{ B = \frac{1}{M - 1} \sum (Q_m - \bar{Q})^2 }
-\deqn{ T = \bar{U} + \left(1 + \frac{1}{M} \right) B }
-
-Where:
-\itemize{
-\item \eqn{ M } is the number of implicates (typically 5 for SCF)
-\item \eqn{ Q_m } is the estimate from implicate \eqn{ m }
-\item \eqn{ U_m } is the sampling variance of \eqn{ Q_m }, accounting for replicate weights and design
-}
-
-The total variance \eqn{ T } reflects both within-imputation uncertainty (sampling error)
-and between-imputation uncertainty (missing-data imputation).
-
-The standard error of the pooled estimate is \eqn{ \sqrt{T} }. Degrees of freedom are
-adjusted using the Barnard-Rubin method:
-
-\deqn{ \nu = (M - 1) \left(1 + \frac{\bar{U}}{(1 + \frac{1}{M}) B} \right)^2 }
-
-The fraction of missing information (FMI) is also reported:
-it reflects the proportion of total variance attributable to imputation uncertainty.
+A group can be empty in some implicates, for example when a subset uses an
+imputed variable. Its estimate then combines only the implicates that have
+it, and \eqn{m} is the number of those implicates.
 }
 
 \examples{
@@ -145,12 +140,17 @@ unlink(td, recursive = TRUE, force = TRUE)
 
 }
 \references{
-Barnard J, Rubin DB. Small-sample degrees of freedom with multiple imputation.
-\doi{10.1093/biomet/86.4.948}.
+Barnard J, Rubin DB. Small-sample degrees of freedom with multiple
+imputation. \emph{Biometrika}. 1999;86(4):948--955.
+\doi{10.1093/biomet/86.4.948}
 
-Little RJA, Rubin DB. Statistical analysis with missing data.
-ISBN: 9780470526798.
+Board of Governors of the Federal Reserve System. Codebook for the 2022
+Survey of Consumer Finances.
+\url{https://www.federalreserve.gov/econres/scfindex.htm}
 
-U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
-https://www.federalreserve.gov/econres/scfindex.htm
+Little RJA, Rubin DB. \emph{Statistical Analysis with Missing Data}.
+3rd ed. Wiley; 2019. ISBN: 9780470526798.
+
+Rubin DB. \emph{Multiple Imputation for Nonresponse in Surveys}. Wiley;
+1987.
 }

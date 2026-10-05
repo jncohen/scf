@@ -1,7 +1,7 @@
 # tests/testthat/test-scf-package.R
 
 test_that("scf2022 mock data loads as scf_mi_survey object", {
-  td  <- tempdir()
+  td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
   scf2022 <- scf_load(2022, data_directory = td)
@@ -13,7 +13,7 @@ test_that("scf2022 mock data loads as scf_mi_survey object", {
 })
 
 test_that("Descriptive functions return expected structure", {
-  td  <- tempdir()
+  td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
   scf2022 <- scf_load(2022, data_directory = td)
@@ -35,7 +35,7 @@ test_that("Descriptive functions return expected structure", {
 })
 
 test_that("Regression functions return valid model objects", {
-  td  <- tempdir()
+  td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
   scf2022 <- scf_load(2022, data_directory = td)
@@ -51,7 +51,7 @@ test_that("Regression functions return valid model objects", {
   # Required components exist
   expect_true(all(c("results", "imps", "fit", "call") %in% names(model)))
   
-  # Optional: ensure new component exists
+  # Optional: check the formula component
   expect_true("formula" %in% names(model))
   
   expect_true("estimate" %in% names(model$results))
@@ -66,7 +66,7 @@ test_that("Regression functions return valid model objects", {
 
 
 test_that("Plot functions generate ggplot objects", {
-  td  <- tempdir()
+  td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
   scf2022 <- scf_load(2022, data_directory = td)

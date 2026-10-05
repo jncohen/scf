@@ -1,36 +1,27 @@
 #' Estimate an Ordinary Least Squares Regression on SCF Microdata
 #'
-#' Fits a replicate-weighted linear regression model to each implicate of
-#' multiply-imputed SCF data and pools coefficients and standard errors using
-#' Rubin’s Rules.
+#' Fits a linear regression to each implicate with `survey::svyglm()` and
+#' pools the results with Rubin's rules.
 #'
-#' @description
-#' Computes an OLS regression on SCF data using `svyglm()` across the SCF's
-#' five implicates.  Returns coefficient estimates, standard errors, test
-#' statistics, and model diagnostics.
+#' @details
+#' Use it for continuous outcomes. For binary outcomes use [scf_logit()]; for
+#' skewed outcomes such as wealth, consider [scf_quantreg()] or a log
+#' transform.
 #'
-#' @section Implementation:
-#' Ordinary least squares (OLS) regression estimates the linear relationship
-#' between a continuous outcome and one or more predictor variables. Each
-#' coefficient represents the expected change in the outcome for a one-unit
-#' increase in the corresponding predictor, holding all other predictors
-#' constant. 
+#' Each coefficient is the expected change in the outcome for a one-unit
+#' increase in the predictor, holding the others constant. The p-value tests
+#' whether a coefficient is zero, using a t distribution with Rubin's degrees
+#' of freedom. R-squared is the share of variance explained and AIC compares
+#' models of the same outcome (lower is better); both are averaged across
+#' implicates. Pooling is described in [scf_MIcombine()].
 #'
-#' Use this function to model associations between SCF variables while
-#' accounting for complex survey design and multiple imputation.
-#'
-#' This function takes a `scf_mi_survey` object and a model formula. Internally,
-#' it fits a weighted linear regression to each implicate using
-#' `survey::svyglm()`, extracts coefficients and variance-covariance matrices,
-#' and pools them via [scf_MIcombine()].
-#'
-#' @param object A `scf_mi_survey` object created with [scf_load()] and [scf_design()]. Must contain five implicates with replicate weights.
+#' @param object A `scf_mi_survey` object created with [scf_load()].
 #' @param formula A model formula specifying a continuous outcome and predictor variables (e.g., `networth ~ income + age`).
 #'
 #' @return An object of class `"scf_ols"` and `"scf_model_result"` with:
 #' \describe{
 #'   \item{results}{A data frame of pooled coefficients, standard errors, t-values, p-values, and significance stars.}
-#'   \item{fit}{A list of model diagnostics including mean AIC, standard deviation of AIC, mean R-squared, and its standard deviation.}
+#'   \item{fit}{Fit statistics: mean and SD of AIC (`AIC`, `AIC.sd`) and R-squared (`r.squared`, `r.squared.sd`) across implicates, observations per implicate (`nobs`), and their mean (`nobs_mean`).}
 #'   \item{imps}{A list of implicate-level `svyglm` model objects.}
 #'   \item{call}{The matched call used to produce the model.}
 #' }
@@ -40,7 +31,7 @@
 #' # Use functions `scf_download()` and `scf_load()`
 #' td <- tempfile("ols_")
 #' dir.create(td)
-#' 
+#'
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
@@ -48,12 +39,12 @@
 #' # Example for real analysis: Run OLS model
 #' model <- scf_ols(scf2022, networth ~ income + age)
 #' summary(model)
-#' 
+#'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @seealso [scf_glm()], [scf_logit()], [scf_MIcombine()]
-#' @importFrom stats coef vcov pt sd AIC deviance
+#' @importFrom stats coef vcov pt sd AIC deviance nobs
 #'
 #' @export
 scf_ols <- function(object, formula) {
@@ -62,34 +53,25 @@ scf_ols <- function(object, formula) {
   if (!inherits(formula, "formula"))
     stop("Model must be specified as a formula")
 
-  if (isTRUE(attr(object, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
+  .scf_check_na(object$mi_design, formula)
 
-
-  models <- lapply(object$mi_design, function(imp) {
-    tryCatch(survey::svyglm(formula, design = imp), error = function(e) NULL)
+  models <- lapply(seq_along(object$mi_design), function(i) {
+    tryCatch(survey::svyglm(formula, design = object$mi_design[[i]]),
+             error = function(e) .scf_fit_error(i, e))
   })
 
-  models <- Filter(Negate(is.null), models)
-  if (length(models) < 2)
-    stop("Too few successful implicate-level models to pool.")
-
   coefs_list <- lapply(models, coef)
-  vars_list  <- lapply(models, vcov)
-  common_terms <- Reduce(intersect, lapply(coefs_list, names))
-  coefs_list <- lapply(coefs_list, function(x) x[common_terms])
-  vars_list  <- lapply(vars_list, function(v) v[common_terms, common_terms, drop = FALSE])
+  vars_list <- lapply(models, vcov)
+  aligned <- .scf_align_terms(coefs_list, vars_list)
+  coefs_list <- aligned$coefs
+  vars_list <- aligned$vars
 
-  # Drop the survey design from each model object after extracting what is
-  # needed. svyglm stores the full svrepdesign (data + 999 replicate weights)
-  # in $survey.design; keeping it multiplies object size by ~5x for no benefit.
-  models <- lapply(models, function(m) { m$survey.design <- NULL; m })
+  models <- lapply(models, function(m) { m$survey.design <- NULL; m$data <- NULL; m })
 
   pooled <- scf_MIcombine(coefs_list, vars_list)
 
-  est  <- coef(pooled)
-  se   <- SE(pooled)
+  est <- coef(pooled)
+  se <- SE(pooled)
   tval <- est / se
   pval <- 2 * pt(-abs(tval), df = pooled$df)
 
@@ -99,31 +81,32 @@ scf_ols <- function(object, formula) {
     std.error = se,
     t.value = tval,
     p.value = pval,
-    stars = cut(pval,
-                breaks = c(-Inf, 0.001, 0.01, 0.05, 0.10, Inf),
-                labels = c("***", "**", "*", "^", ""),
-                right = FALSE),
+    stars = .scf_stars(pval),
     stringsAsFactors = FALSE
   )
 
-  aics <- sapply(models, AIC)
-  r2s  <- sapply(models, function(m) {
+  aics <- sapply(models, function(m) AIC(m)[["AIC"]])
+  r2s <- sapply(models, function(m) {
     if (is.null(m$null.deviance) || m$null.deviance == 0) return(NA_real_)
     1 - deviance(m) / m$null.deviance
   })
 
+  nobs_vec <- sapply(models, nobs)
 
   diagnostics <- list(
     AIC = mean(aics),
     AIC.sd = sd(aics),
     r.squared = mean(r2s),
-    r.squared.sd = sd(r2s)
+    r.squared.sd = sd(r2s),
+    nobs = nobs_vec,
+    nobs_mean = mean(nobs_vec)
   )
 
   out <- list(
     results = coefs,
     fit = diagnostics,
     vcov = pooled$variance,
+    df = unname(pooled$df),
     imps = models,
     call = match.call(),
     formula = formula
@@ -138,24 +121,23 @@ summary.scf_ols <- function(object, digits = 4, ...) {
   cat("--------------------------------------------------\n")
 
   df <- object$results
-  df$estimate   <- round(df$estimate,   digits)
-  df$std.error  <- round(df$std.error,  digits)
-  df$t.value    <- round(df$t.value,    digits)
-  df$p.value    <- format.pval(df$p.value, digits = digits)
+  df$estimate <- round(df$estimate, digits)
+  df$std.error <- round(df$std.error, digits)
+  df$t.value <- round(df$t.value, digits)
+  df$p.value <- format.pval(df$p.value, digits = digits)
 
   cat("Pooled Coefficient Estimates:\n")
   print(df[, c("term", "estimate", "std.error", "t.value", "p.value", "stars")],
         row.names = FALSE)
 
   cat("\nModel Fit Statistics:\n")
-  with(object$fit, {
-    if (!is.null(r.squared) && !is.na(r.squared)) {
-      cat("  Mean R-squared: ", round(r.squared, digits),
-          " (SD: ", round(r.squared.sd, digits), ")\n", sep = "")
-    }
-    cat("  Mean AIC:       ", round(AIC, digits),
-        " (SD: ", round(AIC.sd, digits), ")\n", sep = "")
-  })
+  fit <- object$fit
+  if (!is.null(fit$r.squared) && !is.na(fit$r.squared)) {
+    cat("  Mean R-squared: ", round(fit$r.squared, digits),
+        " (SD: ", round(fit$r.squared.sd, digits), ")\n", sep = "")
+  }
+  cat("  Mean AIC:       ", round(fit$AIC, digits),
+      " (SD: ", round(fit$AIC.sd, digits), ")\n", sep = "")
 
   cat("\nCall:\n")
   print(object$call)
@@ -170,14 +152,13 @@ print.scf_ols <- function(x, digits = 4, ...) {
   print(x$results, digits = digits, row.names = FALSE)
 
   cat("\nModel Fit Statistics:\n")
-  with(x$fit, {
-    if (!is.null(r.squared)) {
-      cat("  Mean R-squared: ", round(r.squared, digits),
-          " (SD: ", round(r.squared.sd, digits), ")\n", sep = "")
-    }
-    cat("  Mean AIC:       ", round(AIC, digits),
-        " (SD: ", round(AIC.sd, digits), ")\n", sep = "")
-  })
+  fit <- x$fit
+  if (!is.null(fit$r.squared)) {
+    cat("  Mean R-squared: ", round(fit$r.squared, digits),
+        " (SD: ", round(fit$r.squared.sd, digits), ")\n", sep = "")
+  }
+  cat("  Mean AIC:       ", round(fit$AIC, digits),
+      " (SD: ", round(fit$AIC.sd, digits), ")\n", sep = "")
 
   cat("\nNote: Implicate-level model objects are stored in `object$imps`\n")
   cat("      Use `summary(object$imps[[1]])` to inspect them.\n")

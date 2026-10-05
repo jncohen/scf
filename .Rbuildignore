@@ -24,3 +24,4 @@
 ^scf_.*[.]pdf$
 ^CONTRIBUTING\.md$
 ^LICENSE\.md$
+^vignettes/scf_pctile_cut\.(Rmd|pdf)$

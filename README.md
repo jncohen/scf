@@ -12,17 +12,19 @@ status](https://www.r-pkg.org/badges/version/scf)](https://CRAN.R-project.org/pa
 
 ## Overview
 
-The `scf` R package provides a structured, reproducible, and
-pedagogically-conscious toolkit for analyzing the U.S. Federal Reserve’s
-**Survey of Consumer Finances (SCF)**, one of the highest-quality data
-sources for information on U.S. households’ balance sheets and income
-statements.
+The `scf` R package analyzes the U.S. Federal Reserve's Survey of Consumer
+Finances (SCF), a detailed source of data on U.S. households' wealth, debt,
+and income.
 
-It wraps replicate-weighted, multiply-imputed SCF data into a custom
-data object (`scf_mi_survey`) with which users can implement custom
-easy-to-use functions for generating proper population estimates for
-descriptive statistics, hypothesis testing, regression
-modeling, and high-quality visualizations.
+It stores the SCF's five implicates and 999 replicate weights in one object
+(`scf_mi_survey`) and provides functions for descriptive statistics,
+tests, regression models, and plots. Standard errors follow the Fed's
+method by default (see `?scf_variance`).
+
+The SCF's unit is the primary economic unit: the person or couple at the
+economic center of the household and everyone financially dependent on
+them. The Fed calls this unit a "family"; this package calls it a
+household.
 
 ## Table of Contents
 
@@ -41,21 +43,24 @@ modeling, and high-quality visualizations.
   objects ready for analysis.
 - `scf_update()`: Adds or transforms variables uniformly across all implicates.
 - `scf_update_by_implicate()`: Applies a user-defined transformation to
-  each implicate’s data frame separately. Use when a computation depends
+  each implicate's data frame separately. Use when a computation depends
   on the within-implicate distribution (e.g., implicate-specific ranks
   or percentile thresholds).
 - `scf_subset()`: Subsets the data consistently across all implicates.
+- `scf_real()`: Converts raw `x` dollar variables to 2022 dollars, the way
+  the Fed converts the summary variables.
 
 ### Descriptive Statistics
 
 - `scf_freq()`: Weighted frequency tables for categorical variables.
 - `scf_xtab()`: Cross-tabulations by row, column, or cell percentages.
-- `scf_mean()`, `scf_median()`, `scf_percentile()`: Computes groupwise
-  or overall statistics using Rubin’s Rules or a commensurate methodology.
+- `scf_mean()`, `scf_median()`, `scf_percentile()`: Means, medians, and
+  percentiles, overall or by group.
+- `scf_ratio()`: Ratios of totals, such as wages as a share of income.
 - `scf_pctile_sum()`: Creates percentile-based grouping variables for a
   continuous variable and optionally computes a summary statistic within
   each group. Supports an implicate-specific survey-weighted method
-  (default) and the Federal Reserve’s published stacking convention.
+  (default) and the Federal Reserve's published stacking convention.
 - `scf_corr()`: Weighted Pearson correlations.
 
 ### Statistical Inference
@@ -64,8 +69,8 @@ modeling, and high-quality visualizations.
   variables.
 - `scf_prop_test()`: One-sample and two-sample proportion tests for
   binary variables.
-- `scf_MIcombine()`: Combines estimates across imputations using Rubin’s
-  Rules (internal to most functions).
+- `scf_MIcombine()`: Combines model estimates across implicates using
+  Rubin's rules.
 
 ### Regression Modeling
 
@@ -75,15 +80,15 @@ modeling, and high-quality visualizations.
 - `scf_logit()`: Wrapper for logistic regression with optional odds
   ratio output.
 - `scf_quantreg()`: Weighted quantile regression with pooled coefficients
-  across implicates. Supports multiple quantiles in a single call.
+  across implicates, one quantile per call.
 
 All model functions return objects of class `scf_model_result`, with
-methods for `coef()`, `vcov()`, `predict()`, `AIC()`, `residuals()`, and
-`summary()`.
+methods for `coef()`, `vcov()`, `predict()`, `AIC()` (not for quantile
+models), `residuals()`, and `summary()`.
 
 ### Visualization
 
-- `scf_plot_dist()`: Kernel density plots for visualizing and comparing distributions by group.
+- `scf_plot_dist()`: Bar charts of a variable's distribution.
 - `scf_plot_dbar()`: Bar plots of categorical variable distributions.
 - `scf_plot_bbar()`: Stacked bar plots for two categorical variables.
 - `scf_plot_cbar()`: Bar plots for continuous variable summaries by
@@ -94,15 +99,13 @@ methods for `coef()`, `vcov()`, `predict()`, `AIC()`, `residuals()`, and
 
 ### Diagnostics and Output
 
-- `scf_deflate()`: Converts nominal dollar estimates from `scf_mean()`,
-  `scf_median()`, `scf_percentile()`, and `scf_ttest()` to real dollars
-  using CPI-U-RS deflation factors from the Federal Reserve's SCF
-  Bulletin SAS macro.
-- `scf_regtable()`: Produces formatted regression tables from one or
-  more `scf_model_result` objects, with options for console, HTML, and
-  CSV output.
-- `print()`, `summary()`: Custom methods for clean, interpretable output
-  in analysis and teaching.
+- `scf_nominal()`: Converts results from `scf_mean()`, `scf_median()`,
+  `scf_percentile()`, and `scf_ttest()` from 2022 dollars to nominal dollars
+  of the survey year, using the CPI-U-RS factors from the Fed's SCF Bulletin
+  SAS macro. Formerly `scf_deflate()`.
+- `scf_regtable()`: Regression tables from one or more model results, as
+  console text, Markdown, LaTeX, or CSV.
+- `scf_implicates()`: Implicate-level estimates from descriptive results and models.
 
 ## Installation
 
@@ -112,37 +115,26 @@ Install the latest version of the package through CRAN:
 install.packages("scf")
 ```
 
-The package requires **R ≥ 3.6** and the following packages:
+The package requires R 3.6 or later and these packages, which install
+with it:
 
-- `survey` (for replicate-weighted designs)
-- `ggplot2` (for plotting)
-- `httr`, `haven` (for downloading and reading SCF data)
-- `mitools`, `stats`, `utils`, `methods`, and others (loaded
-  automatically)
-
-Use `install.packages()` to install any missing dependencies manually if
-needed.
+- `survey` (replicate-weighted designs)
+- `quantreg` (quantile regression)
+- `ggplot2` (plots)
+- `httr`, `haven` (downloading and reading SCF data)
+- `stats`, `utils`
 
 ## Getting Started
 
 ### Download and Load Data
 
-``` r, eval = F
+``` r
 # Download SCF data for 2022:
 scf_download(2022)
 
 # Load the data into a survey design object:
 scf2022 <- scf_load(2022)
 ```
-
-```r, include = F
-# This document will use mock data for CRAN compliance
-# use the above method to download and load data in your analysis instead of:
-scf2022 <- readRDS(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"))
-# NOTE: Mock data for demonstration only. 
-# Use `scf_download()` and `scf_load()` for full SCF datasets.
-```
-
 
 ### Explore and Summarize
 
@@ -193,14 +185,16 @@ scf_plot_hex(scf2022, ~income, ~networth)
 # One-sample proportion test: Is more than 10% of households rich?
 scf_prop_test(scf2022, ~I(networth > 1e6), p = 0.10, alternative = "greater")
 
-# Two-sample proportion test: Are women less likely to be rich?
-scf_prop_test(scf2022, ~I(networth > 1e6), ~factor(hhsex, labels = c("Male", "Female")), alternative = "less")
+# Two-sample proportion test: Are men more likely than women to be rich?
+# The estimate is the first group (Male) minus the second (Female).
+scf_prop_test(scf2022, ~I(networth > 1e6), ~factor(hhsex, labels = c("Male", "Female")), alternative = "greater")
 
 # One-sample t-test: Is mean income different from $75,000?
 scf_ttest(scf2022, ~income, mu = 75000)
 
-# Two-sample t-test: Are older households wealthier?
-scf_ttest(scf2022, ~networth, ~I(age > 50), alternative = "greater")
+# Two-sample t-test: Are households with heads over 50 wealthier?
+# The estimate is the first group (FALSE, 50 or under) minus the second (TRUE).
+scf_ttest(scf2022, ~networth, ~I(age > 50), alternative = "less")
 ```
 
 ### Regression Modeling
@@ -209,11 +203,11 @@ scf_ttest(scf2022, ~networth, ~I(age > 50), alternative = "greater")
 # Linear regression: Predict net worth from income and education
 scf_ols(scf2022, networth ~ income + factor(edcl))
 
-# Generalized linear model: Predict borrowing with logistic regression
-scf_glm(scf2022, hborrff ~ income + age + factor(edcl), family = binomial())
+# Generalized linear model: owning stocks, logistic regression
+scf_glm(scf2022, hstocks ~ income + age + factor(edcl), family = binomial())
 
-# Logit wrapper: Predict probability of owning stocks
-scf_logit(scf2022, ~I(owns_stocks == 1) ~ age + income + factor(edcl))
+# Logit wrapper: owning stocks, reported as odds ratios
+scf_logit(scf2022, hstocks ~ age + income + factor(edcl))
 ```
 
 ### Plotting and Visualization
@@ -268,7 +262,7 @@ scf_implicates(freq, long = TRUE)
 ### Percentile Grouping
 
 ``` r
-# Mean net worth by decile (implicate method, statistically preferred)
+# Mean net worth by decile (implicate method)
 scf_pctile_sum(scf2022, ~networth)
 
 # Top 10% vs. bottom 90%, stack method (fast; replicates Fed convention)
@@ -285,16 +279,29 @@ scf2022 <- scf_pctile_sum(scf2022, ~networth,
 scf_median(scf2022, ~income, by = ~networth_pctile)
 ```
 
-### Deflating to Real Dollars
+### Real and Nominal Dollars
+
+The SCF data mix two kinds of dollars. Summary variables made by the Fed,
+such as `income`, `networth`, and `asset`, are in 2022 dollars in every
+survey year. Raw survey variables, named `x` followed by a number, are in
+dollars of the survey year. Do not compare raw variables across years, or
+combine them with summary variables, until they are converted.
 
 ``` r
-# Convert nominal mean income estimates across years to 2022 dollars
-m2016 <- scf_mean(scf2016, ~income)
-m2022 <- scf_mean(scf2022, ~income)
+scf2016 <- scf_load(2016)
 
-m2016_real <- scf_deflate(m2016, from_year = 2016, to_year = 2022)
-m2022_real <- scf_deflate(m2022, from_year = 2022)  # to_year defaults to 2022
+# Raw variables to 2022 dollars. Name income items, which are reported
+# for the year before the survey, in `income`:
+scf2016 <- scf_real(scf2016, ~x5702 + x3915, income = ~x5702)
+scf_median(scf2016, ~x5702_real)
+
+# Results from 2022 dollars to 2016 dollars:
+m2016 <- scf_mean(scf2016, ~income)
+scf_nominal(m2016)
 ```
+
+Both functions stop with an error if given the wrong kind of variable,
+unless `force = TRUE`.
 
 ### Quantile Regression
 
@@ -302,9 +309,10 @@ m2022_real <- scf_deflate(m2022, from_year = 2022)  # to_year defaults to 2022
 # Median regression: net worth on income and education
 scf_quantreg(scf2022, networth ~ income + factor(edcl), tau = 0.5)
 
-# Multiple quantiles in one call
-scf_quantreg(scf2022, networth ~ income + factor(edcl),
-             tau = c(0.25, 0.5, 0.75, 0.9))
+# Several quantiles: one call each
+lapply(c(0.25, 0.5, 0.75, 0.9), function(t) {
+  scf_quantreg(scf2022, networth ~ income + factor(edcl), tau = t)
+})
 ```
 
 ### Regression Tables
@@ -312,38 +320,48 @@ scf_quantreg(scf2022, networth ~ income + factor(edcl),
 ``` r
 # Compare OLS and logit models in a single formatted table
 m_ols   <- scf_ols(scf2022, networth ~ income + factor(edcl))
-m_logit <- scf_logit(scf2022, ~I(networth > 1e6) ~ income + factor(edcl))
+m_logit <- scf_logit(scf2022, I(networth > 1e6) ~ income + factor(edcl))
 
 scf_regtable(m_ols, m_logit)                          # console output
-scf_regtable(m_ols, m_logit, output = "html")         # HTML fragment
+scf_regtable(m_ols, m_logit, output = "markdown")     # Markdown
+scf_regtable(m_ols, m_logit, output = "latex")        # LaTeX
 scf_regtable(m_ols, m_logit, output = "csv",
              file = "results/table1.csv")             # CSV file
 ```
 
-## Documentation:
+## Documentation
 
 For detailed examples, function documentation, and usage guides, consult
 the package vignettes and reference manual.
 
 - [SCF Homepage](https://github.com/jncohen/scf)
-- [**CRAN Package Page**](https://CRAN.R-project.org/package=scf)
+- [CRAN Package Page](https://CRAN.R-project.org/package=scf)
 
 ## Note on Mock Data
 
-This package includes a small mock dataset (`scf2022_mock_raw.rds`) for testing purposes.  
-It includes only 75 rows and select variables. It is structurally valid,  
-but **not suitable for analytical use or inference**. Mock data objects carry a 
-"mock" = TRUE attribute and may trigger warnings in functions to discourage 
-interpretive use.
+This package includes a small mock data set (`scf2022_mock_raw.rds`) for
+examples and tests. It keeps 200 rows per implicate and a few variables. It
+has the same structure as the real data but is not suitable for analysis.
+`scf_load()` prints a message when it loads it.
 
 
 ## Citation
 
 If you use `scf` in published work, please cite it as:
 
-> Joseph N. Cohen (2026). *scf: Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.7. <https://github.com/jncohen/scf>
+> Joseph N. Cohen (2026). *scf: Analyzing the Survey of Consumer Finances.* R package version 1.1.0. <https://github.com/jncohen/scf>
 
 Use `citation("scf")` in R for formatted references.
+
+## Use of AI Tools
+
+Development of version 1.1.0 used Claude (Anthropic), an AI assistant, to
+help write and revise code, tests, and documentation; to audit functions for
+errors; and to run validation checks. The author directed this work, made all
+methodological decisions, and reviewed the changes. The package's results were
+checked against the Federal Reserve's published SCF Bulletin tables (Tables
+1-5, 1989-2022) and against independent calculations with the `survey` and
+`mitools` packages.
 
 ## Author
 

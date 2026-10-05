@@ -4,7 +4,13 @@
 \alias{scf_mean}
 \title{Estimate Mean in Multiply-Imputed SCF Data}
 \usage{
-scf_mean(scf, var, by = NULL, verbose = FALSE)
+scf_mean(
+  scf,
+  var,
+  by = NULL,
+  verbose = FALSE,
+  variance = getOption("scf.variance", "fed")
+)
 }
 \arguments{
 \item{scf}{A scf_mi_survey object created with \code{\link[=scf_load]{scf_load()}}. Must contain five replicate-weighted implicates.}
@@ -14,6 +20,8 @@ scf_mean(scf, var, by = NULL, verbose = FALSE)
 \item{by}{Optional one-sided formula specifying a discrete grouping variable for stratified means.}
 
 \item{verbose}{Logical. If TRUE, include implicate-level results in print output. Default is FALSE.}
+
+\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
 }
 \value{
 A list of class "scf_mean" with:
@@ -24,19 +32,18 @@ A list of class "scf_mean" with:
 }
 }
 \description{
-Returns the population-level estimate of a continuous variable's weighted
-mean across the Survey's five implicates. Use this operation to derive an
-estimate of a population's 'typical' or 'average' score on a continuous
-variable.
+Estimates the weighted mean of a continuous variable, overall or by group.
 }
-\section{Details}{
+\details{
+Use it for the average value of a variable in the population or a group.
+The estimate is in the variable's units; dollar amounts are in 2022
+dollars. \code{min} and \code{max} give the range of the implicate estimates.
+Wealth and income are right-skewed, so a few very wealthy households pull
+their means well above their medians; report \code{\link[=scf_median]{scf_median()}} as well.
 
-The mean is a measure of central tendency that represents the arithmetic average of a distribution.
-It is most appropriate when the distribution is symmetric and not heavily skewed.
-Unlike the median, the mean is sensitive to extreme values, which may distort interpretation in the presence of outliers.
-Use this function to describe the “typical” value of a continuous variable in the population or within subgroups.
+The mean is estimated in each implicate with \code{survey::svymean()} and pooled
+across implicates (see \link{scf_variance}).
 }
-
 \examples{
 # Do not implement these lines in real analysis:
 # Use functions `scf_download()` and `scf_load()`

@@ -1,31 +1,25 @@
 #' Extract Implicate-Level Estimates from SCF Results
 #'
-#' @description
-#' Returns implicate-level outputs from SCF result objects produced by functions
-#' in the `scf` suite. Supports result objects containing implicate-level data
-#' frames, `svystat` summaries, or `svyglm` model fits.
+#' Returns the five implicate-level estimates behind an `scf` result.
+#'
+#' @details
+#' Use it to check how much imputation affects a result. Implicate estimates
+#' close together mean imputation adds little uncertainty; estimates far apart
+#' mean the result depends on imputed values, and its standard error is
+#' larger. Works on results from the descriptive functions and the models.
 #'
 #' @param x A result object containing implicate-level estimates. Three types are supported:
 #'   \describe{
-#'     \item{Data frame results}{Objects from [scf_freq()], [scf_mean()], [scf_median()],
-#'       [scf_percentile()], [scf_corr()], and [scf_xtab()], whose `$imps` slot contains
-#'       a list of data frames.}
+#'     \item{Descriptive results}{Objects from [scf_freq()], [scf_mean()], [scf_median()],
+#'       and [scf_percentile()]. Also [scf_corr()] (one correlation per implicate) and
+#'       [scf_xtab()] (weighted cell counts per implicate).}
 #'     \item{Survey statistic results}{Objects whose `$imps` slot contains `svystat`
 #'       objects (e.g., raw outputs from `survey::svymean()`).}
 #'     \item{Model results}{Objects from [scf_ols()], [scf_glm()], [scf_logit()], and
-#'       [scf_quantreg()], whose `$imps` or `$models` slot contains `svyglm` fits.}
+#'       [scf_quantreg()].}
 #'   }
 #' @param long Logical. If TRUE, returns stacked data frame. If FALSE, returns list.
 #'
-#' @section Usage:
-#' This function allows users to inspect how estimates vary across the SCF’s five implicates,
-#' which is important for diagnostics, robustness checks, and transparent reporting.
-#'
-#' For example: 
-#' ```r
-#' scf_implicates(scf_mean(scf2022, ~income))
-#' scf_implicates(scf_ols(scf2022, networth ~ age + income), long = TRUE)
-#' ```
 #' @return A list of implicate-level data frames, or a single stacked data frame if `long = TRUE`.
 #'
 #' @examples
@@ -33,7 +27,7 @@
 #' # Use functions `scf_download()` and `scf_load()`
 #' td <- tempfile("implicates_")
 #' dir.create(td)
-#' 
+#'
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
@@ -41,7 +35,7 @@
 #' # Example for real analysis: Extract implicate-level results
 #' out <- scf_freq(scf2022, ~own)
 #' scf_implicates(out, long = TRUE)
-#' 
+#'
 #' # Do not implement these lines in real analysis: Cleanup for package check
 #' unlink(td, recursive = TRUE, force = TRUE)
 #'
@@ -49,15 +43,51 @@
 #' @importFrom survey SE cv
 #' @export
 scf_implicates <- function(x, long = FALSE) {
-  imps <- x$imps
+  imps <- if (!is.null(x$imps)) x$imps else x$models
   if (is.null(imps)) stop("No implicate-level estimates found in object.")
 
-  # If all implicates are data.frames (e.g., from scf_freq, scf_xtab)
+  if (is.numeric(imps) && is.null(dim(imps))) {
+    out <- lapply(seq_along(imps), function(i) {
+      data.frame(implicate = i, estimate = unname(imps[i]))
+    })
+    return(if (long) do.call(rbind, out) else out)
+  }
+
+  if (all(sapply(imps, is.matrix))) {
+    out <- lapply(seq_along(imps), function(i) {
+      tab <- imps[[i]]
+      data.frame(
+        implicate = i,
+        row = rep(rownames(tab), times = ncol(tab)),
+        col = rep(colnames(tab), each = nrow(tab)),
+        count = as.vector(tab),
+        stringsAsFactors = FALSE
+      )
+    })
+    return(if (long) do.call(rbind, out) else out)
+  }
+
+  if (all(sapply(imps, function(m) inherits(m, "rq")))) {
+    out <- lapply(seq_along(imps), function(i) {
+      coefs <- coef(imps[[i]])
+      ses <- if (!is.null(x$imp_vcov)) sqrt(diag(x$imp_vcov[[i]]))[names(coefs)] else NA_real_
+      data.frame(
+        implicate = i,
+        term = names(coefs),
+        estimate = unname(coefs),
+        se = unname(ses),
+        lower = unname(coefs - 1.96 * ses),
+        upper = unname(coefs + 1.96 * ses),
+        stringsAsFactors = FALSE
+      )
+    })
+    return(if (long) do.call(rbind, out) else out)
+  }
+
   if (all(sapply(imps, is.data.frame))) {
     out <- lapply(seq_along(imps), function(i) {
       df <- imps[[i]]
       df$implicate <- i
-      # Add basic diagnostics if they exist
       if (all(c("est", "var") %in% names(df))) {
         df$estimate <- df$est
         df$se <- sqrt(df$var)
@@ -70,7 +100,6 @@ scf_implicates <- function(x, long = FALSE) {
     return(if (long) do.call(rbind, out) else out)
   }
 
-  # If all implicates are svystat-like objects
   if (all(sapply(imps, function(x) inherits(x, "svystat")))) {
     out <- lapply(seq_along(imps), function(i) {
       est <- imps[[i]]
@@ -86,7 +115,6 @@ scf_implicates <- function(x, long = FALSE) {
     return(if (long) do.call(rbind, out) else out)
   }
 
-  # If all implicates are svyglm regression fits
   if (all(sapply(imps, function(x) inherits(x, "svyglm")))) {
     out <- lapply(seq_along(imps), function(i) {
       fit <- imps[[i]]
@@ -105,6 +133,5 @@ scf_implicates <- function(x, long = FALSE) {
     return(if (long) do.call(rbind, out) else out)
   }
 
-  # Fallback: return as-is
   return(imps)
 }

@@ -1,30 +1,29 @@
 #' Cross-Tabulate Two Discrete Variables in Multiply-Imputed SCF Data
 #'
-#' @description
-#' Computes replicate-weighted two-way cross-tabulations of two discrete variables
-#' using multiply-imputed SCF data. Estimates cell proportions and standard errors,
-#' with optional scaling of proportions by cell, row, or column. Results are pooled
-#' across implicates using Rubin's Rules.
+#' Estimates a two-way table of household shares, with standard errors.
+#'
+#' @details
+#' Use it to see how two categorical variables relate, such as homeownership
+#' by education. `scale` sets which shares print: of all households
+#' (`"cell"`), of each row (`"row"`, rows sum to 100 percent and show how each
+#' row divides across columns), or of each column (`"col"`).
+#'
+#' Shares are estimated in each implicate with the replicate weights and
+#' pooled (see [scf_variance]). Counts come from `survey::svytable()`.
 #'
 #' @param scf A `scf_mi_survey` object, typically created by [scf_load()]. Must include five implicates with replicate weights.
 #' @param rowvar A one-sided formula specifying the row variable (e.g., `~edcl`).
 #' @param colvar A one-sided formula specifying the column variable (e.g., `~racecl`).
 #' @param scale Character. Proportion basis: "cell" (default), "row", or "col".
+#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
 #'
 #' @return A list of class `"scf_xtab"` with:
 #' \describe{
-#'   \item{results}{Data frame with one row per cell. Columns: `row`, `col`, `prop`, `se`, `row_share`, `col_share`, `rowvar`, and `colvar`.}
-#'   \item{matrices}{List of matrices: `cell` (default proportions), `row`, `col`, and `se`.}
-#'   \item{imps}{List of implicate-level cell count tables.}
+#'   \item{results}{One row per cell: `row`, `col`, `rowvar`, `colvar`, `prop` and `se` (share of all households), `row_share`, `col_share`, `row_share_se`, and `col_share_se`.}
+#'   \item{matrices}{Matrices of `cell`, `row`, and `col` shares, and their standard errors `se`, `se_row`, and `se_col`.}
+#'   \item{imps}{Weighted cell counts for each implicate.}
 #'   \item{aux}{List with `rowvar` and `colvar` names.}
 #' }
-#'
-#' @section Statistical Notes:
-#' Implicate-level tables are created using `svytable()` on replicate-weighted designs.
-#' Proportions are calculated as shares of total population estimates. Variance across
-#' implicates is used to estimate uncertainty. Rubin's Rules are applied in simplified form.
-#'
-#' For technical details on pooling logic, see [scf_MIcombine()] or the SCF package manual.
 #'
 #' @examples
 #' # Do not implement these lines in real analysis:
@@ -38,7 +37,7 @@
 #'
 #' # Example for real analysis: Cross-tabulate ownership by sex
 #' if (interactive()) {
-#'   suppressWarnings(scf_xtab(scf2022, ~own, ~hhsex, scale = "row"))
+#'   scf_xtab(scf2022, ~own, ~hhsex, scale = "row")
 #' }
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check
@@ -46,173 +45,167 @@
 #'
 #' @importFrom stats as.formula ave
 #' @export
-scf_xtab <- function(scf, rowvar, colvar, scale = "cell") {
+scf_xtab <- function(scf, rowvar, colvar, scale = "cell",
+                     variance = getOption("scf.variance", "fed")) {
+  variance <- .scf_variance_method(variance)
   scale <- match.arg(scale, choices = c("cell", "row", "col"))
-  
+
   if (!inherits(scf, "scf_mi_survey")) {
     stop("Input must be an 'scf_mi_survey' object.", call. = FALSE)
   }
-  
-  if (isTRUE(attr(scf, "mock"))) {
-    warning(
-      "Mock data detected. Do not interpret results as valid SCF estimates.",
-      call. = FALSE
-    )
-  }
-  
+
   row_vars <- all.vars(rowvar)
   col_vars <- all.vars(colvar)
-  
+
   if (length(row_vars) != 1L) {
     stop("`rowvar` must be a one-sided formula naming exactly one variable.", call. = FALSE)
   }
-  
+
   if (length(col_vars) != 1L) {
     stop("`colvar` must be a one-sided formula naming exactly one variable.", call. = FALSE)
   }
-  
+
   rowname <- row_vars[1]
   colname <- col_vars[1]
   designs <- scf$mi_design
   nimp <- length(designs)
-  
+
   first_vars <- designs[[1]]$variables
-  
+
   if (!rowname %in% names(first_vars)) {
     stop("Row variable not found in SCF data: ", rowname, call. = FALSE)
   }
-  
+
   if (!colname %in% names(first_vars)) {
     stop("Column variable not found in SCF data: ", colname, call. = FALSE)
   }
-  
+
+  .scf_check_na(designs, rowvar, colvar)
+
   row_label <- if (!is.null(attr(first_vars[[rowname]], "label"))) {
     attr(first_vars[[rowname]], "label")
   } else {
     rowname
   }
-  
+
   col_label <- if (!is.null(attr(first_vars[[colname]], "label"))) {
     attr(first_vars[[colname]], "label")
   } else {
     colname
   }
-  
+
   imp_tables <- vector("list", nimp)
-  
-  row_levels <- unique(unlist(lapply(designs, function(d) {
-    levels(factor(d$variables[[rowname]]))
-  })))
-  
-  col_levels <- unique(unlist(lapply(designs, function(d) {
-    levels(factor(d$variables[[colname]]))
-  })))
-  
+
+  row_levels <- .scf_group_levels(designs, rowname)
+  col_levels <- .scf_group_levels(designs, colname)
+
   for (i in seq_len(nimp)) {
     d <- designs[[i]]
     d$variables[[rowname]] <- factor(d$variables[[rowname]], levels = row_levels)
     d$variables[[colname]] <- factor(d$variables[[colname]], levels = col_levels)
-    
-    tbl <- try(
-      survey::svytable(
-        as.formula(paste("~", rowname, "+", colname)),
-        d
-      ),
-      silent = TRUE
-    )
-    
-    if (inherits(tbl, "try-error")) next
-    
+
+    tbl <- survey::svytable(as.formula(paste("~", rowname, "+", colname)), d)
+
     full_tbl <- matrix(
       0,
       nrow = length(row_levels),
       ncol = length(col_levels),
       dimnames = list(row_levels, col_levels)
     )
-    
+
     full_tbl[rownames(tbl), colnames(tbl)] <- tbl
     imp_tables[[i]] <- full_tbl
   }
-  
-  imp_tables <- Filter(Negate(is.null), imp_tables)
-  
-  if (length(imp_tables) < 2L) {
-    stop("Too few valid implicates.", call. = FALSE)
+
+  n_cells <- length(row_levels) * length(col_levels)
+  cell_key <- paste(rep(row_levels, times = length(col_levels)),
+                    rep(col_levels, each = length(row_levels)), sep = "\r")
+
+  grab <- function(est, se, keys) {
+    out_est <- stats::setNames(rep(NA_real_, n_cells), cell_key)
+    out_var <- out_est
+    hit <- keys %in% cell_key
+    out_est[keys[hit]] <- est[hit]
+    out_var[keys[hit]] <- se[hit]^2
+    list(est = out_est, var = out_var)
   }
-  
-  pooled_table <- Reduce("+", imp_tables) / length(imp_tables)
-  total_pop <- sum(pooled_table)
-  
-  grid <- expand.grid(
+
+  imp_shares <- lapply(seq_len(nimp), function(i) {
+    d <- designs[[i]]
+    d$variables[[rowname]] <- factor(d$variables[[rowname]], levels = row_levels)
+    d$variables[[colname]] <- factor(d$variables[[colname]], levels = col_levels)
+    d$variables$.cell <- factor(
+      paste(d$variables[[rowname]], d$variables[[colname]], sep = "\r"),
+      levels = cell_key
+    )
+    d$variables$.cell[is.na(d$variables[[rowname]]) | is.na(d$variables[[colname]])] <- NA
+
+    cell <- survey::svymean(~.cell, d, na.rm = TRUE)
+    cell_keys <- sub("^\\.cell", "", names(coef(cell)))
+
+    by_row <- survey::svyby(stats::as.formula(paste0("~", colname)),
+                            stats::as.formula(paste0("~", rowname)),
+                            d, survey::svymean, na.rm = TRUE, covmat = TRUE)
+    by_col <- survey::svyby(stats::as.formula(paste0("~", rowname)),
+                            stats::as.formula(paste0("~", colname)),
+                            d, survey::svymean, na.rm = TRUE, covmat = TRUE)
+
+    gr <- as.character(by_row[[rowname]])
+    gc <- as.character(by_col[[colname]])
+    stopifnot(length(coef(by_row)) == length(gr) * length(col_levels),
+              length(coef(by_col)) == length(gc) * length(row_levels))
+    row_keys <- paste(rep(gr, times = length(col_levels)),
+                      rep(col_levels, each = length(gr)), sep = "\r")
+    col_keys <- paste(rep(row_levels, each = length(gc)),
+                      rep(gc, times = length(row_levels)), sep = "\r")
+
+    se_of <- function(x) sqrt(diag(as.matrix(stats::vcov(x))))
+    list(
+      cell = grab(coef(cell), se_of(cell), cell_keys),
+      row = grab(coef(by_row), se_of(by_row), row_keys),
+      col = grab(coef(by_col), se_of(by_col), col_keys)
+    )
+  })
+
+  pool <- function(part) {
+    est <- do.call(rbind, lapply(imp_shares, function(x) x[[part]]$est))
+    var <- do.call(rbind, lapply(imp_shares, function(x) x[[part]]$var))
+    p <- .scf_pool(est, var, variance)
+    list(est = p$estimate, se = p$se)
+  }
+
+  cell_p <- pool("cell")
+  row_p <- pool("row")
+  col_p <- pool("col")
+
+  stat_df <- expand.grid(
     row = row_levels,
     col = col_levels,
     stringsAsFactors = FALSE
   )
-  grid$rowvar <- rowname
-  grid$colvar <- colname
-  
-  imp_counts <- lapply(seq_along(imp_tables), function(i) {
-    tab <- imp_tables[[i]]
-    data.frame(
-      row = rep(rownames(tab), times = ncol(tab)),
-      col = rep(colnames(tab), each = nrow(tab)),
-      count = as.vector(tab),
-      implicate = i,
-      stringsAsFactors = FALSE
-    )
-  })
-  
-  long <- do.call(rbind, imp_counts)
-  
-  pooled_stats <- do.call(rbind, lapply(
-    split(long, list(long$row, long$col), drop = TRUE),
-    function(df) {
-      x <- df$count
-      m <- length(x)
-      qbar <- mean(x)
-      b <- var(x)
-      se <- sqrt((1 + 1 / m) * b)
-      
-      data.frame(
-        row = df$row[1],
-        col = df$col[1],
-        prop = qbar / total_pop,
-        se = se / total_pop,
-        stringsAsFactors = FALSE
-      )
-    }
-  ))
-  
-  stat_df <- merge(
-    grid,
-    pooled_stats,
-    by = c("row", "col"),
-    all.x = TRUE,
-    sort = FALSE
-  )
-  
-  stat_df$prop[is.na(stat_df$prop)] <- 0
-  stat_df$se[is.na(stat_df$se)] <- 0
-  
-  stat_df$row_share <- ave(stat_df$prop, stat_df$row, FUN = function(x) {
-    if (sum(x) == 0) rep(NA_real_, length(x)) else x / sum(x)
-  })
-  
-  stat_df$col_share <- ave(stat_df$prop, stat_df$col, FUN = function(x) {
-    if (sum(x) == 0) rep(NA_real_, length(x)) else x / sum(x)
-  })
-  
-  to_matrix <- function(df, value_col) {
-    xtabs(df[[value_col]] ~ df$row + df$col)
+  stat_df$rowvar <- rowname
+  stat_df$colvar <- colname
+  stat_df$prop <- ifelse(is.na(cell_p$est), 0, cell_p$est)
+  stat_df$se <- ifelse(is.na(cell_p$se), 0, cell_p$se)
+  stat_df$row_share <- row_p$est
+  stat_df$col_share <- col_p$est
+  stat_df$row_share_se <- row_p$se
+  stat_df$col_share_se <- col_p$se
+
+  to_matrix <- function(v) {
+    matrix(v, nrow = length(row_levels),
+           dimnames = stats::setNames(list(row_levels, col_levels), c(rowname, colname)))
   }
-  
+
   matrices <- list(
-    cell = to_matrix(stat_df, "prop"),
-    row  = to_matrix(stat_df, "row_share"),
-    col  = to_matrix(stat_df, "col_share"),
-    se   = to_matrix(stat_df, "se")
+    cell = to_matrix(stat_df$prop),
+    row = to_matrix(stat_df$row_share),
+    col = to_matrix(stat_df$col_share),
+    se = to_matrix(stat_df$se),
+    se_row = to_matrix(stat_df$row_share_se),
+    se_col = to_matrix(stat_df$col_share_se)
   )
-  
+
   out <- list(
     results = stat_df,
     matrices = matrices,
@@ -225,7 +218,7 @@ scf_xtab <- function(scf, rowvar, colvar, scale = "cell") {
       scale = scale
     )
   )
-  
+
   class(out) <- "scf_xtab"
   out
 }
@@ -256,6 +249,7 @@ summary.scf_xtab <- function(object, ...) {
   print(round(100 * object$matrices[[object$aux$scale]], 2))
 
   cat("\nStandard Errors (Proportions):\n")
-  print(round(object$matrices$se, 4))
+  se_name <- switch(object$aux$scale, cell = "se", row = "se_row", col = "se_col")
+  print(round(object$matrices[[se_name]], 4))
   invisible(object)
 }

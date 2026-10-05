@@ -1,35 +1,23 @@
 #' Estimate the Frequencies of a Discrete Variable from SCF Microdata
 #'
-#' Computes weighted proportions and standard errors for a discrete variable
-#' in multiply-imputed SCF data, optionally stratified by a grouping variable.
-#' Proportions and standard errors are computed separately within each 
-#' implicate using `svymean()`, then averaged across
-#' implicates using SCF-recommended pooling logic. Group-wise frequencies are
-#' supported, but users may find the features of [scf_xtab()] to be more useful.
+#' Estimates the share of households in each category of a discrete variable,
+#' overall or by group.
 #'
-#' @description
-#' This function estimates the relative frequency (proportion) of each category
-#' in a discrete variable from the SCF public-use microdata.  Use this function
-#' to discern the univariate distribution of a discrete variable.
+#' @details
+#' Use it to describe how households divide across categories, such as
+#' education levels. Each estimate is the share of households in a category;
+#' with `by`, shares sum to 1 (or 100) within each group. A share plus or
+#' minus two standard errors gives a rough 95 percent range. No tests are
+#' reported. For two-way tables, use [scf_xtab()].
 #'
-#'
-#' @section Details:
-#' Proportions are estimated within each implicate using `survey::svymean()`, 
-#' then pooled using the standard MI formula for proportions. When a grouping 
-#' variable is provided via `by`, estimates are produced separately for each
-#' group-category combination. Results may be scaled to percentages using the 
-#' `percent` argument.
-#'
-#' Estimates are pooled using the standard formula:
-#' - The mean of implicate-level proportions is the point estimate
-#' - The standard error reflects both within-implicate variance and across-implicate variation
-#'
-#' Unlike means or model parameters, category proportions do not use Rubin's full combination rules (e.g., degrees of freedom).
+#' Proportions are estimated in each implicate with `survey::svymean()` and
+#' pooled across implicates (see [scf_variance]).
 #'
 #' @param scf A `scf_mi_survey` object created by [scf_load()]. Must contain five replicate-weighted implicates.
 #' @param var A one-sided formula specifying a categorical variable (e.g., `~racecl`).
 #' @param by Optional one-sided formula specifying a discrete grouping variable (e.g., `~own`).
 #' @param percent Logical. If `TRUE` (default), scales results and standard errors to percentages.
+#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
 #'
 #' @return A list of class `"scf_freq"` with:
 #' \describe{
@@ -61,21 +49,19 @@
 #' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @export
-scf_freq <- function(scf, var, by = NULL, percent = TRUE) {
+scf_freq <- function(scf, var, by = NULL, percent = TRUE,
+                     variance = getOption("scf.variance", "fed")) {
+  variance <- .scf_variance_method(variance)
   if (!inherits(scf, "scf_mi_survey") ||
       !is.list(scf$mi_design) ||
       !all(sapply(scf$mi_design, inherits, "svyrep.design"))) {
     stop("Input must be an 'scf_mi_survey' object with valid multiply-imputed designs.")
   }
 
-  if (isTRUE(attr(scf, "mock"))) {
-    warning("Mock data detected. Do not interpret results as valid SCF estimates.", call. = FALSE)
-  }
-
   varname <- all.vars(var)[1]
   byname <- if (!is.null(by)) all.vars(by)[1] else NULL
+  .scf_check_na(scf$mi_design, var, by)
 
-  # Ensure discrete variables
   check_discrete <- function(vname) {
     v <- scf$mi_design[[1]]$variables[[vname]]
     if (is.numeric(v) && length(unique(v)) > 25) {
@@ -86,13 +72,15 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE) {
   if (!is.null(byname)) check_discrete(byname)
 
   designs <- scf$mi_design
+  var_levels <- .scf_group_levels(designs, varname)
+  by_levels <- if (!is.null(byname)) .scf_group_levels(designs, byname) else NULL
   imp_out <- vector("list", length(designs))
   names(imp_out) <- paste0("imp", seq_along(designs))
 
   for (i in seq_along(designs)) {
     d <- designs[[i]]
-    d$variables[[varname]] <- factor(d$variables[[varname]])
-    if (!is.null(byname)) d$variables[[byname]] <- factor(d$variables[[byname]])
+    d$variables[[varname]] <- factor(d$variables[[varname]], levels = var_levels)
+    if (!is.null(byname)) d$variables[[byname]] <- factor(d$variables[[byname]], levels = by_levels)
 
     if (is.null(byname)) {
       est <- survey::svymean(as.formula(paste0("~", varname)), d)
@@ -106,11 +94,10 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE) {
         stringsAsFactors = FALSE
       )
     } else {
-      levels_g <- levels(d$variables[[byname]])
-      df <- do.call(rbind, lapply(levels_g, function(g) {
-        dsub <- subset(d, d$variables[[byname]] == g)
-        est <- try(survey::svymean(as.formula(paste0("~", varname)), dsub), silent = TRUE)
-        if (inherits(est, "try-error")) return(NULL)
+      df <- do.call(rbind, lapply(by_levels, function(g) {
+        keep <- !is.na(d$variables[[byname]]) & d$variables[[byname]] == g
+        if (!any(keep)) return(NULL)
+        est <- survey::svymean(as.formula(paste0("~", varname)), d[keep, ])
         labs <- gsub(paste0("^", varname), "", names(coef(est)))
         data.frame(
           implicate = i,
@@ -125,31 +112,43 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE) {
     imp_out[[i]] <- df
   }
 
-  long <- do.call(rbind, Filter(Negate(is.null), imp_out))
+  long <- do.call(rbind, imp_out)
   combos <- unique(long[, c("group", "category")])
   pooled <- lapply(seq_len(nrow(combos)), function(k) {
     g <- combos$group[k]
-    c <- combos$category[k]
-    subdf <- subset(long,
-                    (is.na(group) & is.na(g) | group == g) & category == c)
-    m <- length(unique(subdf$implicate))
-    qbar <- mean(subdf$est)
-    ubar <- mean(subdf$var)
-    b <- var(subdf$est)
-    se <- sqrt(ubar + (1 + 1/m) * b)
+    cat_k <- combos$category[k]
+    if (is.na(g)) {
+      in_group <- is.na(long$group)
+    } else {
+      in_group <- !is.na(long$group) & long$group == g
+    }
+    subdf <- long[in_group & long$category == cat_k, ]
+    subdf <- subdf[order(subdf$implicate), ]
+    pooled_k <- .scf_pool(subdf$est, subdf$var, variance)
+    qbar <- pooled_k$estimate
+    se <- pooled_k$se
 
     data.frame(
       group = g,
-      category = c,
+      category = cat_k,
       proportion = if (percent) 100 * qbar else qbar,
       se_proportion = if (percent) 100 * se else se,
       stringsAsFactors = FALSE
     )
   })
 
+  results <- do.call(rbind, pooled)
+  if (is.null(byname)) {
+    results$group <- NULL
+    imp_out <- lapply(imp_out, function(df) {
+      df$group <- NULL
+      df
+    })
+  }
+
   out <- list(
-    results = do.call(rbind, pooled),
-    imps = setNames(imp_out, paste0("imp", seq_along(imp_out))),
+    results = results,
+    imps = imp_out,
     aux = list(variable = varname, group = byname)
   )
   class(out) <- "scf_freq"

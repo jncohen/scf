@@ -19,16 +19,18 @@ library(scf)
 
 # Introduction
 
-The **Survey of Consumer Finances (SCF)** is a triennial survey of U.S. household finances conducted by the Federal Reserve Board. It is among the most detailed data sources on U.S. household wealth, income, and financial behavior.
+The Survey of Consumer Finances (SCF) is a triennial survey of U.S. household finances conducted by the Federal Reserve Board. It is among the most detailed data sources on U.S. household wealth, income, and financial behavior.
+
+The SCF's unit is the primary economic unit: the person or couple at the economic center of the household and everyone financially dependent on them. The Fed calls this unit a "family"; this package calls it a household.
 
 Valid estimation from the SCF requires handling two design features:
 
-1. **Complex survey design**: The SCF uses a dual-frame design with 999 replicate weights per implicate, constructed via balanced repeated replication, which enable design-consistent variance estimation.
-2. **Multiple imputation**: The SCF addresses item nonresponse through multiple imputation. Each release includes five implicates — complete, plausible versions of the dataset with different imputed values for missing items.
+1. Survey design: the SCF uses a dual-frame sample with 999 bootstrap replicate weights, which are used to estimate sampling variance.
+2. Multiple imputation: the SCF fills in missing answers five times, giving five implicates. Each is a complete version of the data with different filled-in values.
 
-The `scf` package handles both. It wraps the five implicates in replicate-weighted `survey::svrepdesign()` objects, applies estimation routines across implicates, and pools results using Rubin's Rules or equivalent procedures.
+The `scf` package handles both. It wraps the five implicates in replicate-weighted `survey::svrepdesign()` objects, runs each estimate in every implicate, and pools the results. See `?scf_variance` for how standard errors are computed.
 
-This vignette demonstrates the core workflow. For methodological background, see the package paper.
+This vignette demonstrates the core workflow. For methodological background, see the package paper listed under Learn More.
 
 
 # Workflow
@@ -64,14 +66,13 @@ scf2022 <- scf_update(scf2022,
   networth     = ifelse(networth > 1, networth, 1),
   log_networth = log(networth),
   income       = ifelse(income > 1, income, 1),
-  log_income   = log(income),
-  npeople      = x101
+  log_income   = log(income)
 )
 ```
 
 Use `names(scf2022$mi_design[[1]]$variables)` to inspect available variables.
 
-When a transformation depends on the distribution within each implicate — ranks, percentile flags, groupwise z-scores — use `scf_update_by_implicate()` instead:
+When a transformation depends on the distribution within each implicate, such as ranks, percentile flags, or group z-scores, use `scf_update_by_implicate()` instead:
 
 ```{r, eval = FALSE}
 scf2022 <- scf_update_by_implicate(scf2022, function(df) {
@@ -79,6 +80,16 @@ scf2022 <- scf_update_by_implicate(scf2022, function(df) {
   df
 })
 ```
+
+### Dollar values
+
+Summary variables made by the Fed, such as `income`, `networth`, and `asset`, are in 2022 dollars in every survey year. Raw survey variables, named `x` followed by a number, are in dollars of the survey year. Before comparing a raw variable across years, or combining it with summary variables, convert it with `scf_real()`. List income items, which are reported for the year before the survey, in `income`:
+
+```{r, eval = FALSE}
+scf2016 <- scf_real(scf2016, ~x5702 + x3915, income = ~x5702)
+```
+
+To report a result in dollars of the survey year, as in the Fed's nominal-dollar tables, use `scf_nominal()` on the result. Both functions stop with an error if given the wrong kind of variable, unless `force = TRUE`.
 
 ## 3. Univariate and Bivariate Distributions
 
@@ -100,7 +111,7 @@ scf_xtab(scf2022, ~senior, ~female, scale = "col")
 
 ## 4. Hypothesis Tests
 
-`scf_ttest()` and `scf_prop_test()` produce pooled inferential tests with correct degrees of freedom.
+`scf_ttest()` and `scf_prop_test()` pool results across implicates and use Rubin's degrees of freedom.
 
 ```{r}
 scf_ttest(scf2022, ~networth, mu = 250000)
@@ -129,7 +140,7 @@ scf_regtable(m1, m2, model.names = c("Model 1", "Model 2"), digits = 3)
 
 ## 6. Quantile Regression
 
-OLS models the conditional mean, which is sensitive to outliers and skew. Wealth and income distributions in the SCF are highly right-skewed: a small number of high-wealth households can dominate mean estimates. Quantile regression estimates the conditional quantile of the outcome at a user-specified probability `tau`, giving a more complete picture of distributional associations.
+OLS models the conditional mean, which is sensitive to outliers and skew. Wealth and income distributions in the SCF are highly right-skewed: a small number of high-wealth households can dominate mean estimates. Quantile regression estimates the conditional quantile of the outcome at a user-specified probability `tau`. Estimating several quantiles shows how a predictor's effect differs across the distribution.
 
 `scf_quantreg()` fits `quantreg::rq()` with SCF final sampling weights to each implicate, then pools coefficients and variance-covariance matrices across implicates via `scf_MIcombine()`.
 
@@ -147,20 +158,21 @@ summary(m_75)
 
 The `se` argument controls within-implicate variance estimation. All methods feed a covariance matrix into `scf_MIcombine()`, so between-implicate (imputation) variance is always incorporated.
 
-- `"nid"` (default): non-iid sandwich estimator. Allows the conditional sparsity — the density of the error distribution at the quantile — to vary across observations. Appropriate when the error distribution is not constant across the covariate space, which is typical for wealth and income outcomes.
-- `"iid"`: implements the Koenker-Bassett (1978) covariance formula `[θ(1-θ)/f(ξ(θ))²] Q⁻¹`, where `f(ξ(θ))` is the density of the error at the θ-quantile (the sparsity) and `Q = lim T⁻¹X'X`. This assumes the error distribution is identical across all observations — constant sparsity, not merely constant variance. Fastest option.
-- `"ker"`: kernel density estimate of the conditional sparsity. More data-adaptive than `"nid"`.
-- `"boot"`: pairs bootstrap. Distribution-free but slowest of the analytical options.
-- `"replicate"`: re-fits the model using each of the SCF's 999 replicate weight vectors per implicate via `survey::withReplicates()`, accumulating variance as the weighted sum of squared deviations from the full-weight estimate. This matches the SCF's own published variance methodology and is recommended for final publication-quality estimates. It requires approximately 5,000 model fits across five implicates and is computationally intensive.
+- `"replicate"` (default): re-fits the model with each of the SCF's 999 replicate weights in each implicate, via `survey::withReplicates()`. The variance is the spread of the replicate coefficients around their mean, as the Fed computes it. This is the only method that uses the SCF's sample design. It refits the model about 5,000 times, so it can take several minutes on the full data.
+- `"nid"`: non-iid sandwich estimator. Allows the conditional sparsity (the density of the error distribution at the quantile) to vary across observations.
+- `"iid"`: the Koenker-Bassett (1978) covariance formula, which assumes the error distribution is the same for all observations. Fastest option.
+- `"ker"`: kernel density estimate of the conditional sparsity.
+- `"boot"`: pairs bootstrap.
+
+The last four come from `quantreg::summary.rq()` and treat the weighted sample as a simple random sample, so they ignore the SCF's design. They are useful for quick exploration; report results with `"replicate"`.
 
 ```{r, eval = FALSE}
-# Replication-based variance (recommended for publication; slow)
-m_rep <- scf_quantreg(scf2022, log_networth ~ age + senior,
-                       tau = 0.50, se = "replicate")
-summary(m_rep)
+# Fast standard errors while exploring
+m_quick <- scf_quantreg(scf2022, log_networth ~ age + senior,
+                        tau = 0.50, se = "nid")
 ```
 
-A note on design: the `survey` package provides `svyquantile()` for estimating marginal quantiles of a single variable, but it has no function for regression quantiles (conditional quantiles given covariates). `scf_quantreg()` therefore uses `quantreg::rq()` for point estimation, with `survey::withReplicates()` providing the design-based variance wrapper for the `"replicate"` path. This keeps the SCF's replication scheme encapsulated in the survey design object, rather than reimplementing it manually.
+A note on design: the `survey` package provides `svyquantile()` for estimating marginal quantiles of a single variable, but it has no function for regression quantiles (conditional quantiles given covariates). `scf_quantreg()` therefore uses `quantreg::rq()` for point estimation, with `survey::withReplicates()` providing the design-based variance wrapper for the `"replicate"` path.
 
 Koenker and Bassett (1978) established the asymptotic theory for the unweighted, i.i.d. case. Applying `rq()` with survey sampling weights extends the estimator to probability-weighted samples, which is standard empirical practice; the `"iid"` and `"nid"` standard error formulas extend correspondingly to the weighted design matrix `X'WX`. The `"replicate"` option sidesteps this by using the SCF's own replication scheme to estimate variance directly, without relying on distributional assumptions about the errors.
 
@@ -215,8 +227,9 @@ summary(m$imps[[1]])   # first implicate svyglm object
 
 # Learn More
 
+- Cohen JN. *Analyzing the Survey of Consumer Finances with scf: Methodology, User Guide, and Package Validation*. Working paper, CUNY Queens College; 2026. <https://academicworks.cuny.edu/qc_pubs/695/>
 - Federal Reserve Board. *Survey of Consumer Finances*. <https://www.federalreserve.gov/econres/aboutscf.htm>
-- Koenker R, Bassett G. Regression quantiles. *Econometrica*. 1978;46(1):33–50.
+- Koenker R, Bassett G. Regression quantiles. *Econometrica*. 1978;46(1):33-50.
 - Rubin DB. *Multiple Imputation for Nonresponse in Surveys*. Wiley; 1987.
 
 ```{r, include = FALSE}

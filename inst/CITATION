@@ -3,7 +3,7 @@ bibentry(
   title  = "scf: Analyzing the Survey of Consumer Finances",
   author = person("Joseph", "Cohen"),
   year   = "2026",
-  note   = "R package version 1.0.7",
+  note   = sprintf("R package version %s", meta$Version),
   url    = "https://github.com/jncohen/scf"
 )
 

@@ -2,7 +2,6 @@
 % Please edit documentation in R/scf_pctile_sum.R
 \name{scf_pctile_sum}
 \alias{scf_pctile_sum}
-\alias{scf_pctile_cut}
 \title{Summarize SCF Variables by Percentile Group}
 \usage{
 scf_pctile_sum(
@@ -15,25 +14,14 @@ scf_pctile_sum(
   stat = c("mean", "median", "none"),
   stat_var = NULL
 )
-
-scf_pctile_cut(
-  scf,
-  var,
-  probs = seq(0, 1, by = 0.1),
-  labels = NULL,
-  varname = NULL,
-  method = c("implicate", "stack"),
-  stat = c("mean", "median", "none"),
-  stat_var = NULL
-)
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object created with \code{\link{scf_load}}.}
+\item{scf}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula naming the continuous variable to cut
 (e.g., \code{~networth}).}
 
-\item{probs}{Numeric vector with values in between 0 and 1 defining group boundaries,
+\item{probs}{Numeric vector of values between 0 and 1 defining group boundaries,
 including 0 and 1 as endpoints. Defaults to deciles
 (\code{seq(0, 1, by = 0.1)}).}
 
@@ -47,68 +35,42 @@ automatically in the form \code{"p0-p10"}, \code{"p10-p20"}, etc.}
 \item{method}{Character. One of \code{"implicate"} (default) or
 \code{"stack"}. See Details.}
 
-\item{stat}{Character. One of \code{"mean"} (default), \code{"median"},
-or \code{"none"}. When \code{"none"}, returns the updated
-\code{scf_mi_survey} object with the grouping variable added and no
-summary statistic computed. When \code{"mean"} or \code{"median"},
-computes the statistic within each percentile group and returns a data
-frame of results.}
+\item{stat}{\code{"mean"} (default), \code{"median"}, or \code{"none"}. With \code{"none"},
+no statistic is computed and the data are returned with the group
+variable added.}
 
 \item{stat_var}{Optional one-sided formula naming the variable to summarize
 within each group. Defaults to \code{var} if not supplied.}
 }
 \value{
-When \code{stat = "none"}, returns the input \code{scf_mi_survey}
-object with a new factor variable added to each implicate's data frame.
-The variable is named according to \code{varname} (default:
-\code{"{var}_pctile"}), and can be passed directly to
-\code{\link{scf_mean}}, \code{\link{scf_median}}, or other estimation
-functions via the \code{by} argument. When \code{stat = "mean"} or
-\code{"median"} with \code{method = "implicate"}, returns the output of
-\code{\link{scf_mean}} or \code{\link{scf_median}} respectively. When
-\code{stat != "none"} with \code{method = "stack"}, returns a data frame
-with columns \code{group}, \code{variable}, and \code{estimate}. No
-standard error is returned for the stack method.
+With \code{stat = "none"}, the \code{scf_mi_survey} object with the group
+variable (named by \code{varname}) added; pass it to \code{by} in other functions.
+With \code{method = "implicate"}, the result of \code{\link[=scf_mean]{scf_mean()}} or
+\code{\link[=scf_median]{scf_median()}}. With \code{method = "stack"}, a data frame with columns
+\code{group}, \code{variable}, and \code{estimate}.
 }
 \description{
-Creates a percentile-based grouping variable for a continuous SCF variable
-and optionally computes a summary statistic within each group. Two methods
-are available. The \code{"implicate"} method (the default) computes
-survey-weighted quantile thresholds separately within each implicate, the
-statistically preferable approach under multiple imputation, as it correctly
-accounts for between-implicate variation in imputed values. The
-\code{"stack"} method replicates the Federal Reserve's published convention,
-in which all five implicates are pooled with weights divided by five,
-observations are sorted by the percentile variable and household identifier,
-percentile groups are assigned from the cumulative weighted population share,
-and a flat weighted statistic is computed directly on the stacked data.
+Groups households by percentiles of a variable and summarizes a variable
+within each group.
 }
 \details{
-The two methods will generally produce similar but not identical results.
-Use \code{method = "stack"} when replication of the Federal Reserve's
-published percentile-group point estimates is required. Note that
-\code{method = "stack"} with \code{stat != "none"} computes a flat weighted
-statistic on the pooled stacked data and does not use replicate-weight
-survey machinery or Rubin's combining rules. No standard error is
-returned in this case.
+Use it to compare households at different points of a distribution, such
+as mean net worth of the top 10 percent against the bottom 50 percent.
+Each row is one group; the estimate is the mean or median of \code{stat_var} in
+that group. For the Fed's own groups, such as \code{nwcat} and \code{inccat}, use
+\code{by} in \code{\link[=scf_mean]{scf_mean()}} or \code{\link[=scf_median]{scf_median()}} instead.
 
-When \code{stat = "none"}, the function returns the input
-\code{scf_mi_survey} object with the grouping variable added, ready to pass
-to \code{\link{scf_mean}}, \code{\link{scf_median}}, or other estimation
-functions via the \code{by} argument. For standard grouping variables
-already published by the Fed, such as net worth percentile (\code{nwcat})
-and income percentile (\code{inccat}), those variables are included directly
-in the data returned by \code{\link{scf_load}} and can be passed to
-\code{by} without calling \code{scf_pctile_sum}.
+Households are sorted by the variable and household identifier, and the
+cumulative weighted population share sets each household's group, as in the
+Fed's SAS macro. Ties at a boundary are split by identifier, so each group
+holds its share of the population.
 
-For \code{method = "stack"}, percentile groups are assigned using the
-Federal Reserve SAS macro logic: after stacking implicates and dividing
-weights by five, observations are sorted by the variable used to define the
-percentile groups and by household identifier. The cumulative weighted
-population share is then used to assign groups. This is not equivalent to
-first estimating a percentile threshold and then applying a simple
-\code{>} or \code{>=} comparison, especially when observations lie at or
-near a percentile boundary.
+\code{method = "implicate"} assigns groups within each implicate and returns
+estimates with standard errors. \code{method = "stack"} stacks the implicates
+with weights divided by five, assigns groups once, and computes a weighted
+statistic without a standard error; it reproduces the Fed's published
+figures. With \code{stat = "none"}, the data are returned with the group
+variable added.
 }
 \examples{
 # Do not implement these lines in real analysis:
@@ -140,7 +102,12 @@ scf2022 <- scf_pctile_sum(scf2022, ~networth,
 unlink(td, recursive = TRUE, force = TRUE)
 
 }
+\references{
+Board of Governors of the Federal Reserve System. SAS macro for SCF
+Bulletin variable definitions (bulletin.macro.txt).
+\url{https://www.federalreserve.gov/econres/files/bulletin.macro.txt}
+}
 \seealso{
-\code{\link{scf_mean}}, \code{\link{scf_median}},
-\code{\link{scf_percentile}}, \code{\link{scf_update_by_implicate}}
+\code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}},
+\code{\link[=scf_percentile]{scf_percentile()}}, \code{\link[=scf_update_by_implicate]{scf_update_by_implicate()}}
 }
