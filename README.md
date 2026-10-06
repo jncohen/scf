@@ -14,7 +14,7 @@ status](https://www.r-pkg.org/badges/version/scf)](https://CRAN.R-project.org/pa
 
 The `scf` R package analyzes the U.S. Federal Reserve's Survey of Consumer
 Finances (SCF), a detailed source of data on U.S. households' wealth, debt,
-and income.
+and income. It covers the twelve public-use waves from 1989 to 2022.
 
 It stores the SCF's five implicates and 999 replicate weights in one object
 (`scf_mi_survey`) and provides functions for descriptive statistics,
@@ -32,6 +32,9 @@ household.
 - [Installation](#installation)
 - [Getting Started](#getting-started)
 - [Documentation](#documentation)
+- [Note on Mock Data](#note-on-mock-data)
+- [Citation](#citation)
+- [Use of AI Tools](#use-of-ai-tools)
 
 ## Features
 
@@ -47,6 +50,8 @@ household.
   on the within-implicate distribution (e.g., implicate-specific ranks
   or percentile thresholds).
 - `scf_subset()`: Subsets the data consistently across all implicates.
+- `scf_design()`: Builds an `scf_mi_survey` object from your own list of
+  replicate-weight designs, one per implicate.
 - `scf_real()`: Converts raw `x` dollar variables to 2022 dollars, the way
   the Fed converts the summary variables.
 
@@ -69,8 +74,10 @@ household.
   variables.
 - `scf_prop_test()`: One-sample and two-sample proportion tests for
   binary variables.
-- `scf_MIcombine()`: Combines model estimates across implicates using
-  Rubin's rules.
+- `scf_MIcombine()`: Combines estimates across implicates.
+- `scf_variance`: Not a function but a help page (`?scf_variance`) on the
+  `variance` option, which chooses the Fed's method (default) or Rubin's
+  rules for standard errors.
 
 ### Regression Modeling
 
@@ -83,8 +90,9 @@ household.
   across implicates, one quantile per call.
 
 All model functions return objects of class `scf_model_result`, with
-methods for `coef()`, `vcov()`, `predict()`, `AIC()` (not for quantile
-models), `residuals()`, and `summary()`.
+methods for `coef()`, `vcov()`, `confint()`, `predict()`, `AIC()` (not for
+quantile models), `residuals()`, and `summary()`. Fit statistics include
+observation counts (`nobs`, `nobs_mean`).
 
 ### Visualization
 
@@ -96,6 +104,8 @@ models), `residuals()`, and `summary()`.
 - `scf_plot_smooth()`: Smoothed line plots for continuous distributions.
 - `scf_plot_hist()`: Weighted histograms of continuous variables.
 - `scf_plot_hex()`: Weighted hexbin plots for bivariate continuous data.
+- `scf_theme()`, `scf_activate_theme()`: The package's `ggplot2` theme, to
+  add to a plot or set as the session default.
 
 ### Diagnostics and Output
 
@@ -109,10 +119,18 @@ models), `residuals()`, and `summary()`.
 
 ## Installation
 
-Install the latest version of the package through CRAN:
+Install the released version from CRAN:
 
 ``` r
 install.packages("scf")
+```
+
+This README describes version 1.1.0. Until it reaches CRAN, install it from
+GitHub:
+
+``` r
+# install.packages("remotes")
+remotes::install_github("jncohen/scf")
 ```
 
 The package requires R 3.6 or later and these packages, which install
@@ -213,7 +231,6 @@ scf_logit(scf2022, hstocks ~ age + income + factor(edcl))
 ### Plotting and Visualization
 
 ``` r
-
 # Bar chart of a single categorical variable
 scf_plot_dbar(scf2022, ~edcl)
 
@@ -231,7 +248,6 @@ scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "mean")
 
 # Hexbin plot: net worth vs. income
 scf_plot_hex(scf2022, ~income, ~networth, bins = 60)
-
 ```
 
 ### Wrangling and Transformation
@@ -331,11 +347,16 @@ scf_regtable(m_ols, m_logit, output = "csv",
 
 ## Documentation
 
-For detailed examples, function documentation, and usage guides, consult
-the package vignettes and reference manual.
-
-- [SCF Homepage](https://github.com/jncohen/scf)
-- [CRAN Package Page](https://CRAN.R-project.org/package=scf)
+- Vignette: `vignette("SCF-guide", package = "scf")`
+- Help on standard errors: `?scf_variance`
+- Methods paper: Cohen (2026), [*Analyzing the Survey of Consumer Finances
+  with scf: Methodology, User Guide, and Package
+  Validation*](https://academicworks.cuny.edu/qc_pubs/695/)
+- [GitHub repository](https://github.com/jncohen/scf) and
+  [issues](https://github.com/jncohen/scf/issues)
+- [CRAN package page](https://CRAN.R-project.org/package=scf)
+- [Federal Reserve SCF page](https://www.federalreserve.gov/econres/scfindex.htm)
+  for codebooks and the published Bulletin tables
 
 ## Note on Mock Data
 
@@ -350,6 +371,10 @@ has the same structure as the real data but is not suitable for analysis.
 If you use `scf` in published work, please cite it as:
 
 > Joseph N. Cohen (2026). *scf: Analyzing the Survey of Consumer Finances.* R package version 1.1.0. <https://github.com/jncohen/scf>
+
+For the methods and validation, cite:
+
+> Joseph N. Cohen (2026). *Analyzing the Survey of Consumer Finances with scf: Methodology, User Guide, and Package Validation.* Working Paper, CUNY Queens College. <https://academicworks.cuny.edu/qc_pubs/695/>
 
 Use `citation("scf")` in R for formatted references.
 
