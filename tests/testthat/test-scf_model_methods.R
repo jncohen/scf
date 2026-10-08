@@ -32,3 +32,39 @@ test_that("predict works with and without newdata", {
 
   unlink(file.path(td, "scf2022.rds"), force = TRUE)
 })
+
+test_that("stored fits drop the survey design and stay small", {
+  td <- tempdir()
+  src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+  file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+  scf2022 <- scf_load(2022, data_directory = td)
+  scf2022 <- scf_update(scf2022, hi = as.integer(networth > median(networth)))
+
+  env <- new.env(parent = globalenv())
+  f_ols <- networth ~ I(age^2) + log(pmax(income, 1)) + factor(hhsex)
+  f_glm <- hi ~ I(age^2) + factor(hhsex)
+  environment(f_ols) <- env
+  environment(f_glm) <- env
+
+  models <- list(
+    scf_ols(scf2022, f_ols),
+    scf_logit(scf2022, f_glm),
+    scf_glm(scf2022, f_glm)
+  )
+  nd <- data.frame(age = c(30, 50), hhsex = c(1, 2), income = c(5e4, 1e5))
+
+  for (m in models) {
+    fits <- if (!is.null(m$imps)) m$imps else m$models
+    for (fit in fits) {
+      expect_identical(environment(fit$terms), env)
+      expect_identical(environment(fit$formula), env)
+      expect_identical(environment(attr(fit$model, "terms")), env)
+      expect_null(fit$survey.design)
+      expect_null(fit$data)
+    }
+    expect_lt(length(serialize(m, NULL)), 2e6)
+    expect_length(predict(m, newdata = nd), 2)
+  }
+
+  unlink(file.path(td, "scf2022.rds"), force = TRUE)
+})

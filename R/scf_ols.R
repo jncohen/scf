@@ -66,7 +66,7 @@ scf_ols <- function(object, formula) {
   coefs_list <- aligned$coefs
   vars_list <- aligned$vars
 
-  models <- lapply(models, function(m) { m$survey.design <- NULL; m$data <- NULL; m })
+  models <- lapply(models, .scf_lighten_fit, env = environment(formula))
 
   pooled <- scf_MIcombine(coefs_list, vars_list)
 

@@ -1,5 +1,5 @@
 ## Release summary
-This is a minor release (1.0.10 to 1.1.0). It corrects standard errors and
+This is a minor release (1.0.10 to 1.1.1). It corrects standard errors and
 other results across the package and adds new features.
 
 Corrections:
@@ -12,6 +12,9 @@ Corrections:
 * Functions stop with a clear error when a variable has missing values, or
   when a model or estimate fails in any implicate, instead of pooling the
   rest.
+* Model results from `scf_glm()`, `scf_logit()`, and `scf_ols()` no longer
+  carry a copy of the survey design, which made them gigabytes in size when
+  saved.
 
 New features:
 * `scf_ratio()` estimates ratios of totals.

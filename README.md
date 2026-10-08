@@ -125,7 +125,7 @@ Install the released version from CRAN:
 install.packages("scf")
 ```
 
-This README describes version 1.1.0. Until it reaches CRAN, install it from
+This README describes version 1.1.1. Until it reaches CRAN, install it from
 GitHub:
 
 ``` r
@@ -370,7 +370,7 @@ has the same structure as the real data but is not suitable for analysis.
 
 If you use `scf` in published work, please cite it as:
 
-> Joseph N. Cohen (2026). *scf: Analyzing the Survey of Consumer Finances.* R package version 1.1.0. <https://github.com/jncohen/scf>
+> Joseph N. Cohen (2026). *scf: Analyzing the Survey of Consumer Finances.* R package version 1.1.1. <https://github.com/jncohen/scf>
 
 For the methods and validation, cite:
 

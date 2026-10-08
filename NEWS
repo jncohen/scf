@@ -1,3 +1,7 @@
+# scf 1.1.1
+
+* Fix model results that were very large when saved. `survey::svyglm()` ties each implicate fit to the full survey design, so `save()`, `saveRDS()`, and knitr's cache wrote out a copy of the design for every implicate of every model (about 5 GB for one `scf_logit()` on the 2022 data). `scf_glm()`, `scf_logit()`, and `scf_ols()` now drop that link. Estimates and other results are unchanged.
+
 # scf 1.1.0
 
 ## New features

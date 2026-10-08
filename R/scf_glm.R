@@ -123,7 +123,7 @@ scf_glm <- function(object, formula, family = binomial()) {
     })
   })
 
-  models <- lapply(models, function(m) { m$survey.design <- NULL; m$data <- NULL; m })
+  models <- lapply(models, .scf_lighten_fit, env = environment(formula))
 
   pseudo_r2 <- if (identical(family$family, "binomial")) {
     sapply(models, function(m) 1 - m$deviance / m$null.deviance)

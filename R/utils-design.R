@@ -56,6 +56,15 @@
   eval(f[[2]], df, environment(f))
 }
 
+.scf_lighten_fit <- function(m, env) {
+  m$survey.design <- NULL
+  m$data <- NULL
+  if (!is.null(m$formula)) environment(m$formula) <- env
+  if (!is.null(m$terms)) environment(m$terms) <- env
+  if (!is.null(m$model)) attr(m$model, "terms") <- m$terms
+  m
+}
+
 .scf_fit_error <- function(i, e) {
   msg <- sub("[.[:space:]]+$", "", conditionMessage(e))
   hint <- if (grepl("NA values in estimate|singular", msg)) {
