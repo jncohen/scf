@@ -73,11 +73,11 @@ set.seed(1234)
 
 This article introduces the R package `scf` [@Cohen2025], which simplifies the analysis of the *Survey of Consumer Finances* (SCF) public-use microdata [@FRB2023a]. The SCF is a valuable resource for research on the economic circumstances, behavior, strategies, and fortunes of U.S. households. However, two features of the data make it more difficult to analyze: its (i) complex sampling design and (ii) imputation of missing data. These features improve the quality of the data but make valid analysis more technically demanding. The package `scf` makes SCF microdata analysis more accessible by scripting these handling routines in a library of easy-to-use functions. 
 
-This package builds on the `survey` package [@Lumley2024], wrapping each of the SCF’s five imputed sets into replicate-weighted `survey::svyrepdesign()` design objects. Users can then call single-line data analytic functions that implement operations across individual implicates and then pool the resulting estimates using Rubin’s Rules [@Rubin1987] or similar appropriate functions to render parameter estimates. The package includes functions for downloading, wrangling, estimating, and visualizing population statistics. It is intended for analysts who are comfortable in R but do not want to manually script SCF-specific survey-design and imputation handling.
+This package builds on the `survey` package [@Lumley2024], wrapping each of the SCF's five imputed sets into replicate-weighted `survey::svyrepdesign()` design objects. Users can then call single-line data analytic functions that implement operations across individual implicates and then pool the resulting estimates using Rubin's Rules [@Rubin1987] or similar appropriate functions to render parameter estimates. The package includes functions for downloading, wrangling, estimating, and visualizing population statistics. It is intended for analysts who are comfortable in R but do not want to manually script SCF-specific survey-design and imputation handling.
 
-This paper proceeds as follows: Section 2 briefly describes the SCF and its uses. Section 3 describes the methodological challenges involved in analyzing SCF microdata. Section 4 describes the `scf` package. Section 5 reviews the `scf` package’s suite of commands and replicates officially published estimates. Section 6 reviews the strengths of the `scf` universe of functions versus alternatives. Section 7 ends with some technical notes, installation instructions, and a summary.
+This paper proceeds as follows: Section 2 briefly describes the SCF and its uses. Section 3 describes the methodological challenges involved in analyzing SCF microdata. Section 4 describes the `scf` package. Section 5 reviews the `scf` package's suite of commands and replicates officially published estimates. Section 6 reviews the strengths of the `scf` universe of functions versus alternatives. Section 7 ends with some technical notes, installation instructions, and a summary.
 
-*Note: Upper-case “SCF” refers to the dataset; lower-case monospaced `scf` denotes the R package.* The Markdown file that produced this document is available in the paper's registered OSF repository [@Cohen2026].  An archive of the package version used to produce this document is also available on OSF [@Cohen2026a].
+*Note: Upper-case "SCF" refers to the dataset; lower-case monospaced `scf` denotes the R package.* The Markdown file that produced this document is available in the paper's registered OSF repository [@Cohen2026].  An archive of the package version used to produce this document is also available on OSF [@Cohen2026a].
 
 ```{r data set up, include = F}
 
@@ -112,7 +112,7 @@ The `scf` package supports valid, reproducible, and transparent analysis of *Sur
 
 All `scf` operations revolve around a central object class, `scf_mi_survey`, which represents the SCF microdata for a given survey year. The object contains:
 
-- `mi_design`: A list of five `survey::svrepdesign` objects, one per implicate, encoding the SCF’s replicate-weighted survey structure.
+- `mi_design`: A list of five `survey::svrepdesign` objects, one per implicate, encoding the SCF's replicate-weighted survey structure.
 - `year`: The SCF survey year (e.g., 2022).
 - `n_households`: The number of U.S. households represented by the SCF sample that year.
 
@@ -120,13 +120,13 @@ This structure enables both functional automation (via wrapper functions) and us
 
 ## Estimation and Pooling Logic
 
-The `scf` package’s estimation and pooling logic is summarized in Figure 1:
+The `scf` package's estimation and pooling logic is summarized in Figure 1:
 
 ```{r fig1, echo=FALSE, out.width="80%", fig.cap="Architecture of the `scf` Package Data Object and Workflow"}
 include_graphics("object-process-diagram.png")
 ```
 
-The `scf_mi_survey` is a complex data list that includes one encoded survey design object for each of the SCF’s imputed data sets, stored as `scf2022$mi_design[[i]]`. The `scf` package encodes these survey design objects at the outset of the recommended workflow, using `survey::svrepdesign()` wrapped in the functions `scf_design()` via `scf_load()`. For any given `scf` function, an operation in the `survey` package is applied to each of the five implicates.^[For example, to calculate the means of a variable, `scf_mean()` applies the `survey::svymean()` function to each implicate, using the replicate weights and the main sampling weight. Likewise, `scf_ols()` uses `survey::svyglm()` to fit a linear regression model to each implicate.] The five separate results are generally then recombined into a single parameter estimate using Rubin’s Rules (see above) or averaged directly (for percentiles and proportions). The final result is returned as a list containing the pooled parameter estimate, its standard error, and any additional information needed for inference (e.g., confidence intervals).
+The `scf_mi_survey` is a complex data list that includes one encoded survey design object for each of the SCF's imputed data sets, stored as `scf2022$mi_design[[i]]`. The `scf` package encodes these survey design objects at the outset of the recommended workflow, using `survey::svrepdesign()` wrapped in the functions `scf_design()` via `scf_load()`. For any given `scf` function, an operation in the `survey` package is applied to each of the five implicates.^[For example, to calculate the means of a variable, `scf_mean()` applies the `survey::svymean()` function to each implicate, using the replicate weights and the main sampling weight. Likewise, `scf_ols()` uses `survey::svyglm()` to fit a linear regression model to each implicate.] The five separate results are generally then recombined into a single parameter estimate using Rubin's Rules (see above) or averaged directly (for percentiles and proportions). The final result is returned as a list containing the pooled parameter estimate, its standard error, and any additional information needed for inference (e.g., confidence intervals).
 
 ## Dependencies
 
@@ -139,7 +139,7 @@ The package performs operations related to data infrastructure, wrangling, descr
 
 # Examples and Validation
 
-This section demonstrates the package’s workflow and functionality by replicating official population statistic estimates published by the U.S. Federal Reserve. The Federal Reserve generally uses a non-public version of its dataset in creating statistical reports, but it releases official estimates derived from the public-use microdata in an Excel workbook distributed on the SCF website [@FRB2023b]. Below, official estimates from that workbook are cited, mentioning the table and cell range to which the `scf` package-generated results match.
+This section demonstrates the package's workflow and functionality by replicating official population statistic estimates published by the U.S. Federal Reserve. The Federal Reserve generally uses a non-public version of its dataset in creating statistical reports, but it releases official estimates derived from the public-use microdata in an Excel workbook distributed on the SCF website [@FRB2023b]. Below, official estimates from that workbook are cited, mentioning the table and cell range to which the `scf` package-generated results match.
 
 ## Data Wrangling
 
@@ -197,7 +197,7 @@ tab <- data.frame(
     "Ordinary least squares regression with Rubin pooling",
     "Logistic regression with optional odds ratio output",
     "Generalized linear models with a user-specified family",
-    "Apply Rubin’s Rules for pooled estimates",
+    "Apply Rubin's Rules for pooled estimates",
     "Extract implicate-level results from scf_* outputs",
     "Format and display regression output for publication",
     "Bar chart for discrete variables",
@@ -377,7 +377,7 @@ Non-seniors have estimated mean net worth `r dollar(mn_non)`; seniors `r dollar(
 
 A standard method for analyzing SCF data in R involves using Lumley *et al.*'s (2024) `survey` package, implemented in a workflow defined by @Damico2025. The `survey` package is the industry standard in complex survey analysis. For years, Damico's code repository had been recommended in Federal Reserve technical notes as guidance for R users who wanted to use the data.  Both are invaluable resources for using and teaching people how to use a wide range of federal survey data, including the SCF. 
 
-The SCF’s combination of replicate weights and multiple imputation, however, requires more elaborate scripting than most federal surveys. This complexity can induce coding errors and discourages generalists from using the data. The `scf` package streamlines the Damico-style workflow by automating these steps in a small set of functions that integrate design construction, implicate iteration, and pooling. This lowers the technical barrier to valid analysis while preserving the underlying methodology.
+The SCF's combination of replicate weights and multiple imputation, however, requires more elaborate scripting than most federal surveys. This complexity can induce coding errors and discourages generalists from using the data. The `scf` package streamlines the Damico-style workflow by automating these steps in a small set of functions that integrate design construction, implicate iteration, and pooling. This lowers the technical barrier to valid analysis while preserving the underlying methodology.
 
 A comparison of the workflow required to get the median household income in 2007 using both methods illustrates the difference. Both workflows yield identical statistics and standard errors; the difference lies in reduced coding surface and error exposure, though at some processing time costs.
 
@@ -559,7 +559,7 @@ knitr::kable(
 
 ## Technical Notes
 
-The `scf` package is implemented entirely in R and depends only on established CRAN infrastructure. It builds on the `survey` package [@Lumley2024] for complex‐survey estimation, including replicate‐weight support and design‐based inference. Optional graphics use `ggplot2` [@Wickham2025]; these are not required for estimation. Pooling and variance calculations for multiply imputed, replicate‐weighted data follow the public SCF technical documentation and are implemented directly within the package. 
+The `scf` package is implemented entirely in R and depends only on established CRAN infrastructure. It builds on the `survey` package [@Lumley2024] for complex-survey estimation, including replicate-weight support and design-based inference. Optional graphics use `ggplot2` [@Wickham2025]; these are not required for estimation. Pooling and variance calculations for multiply imputed, replicate-weighted data follow the public SCF technical documentation and are implemented directly within the package. 
 
 ## Reproducibility and Availability
 
@@ -571,7 +571,7 @@ install.packages("scf")
 
 ```
 
-The package includes all code used to generate the applied examples in Section 6 of this article. The examples are based on the 2022 wave of the Survey of Consumer Finances public-use microdata, available directly from the Federal Reserve’s website. A basic package vignette is included to illustrate core usage patterns; a more detailed vignette reproducing official SCF statistics may be added in a future release.
+The package includes all code used to generate the applied examples in Section 6 of this article. The examples are based on the 2022 wave of the Survey of Consumer Finances public-use microdata, available directly from the Federal Reserve's website. A basic package vignette is included to illustrate core usage patterns; a more detailed vignette reproducing official SCF statistics may be added in a future release.
 
 # Summary
 
