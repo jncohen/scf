@@ -15,13 +15,15 @@
 #' each implicate with the replicate weights and pooled (see [scf_variance]).
 #' The two-sample test accounts for the covariance between groups.
 #'
-#' @param design A `scf_mi_survey` object created by [scf_load()]. Must contain replicate-weighted implicates.
+#' @param design A `scf_mi_survey` object from [scf_load()].
 #' @param var A one-sided formula indicating a binary variable (e.g., `~rich`).
 #' @param group Optional one-sided formula indicating a binary grouping variable (e.g., `~female`). If omitted, a one-sample test is performed.
 #' @param p Null hypothesis value. Defaults to `0.5` for one-sample, `0` for two-sample tests.
 #' @param alternative Character. One of `"two.sided"` (default), `"less"`, or `"greater"`.
 #' @param conf.level Confidence level for the confidence interval. Default is `0.95`.
-#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
+#' @param variance `"fed"` (default) or `"rubin"`: how the sampling variance
+#'   is combined across implicates. See [scf_variance]. Most users can leave
+#'   this alone.
 #'
 #' @return An object of class `"scf_prop_test"` with:
 #' \describe{
@@ -31,15 +33,13 @@
 #' }
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("proptest_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
+#' }
 #' # Wrangle data for example
 #' scf2022 <- scf_update(scf2022,
 #'   rich   = networth > 1e6,
@@ -47,15 +47,12 @@
 #'   over50 = age > 50
 #' )
 #'
-#' # Example for real analysis: One-sample test
+#' # One-sample test
 #' scf_prop_test(scf2022, ~rich, p = 0.10)
 #'
-#' # Example for real analysis: Two-sample test
+#' # Two-sample test
 #' scf_prop_test(scf2022, ~rich, ~female, alternative = "less")
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
-#'
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_ttest()], [scf_mean()], [scf_MIcombine()]
 #'
@@ -63,7 +60,7 @@
 scf_prop_test <- function(design, var, group = NULL, p = NULL,
                           alternative = c("two.sided", "less", "greater"),
                           conf.level = 0.95,
-                          variance = getOption("scf.variance", "fed")) {
+                          variance = "fed") {
   variance <- .scf_variance_method(variance)
 
   stopifnot(inherits(design, "scf_mi_survey"))
@@ -81,10 +78,12 @@ scf_prop_test <- function(design, var, group = NULL, p = NULL,
   }
 
 
+  warns <- .scf_warnings()
   if (is.null(group)) {
-    stats <- lapply(design$mi_design, function(d) {
+    stats <- lapply(seq_along(design$mi_design), function(i) {
+      d <- design$mi_design[[i]]
       d$variables$.x <- as.numeric(.scf_eval(var, d$variables))
-      m <- survey::svymean(~.x, d, na.rm = TRUE)
+      m <- .scf_catch_warnings(survey::svymean(~.x, d, na.rm = TRUE), i, warns)
       c(est = unname(coef(m)), var = unname(as.matrix(stats::vcov(m))[1, 1]))
     })
     prop_df <- NULL
@@ -101,7 +100,9 @@ scf_prop_test <- function(design, var, group = NULL, p = NULL,
       d <- design$mi_design[[i]]
       d$variables$.x <- as.numeric(.scf_eval(var, d$variables))
       d$variables$.g <- factor(.scf_eval(group, d$variables), levels = levels_detected)
-      by <- survey::svyby(~.x, ~.g, d, survey::svymean, na.rm = TRUE, covmat = TRUE)
+      by <- .scf_catch_warnings(
+        survey::svyby(~.x, ~.g, d, survey::svymean, na.rm = TRUE, covmat = TRUE),
+        i, warns)
       if (length(coef(by)) != 2) {
         stop(sprintf("Both groups must appear in every implicate; implicate %d has only one.", i),
              call. = FALSE)
@@ -147,6 +148,7 @@ scf_prop_test <- function(design, var, group = NULL, p = NULL,
     stars = .scf_stars(pval)
   )
 
+  .scf_report_warnings(warns)
   structure(list(
     results = results,
     proportions = prop_df,

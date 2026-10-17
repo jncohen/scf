@@ -4,14 +4,15 @@
 \alias{scf_nominal}
 \title{Convert SCF Dollar Estimates to Nominal Survey-Year Dollars}
 \usage{
-scf_nominal(x, from_year = 2022, force = FALSE)
+scf_nominal(x, from_year = NULL, force = FALSE)
 }
 \arguments{
 \item{x}{An object of class \code{scf_mean}, \code{scf_median},
 \code{scf_percentile}, or \code{scf_ttest}.}
 
 \item{from_year}{Integer. Year whose real-dollar units are assumed for the
-input estimate. Defaults to \code{2022}.}
+input estimate. Defaults to the dollar year of the data, as recorded by
+\code{\link[=scf_load]{scf_load()}}.}
 
 \item{force}{Logical. If \code{TRUE}, skip the check on the variable.}
 }
@@ -21,7 +22,7 @@ confidence intervals rescaled to nominal survey-year dollars. Attributes
 \code{"nominal"} and \code{"from_year"} are set on the returned object.
 }
 \description{
-Converts dollar estimates from 2022 dollars to dollars of the survey year.
+Converts dollar estimates from real dollars to dollars of the survey year.
 }
 \details{
 Estimates, standard errors, and confidence limits are multiplied by the
@@ -29,27 +30,28 @@ CPI-U-RS for the survey year divided by that for \code{from_year}. Works on
 results from \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}}, \code{\link[=scf_percentile]{scf_percentile()}}, and
 \code{\link[=scf_ttest]{scf_ttest()}}.
 
-The Fed's summary variables, such as \code{income} and \code{networth}, are in 2022
-dollars. Raw \code{x} variables are already nominal. Income in the summary
+The Fed's summary variables, such as \code{income} and \code{networth}, are in the
+dollars of the Fed's latest survey: 2025 for files downloaded since
+October 2026, 2022 before that (see \code{\link[=scf_download]{scf_download()}}). Raw \code{x} variables
+are already nominal. Income in the summary
 extract is first moved to survey-year dollars, so converted income is in
 survey-year dollars, as in the Fed's nominal tables. Medians in Tables 1
-and 4 match the Fed within 0.05 percent for 1989 to 2022.
+and 4 match the Fed within 0.05 percent for 1989 to 2025, except a few
+medians near zero, where the Fed's rounding is larger than that.
 
 The function stops, unless \code{force = TRUE}, if the result is for a raw \code{x}
-variable or for a variable not known to be in 2022 dollars (the Fed's
+variable or for a variable not known to be in real dollars (the Fed's
 dollar summary variables and names ending in \code{"_real"}). Converting twice
 gives a warning.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("nominal_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
+}
 # Convert a mean estimate to nominal survey-year dollars
 result <- scf_mean(scf2022, ~networth)
 result_nominal <- scf_nominal(result)
@@ -57,9 +59,7 @@ result_nominal <- scf_nominal(result)
 # Works with median and percentile results
 med <- scf_median(scf2022, ~networth)
 med_nominal <- scf_nominal(med)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \references{

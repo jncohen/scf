@@ -1,21 +1,21 @@
-# scf 1.1.1
-
-* Fix model results that were very large when saved. `survey::svyglm()` ties each implicate fit to the full survey design, so `save()`, `saveRDS()`, and knitr's cache wrote out a copy of the design for every implicate of every model (about 5 GB for one `scf_logit()` on the 2022 data). `scf_glm()`, `scf_logit()`, and `scf_ols()` now drop that link. Estimates and other results are unchanged.
-
-# scf 1.1.0
+# scf 1.2.0
 
 ## New features
 
-* Add `variance` option to choose the Fed's method (default) or Rubin's rules for standard errors; see `?scf_variance`
+* Add the 2025 survey to `scf_download()` and `scf_load()`
+* Record the dollar year of the Fed's summary variables in each file and `scf_mi_survey` object; older files get it from the data
+* Add 2025 CPI-U-RS values and the new 2025 dollar variables `vacation` and `totspendnh`
+* Add a `variance` argument to choose the Fed's method (default) or Rubin's rules for standard errors; see `?scf_variance`
 * Add `scf_ratio()` for ratios of totals
-* Add `scf_real()` to convert raw `x` dollar variables to 2022 dollars
+* Add `scf_real()` to convert raw `x` dollar variables to real dollars
 * Add `confint()` for models, `summary()` for `scf_prop_test` and `scf_ratio`, and `print()` for `scf_MIcombine` results
 * Add observation counts (`nobs`, `nobs_mean`) to model fit statistics
 
 ## Changes that may affect existing code
 
+* The Fed now gives the summary variables of every year in 2025 dollars, so files downloaded since October 2026 are in 2025 dollars and earlier downloads are in 2022 dollars. `scf_real()` converts to the data's dollar year, `scf_nominal()` converts from it by default, and `scf_load()` warns when loaded years are in different dollar years
 * Rename `scf_deflate()` to `scf_nominal()`; `scf_deflate()` still works but is deprecated
-* `scf_nominal()` stops if a result is for a variable not in 2022 dollars, unless `force = TRUE`
+* `scf_nominal()` stops if a result is for a variable not in real dollars, unless `force = TRUE`
 * Rename the first argument of `scf_update()` to `.object`
 * `scf_glm()`, `scf_logit()`, and `scf_prop_test()` report t and Rubin's degrees of freedom; `z.value` is now `t.value`
 * `scf_quantreg()` uses replicate-weight standard errors by default and no longer reports AIC
@@ -24,6 +24,13 @@
 * Mock data give one message from `scf_load()` instead of a warning from every function
 * `scf_glm()` reports each distinct warning once, with the implicates it came from
 * Remove `...` from `scf_logit()`; drop the `rlang` dependency
+* `scf_mean()`, `scf_median()`, `scf_percentile()`, and `scf_freq()` results have an `n` column (households per row) and warn about groups of 10 or fewer households
+* `scf_freq()` results always have a `group` column (`"All"` without `by`), so the columns are the same with and without `by`
+* `scf_median()` and `scf_plot_cbar()` take `method = "stack"`, the Fed's method for its published tables
+* `scf_glm()` has no default `family`; give one, such as `family = poisson()`. Use `scf_ols()` or `scf_logit()` for linear or logistic regression
+* `scf_ratio()` results always have a `group` column (`"All"` without `by`)
+* With `xlim`, `scf_plot_smooth()` shows shares of all households instead of shares within the range
+* Printed stack-method percentiles and medians leave out the empty standard-error columns
 
 ## Major fixes
 
@@ -31,6 +38,7 @@
 * Fix weight scale so totals and household counts are correct
 * Fix standard errors in `scf_xtab`, `scf_corr`, `scf_prop_test`, and two-sample `scf_ttest`
 * Fix `confint()` for `scf_logit` odds ratios
+* Fix model results that were very large when saved. `survey::svyglm()` ties each implicate fit to the full survey design, so `save()`, `saveRDS()`, and knitr's cache wrote out a copy of the design for every implicate of every model (about 5 GB for one `scf_logit()` on the 2022 data). `scf_glm()`, `scf_logit()`, and `scf_ols()` now drop that link. Estimates and other results are unchanged.
 
 ## Bug fixes
 
@@ -51,7 +59,11 @@
 * `scf_logit` printed p-values
 * Plots: weights in `scf_plot_hex` and `scf_plot_smooth`; bar order in `scf_plot_cbar`, `scf_plot_dbar`, and `scf_plot_dist`; empty bins in `scf_plot_hist`; label maps
 * Pass on warnings from `scf_glm` and `scf_percentile`
-* Re-export `survey::SE`
+* Re-export `survey::SE`, and add `SE()` for `scf_mean`, `scf_median`, `scf_percentile`, `scf_ratio`, and model results
+* Survey warnings in `scf_mean()`, `scf_percentile()`, `scf_freq()`, and `scf_ratio()` are reported once, with the implicates they came from
+* `scf_update()` ignores a trailing comma
+* `scf_percentile(method = "stack")` orders groups the same way as the default method
+* `scf_plot_smooth()` no longer prints a message about the smoothing formula
 * Reduce size of stored model objects
 
 # scf 1.0.11

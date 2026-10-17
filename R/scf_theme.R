@@ -48,3 +48,10 @@ scf_theme <- function(base_size = 13,
       plot.margin = ggplot2::margin(10, 10, 10, 10)
     )
 }
+
+#' @rdname scf_theme
+#' @export
+scf_activate_theme <- function() {
+  ggplot2::theme_set(scf_theme())
+  message("SCF theme activated for ggplot2 plots.")
+}

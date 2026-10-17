@@ -93,3 +93,59 @@
     vars = lapply(vars_list, function(v) v[nm, nm, drop = FALSE])
   )
 }
+
+.scf_warnings <- function() {
+  env <- new.env(parent = emptyenv())
+  env$msg <- character(0)
+  env$imp <- integer(0)
+  env
+}
+
+.scf_catch_warnings <- function(expr, i, env) {
+  withCallingHandlers(expr, warning = function(w) {
+    env$msg <- c(env$msg, conditionMessage(w))
+    env$imp <- c(env$imp, i)
+    invokeRestart("muffleWarning")
+  })
+}
+
+.scf_report_warnings <- function(env) {
+  for (msg in unique(env$msg)) {
+    imps <- sort(unique(env$imp[env$msg == msg]))
+    warning(sprintf("%s (implicate%s %s)", msg, if (length(imps) > 1) "s" else "",
+                    paste(imps, collapse = ", ")), call. = FALSE)
+  }
+}
+
+.scf_group_n <- function(designs, byname = NULL, groups = NULL) {
+  if (is.null(byname)) {
+    return(round(mean(sapply(designs, function(d) nrow(d$variables)))))
+  }
+  counts <- sapply(designs, function(d) {
+    g <- d$variables[[byname]]
+    sapply(groups, function(k) sum(!is.na(g) & as.character(g) == k))
+  })
+  round(rowMeans(matrix(counts, nrow = length(groups))))
+}
+
+.scf_warn_small <- function(n, groups = NULL, limit = 10) {
+  small <- which(n <= limit)
+  if (length(small) == 0) return(invisible(NULL))
+  what <- if (is.null(groups)) {
+    "The estimate rests on"
+  } else if (length(small) == 1) {
+    sprintf("Group `%s` has", groups[small])
+  } else {
+    sprintf("Groups %s have", paste(sprintf("`%s`", groups[small]), collapse = ", "))
+  }
+  warning(sprintf(paste0("%s %s households. Estimates from %d or fewer households ",
+                         "are not reliable; see the `n` column."),
+                  what, paste(n[small], collapse = ", "), limit), call. = FALSE)
+}
+
+.scf_shown_results <- function(r) {
+  if ("se" %in% names(r) && all(is.na(r$se))) {
+    r <- r[setdiff(names(r), c("se", "min", "max"))]
+  }
+  r
+}

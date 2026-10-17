@@ -11,42 +11,38 @@
 #' Shares are estimated in each implicate with the replicate weights and
 #' pooled (see [scf_variance]). Counts come from `survey::svytable()`.
 #'
-#' @param scf A `scf_mi_survey` object, typically created by [scf_load()]. Must include five implicates with replicate weights.
+#' @param scf A `scf_mi_survey` object from [scf_load()].
 #' @param rowvar A one-sided formula specifying the row variable (e.g., `~edcl`).
 #' @param colvar A one-sided formula specifying the column variable (e.g., `~racecl`).
 #' @param scale Character. Proportion basis: "cell" (default), "row", or "col".
-#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
+#' @param variance `"fed"` (default) or `"rubin"`: how the sampling variance
+#'   is combined across implicates. See [scf_variance]. Most users can leave
+#'   this alone.
 #'
 #' @return A list of class `"scf_xtab"` with:
 #' \describe{
 #'   \item{results}{One row per cell: `row`, `col`, `rowvar`, `colvar`, `prop` and `se` (share of all households), `row_share`, `col_share`, `row_share_se`, and `col_share_se`.}
 #'   \item{matrices}{Matrices of `cell`, `row`, and `col` shares, and their standard errors `se`, `se_row`, and `se_col`.}
 #'   \item{imps}{Weighted cell counts for each implicate.}
-#'   \item{aux}{List with `rowvar` and `colvar` names.}
+#'   \item{aux}{List with `rowvar` and `colvar`, their labels, and the `scale` shown by `print()`.}
 #' }
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("xtab_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Cross-tabulate ownership by sex
-#' if (interactive()) {
-#'   scf_xtab(scf2022, ~own, ~hhsex, scale = "row")
 #' }
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' # Cross-tabulate ownership by sex
+#' scf_xtab(scf2022, ~own, ~hhsex, scale = "row")
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @importFrom stats as.formula ave
 #' @export
 scf_xtab <- function(scf, rowvar, colvar, scale = "cell",
-                     variance = getOption("scf.variance", "fed")) {
+                     variance = "fed") {
   variance <- .scf_variance_method(variance)
   scale <- match.arg(scale, choices = c("cell", "row", "col"))
 

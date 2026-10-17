@@ -14,7 +14,7 @@ status](https://www.r-pkg.org/badges/version/scf)](https://CRAN.R-project.org/pa
 
 The `scf` R package analyzes the U.S. Federal Reserve's Survey of Consumer
 Finances (SCF), a detailed source of data on U.S. households' wealth, debt,
-and income. It covers the twelve public-use waves from 1989 to 2022.
+and income. It covers the thirteen public-use waves from 1989 to 2025.
 
 It stores the SCF's five implicates and 999 replicate weights in one object
 (`scf_mi_survey`) and provides functions for descriptive statistics,
@@ -52,8 +52,8 @@ household.
 - `scf_subset()`: Subsets the data consistently across all implicates.
 - `scf_design()`: Builds an `scf_mi_survey` object from your own list of
   replicate-weight designs, one per implicate.
-- `scf_real()`: Converts raw `x` dollar variables to 2022 dollars, the way
-  the Fed converts the summary variables.
+- `scf_real()`: Converts raw `x` dollar variables to the dollars of the
+  summary variables, the way the Fed converts them.
 
 ### Descriptive Statistics
 
@@ -110,8 +110,8 @@ observation counts (`nobs`, `nobs_mean`).
 ### Diagnostics and Output
 
 - `scf_nominal()`: Converts results from `scf_mean()`, `scf_median()`,
-  `scf_percentile()`, and `scf_ttest()` from 2022 dollars to nominal dollars
-  of the survey year, using the CPI-U-RS factors from the Fed's SCF Bulletin
+  `scf_percentile()`, and `scf_ttest()` from the data's real dollars to
+  nominal dollars of the survey year, using the CPI-U-RS factors from the Fed's SCF Bulletin
   SAS macro. Formerly `scf_deflate()`.
 - `scf_regtable()`: Regression tables from one or more model results, as
   console text, Markdown, LaTeX, or CSV.
@@ -125,7 +125,7 @@ Install the released version from CRAN:
 install.packages("scf")
 ```
 
-This README describes version 1.1.1. Until it reaches CRAN, install it from
+This README describes version 1.2.0. Until it reaches CRAN, install it from
 GitHub:
 
 ``` r
@@ -298,20 +298,21 @@ scf_median(scf2022, ~income, by = ~networth_pctile)
 ### Real and Nominal Dollars
 
 The SCF data mix two kinds of dollars. Summary variables made by the Fed,
-such as `income`, `networth`, and `asset`, are in 2022 dollars in every
-survey year. Raw survey variables, named `x` followed by a number, are in
+such as `income`, `networth`, and `asset`, are in the dollars of one year
+in every survey year: 2025 for files downloaded since October 2026, 2022
+before that. `scf_load()` records this as `dollar_year`. Raw survey variables, named `x` followed by a number, are in
 dollars of the survey year. Do not compare raw variables across years, or
 combine them with summary variables, until they are converted.
 
 ``` r
 scf2016 <- scf_load(2016)
 
-# Raw variables to 2022 dollars. Name income items, which are reported
+# Raw variables to 2025 dollars. Name income items, which are reported
 # for the year before the survey, in `income`:
 scf2016 <- scf_real(scf2016, ~x5702 + x3915, income = ~x5702)
 scf_median(scf2016, ~x5702_real)
 
-# Results from 2022 dollars to 2016 dollars:
+# Results from 2025 dollars to 2016 dollars:
 m2016 <- scf_mean(scf2016, ~income)
 scf_nominal(m2016)
 ```
@@ -348,6 +349,11 @@ scf_regtable(m_ols, m_logit, output = "csv",
 ## Documentation
 
 - Vignette: `vignette("SCF-guide", package = "scf")`
+- Reference manual:
+  [scf_1.2.0.pdf](https://github.com/jncohen/scf/blob/main/scf_1.2.0.pdf)
+- [Validation report](https://github.com/jncohen/scf/tree/main/validation),
+  which reproduces Tables 1-4 of the Fed's 2025 historical tables for every
+  wave from 1989 to 2025
 - Help on standard errors: `?scf_variance`
 - Methods paper: Cohen (2026), [*Analyzing the Survey of Consumer Finances
   with scf: Methodology, User Guide, and Package
@@ -370,7 +376,7 @@ has the same structure as the real data but is not suitable for analysis.
 
 If you use `scf` in published work, please cite it as:
 
-> Joseph N. Cohen (2026). *scf: Analyzing the Survey of Consumer Finances.* R package version 1.1.1. <https://github.com/jncohen/scf>
+> Joseph N. Cohen (2026). *scf: Analyzing the Survey of Consumer Finances.* R package version 1.2.0. <https://github.com/jncohen/scf>
 
 For the methods and validation, cite:
 
@@ -380,13 +386,14 @@ Use `citation("scf")` in R for formatted references.
 
 ## Use of AI Tools
 
-Development of version 1.1.0 used Claude (Anthropic), an AI assistant, to
-help write and revise code, tests, and documentation; to audit functions for
-errors; and to run validation checks. The author directed this work, made all
-methodological decisions, and reviewed the changes. The package's results were
-checked against the Federal Reserve's published SCF Bulletin tables (Tables
-1-5, 1989-2022) and against independent calculations with the `survey` and
-`mitools` packages.
+Development of versions 1.1.0 to 1.2.0 used Claude (Anthropic), an AI
+assistant, to help write and revise code, tests, and documentation; to audit
+functions for errors; and to run validation checks. The author directed this
+work, made all methodological decisions, and reviewed the changes. The
+package's results were checked against the Federal Reserve's published SCF
+Bulletin tables (Tables 1-5, 1989-2022, for 1.1.0; Tables 1-4 of the 2025
+historical workbooks for 1.2.0) and against independent calculations with the
+`survey` and `mitools` packages.
 
 ## Author
 

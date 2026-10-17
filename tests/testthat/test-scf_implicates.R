@@ -6,7 +6,7 @@ test_that("scf_implicates returns implicate-level results for every model type",
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
   scf2022 <- scf_load(2022, data_directory = td)
 
-  g <- scf_glm(scf2022, own ~ age)
+  g <- scf_glm(scf2022, own ~ age, family = binomial())
   q <- scf_quantreg(scf2022, networth ~ age, se = "nid")
   x <- scf_xtab(scf2022, ~own, ~edcl)
   r <- scf_corr(scf2022, ~income, ~networth)

@@ -6,12 +6,15 @@
 #' Use it to show how a variable differs across groups, such as median net
 #' worth by education. Bar heights are point estimates from [scf_mean()],
 #' [scf_median()], or [scf_percentile()] with `by`; run those functions for
-#' standard errors.
+#' standard errors. Use `method = "stack"` for medians and percentiles that
+#' match the Fed's published tables.
 #'
 #' @param design A `scf_mi_survey` object from [scf_load()].
 #' @param yvar One-sided formula for the continuous variable (e.g., `~networth`).
 #' @param xvar One-sided formula for the grouping variable (e.g., `~racecl`).
 #' @param stat `"mean"` (default), `"median"`, or a quantile (numeric between 0 and 1).
+#' @param method For medians and percentiles, `"implicate"` (default) or
+#'   `"stack"`. See [scf_percentile()].
 #' @param title Plot title (optional).
 #' @param xlab X-axis label (optional).
 #' @param ylab Y-axis label (optional).
@@ -24,24 +27,21 @@
 #' @seealso [scf_mean()], [scf_median()], [scf_percentile()], [scf_theme()]
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("plot_cbar_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Visualize 90th percentile of income by education
+#' }
+#' # Visualize 90th percentile of income by education
 #' scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9, fill = "#D55E00")
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @export
 scf_plot_cbar <- function(design, yvar, xvar,
                           stat = "mean",
+                          method = c("implicate", "stack"),
                           title = NULL,
                           xlab = NULL,
                           ylab = NULL,
@@ -51,6 +51,7 @@ scf_plot_cbar <- function(design, yvar, xvar,
 
   stopifnot(inherits(design, "scf_mi_survey"))
   stopifnot(inherits(yvar, "formula"), inherits(xvar, "formula"))
+  method <- match.arg(method)
 
 
   yname <- all.vars(yvar)[1]
@@ -64,10 +65,10 @@ scf_plot_cbar <- function(design, yvar, xvar,
   results <- switch(
     as.character(stat),
     mean = scf_mean(design, yvar, by = xvar),
-    median = scf_median(design, yvar, by = xvar),
+    median = scf_median(design, yvar, by = xvar, method = method),
     {
       if (is.numeric(stat) && stat > 0 && stat < 1) {
-        scf_percentile(design, yvar, q = stat, by = xvar)
+        scf_percentile(design, yvar, q = stat, by = xvar, method = method)
       } else {
         stop("`stat` must be 'mean', 'median', or a quantile between 0 and 1.")
       }

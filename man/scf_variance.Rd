@@ -95,22 +95,16 @@ rarely matters.
 
 \section{How to set it}{
 
-Set it for one call with the \code{variance} argument:
+Set it with the \code{variance} argument:
 
 \preformatted{
 scf_mean(scf2022, ~networth, variance = "rubin")
 }
 
-Or set it for the whole session:
-
-\preformatted{
-options(scf.variance = "rubin")
-}
-
 The \code{variance} argument is available in \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}},
 \code{\link[=scf_percentile]{scf_percentile()}}, \code{\link[=scf_freq]{scf_freq()}}, \code{\link[=scf_xtab]{scf_xtab()}}, \code{\link[=scf_corr]{scf_corr()}}, \code{\link[=scf_ttest]{scf_ttest()}},
 \code{\link[=scf_prop_test]{scf_prop_test()}}, and \code{\link[=scf_ratio]{scf_ratio()}}. Functions that call these, such as
-\code{\link[=scf_pctile_sum]{scf_pctile_sum()}} and the plot functions, follow the session setting.
+\code{\link[=scf_pctile_sum]{scf_pctile_sum()}} and the plot functions, use \code{"fed"}.
 }
 
 \references{

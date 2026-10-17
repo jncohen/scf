@@ -6,7 +6,9 @@
 #' @details
 #' Use it for points of a distribution other than the middle, such as the
 #' 90th percentile of net worth. With `q = 0.9`, 90 percent of households are
-#' below the estimate. Dollar amounts are in 2022 dollars.
+#' below the estimate. Summary dollar variables, such as
+#' `networth`, are in the data's dollar year (see [scf_load()]); raw `x`
+#' variables are in nominal dollars (see [scf_real()]).
 #'
 #' `method = "implicate"` estimates the percentile in each implicate with
 #' [survey::svyquantile()] and pools the estimates (see [scf_variance]).
@@ -19,9 +21,7 @@
 #' errors for quantiles", is dropped; it concerns jackknife weights, and the
 #' SCF's are bootstrap weights.
 #'
-#' @param scf A `scf_mi_survey` object created with [scf_load()]. Must
-#'   contain the list of replicate-weighted designs for each implicate in
-#'   `scf$mi_design`.
+#' @param scf A `scf_mi_survey` object from [scf_load()].
 #' @param var A one-sided formula naming the continuous variable to
 #'   summarize (for example `~networth`).
 #' @param q Percentile, between 0 and 1. Default 0.5 (median).
@@ -31,39 +31,41 @@
 #'   each group.
 #' @param verbose Logical. If TRUE, print implicate-level estimates.
 #'   Default FALSE.
-#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
+#' @param variance `"fed"` (default) or `"rubin"`: how the sampling variance
+#'   is combined across implicates. See [scf_variance]. Most users can leave
+#'   this alone.
 #'
 #' @return An object of class `"scf_percentile"` containing:
 #' \describe{
 #'   \item{results}{A data frame containing pooled percentile estimates, pooled
 #'     standard errors, and implicate min/max values. One row per group (if
-#'     `by` is supplied) or one row otherwise.}
+#'     `by` is supplied) or one row otherwise. With `method = "stack"`,
+#'     `se`, `min`, and `max` are `NA` and `imps` is `NULL`.
+#'   `n` is the number of sample households (unweighted) in each row,
+#'   averaged over implicates.
+#'   Groups of 10 or fewer households give a warning.}
 #'   \item{imps}{A list of implicate-level percentile estimates and standard errors.}
 #'   \item{aux}{A list containing the variable name, optional group variable name,
-#'     and the quantile requested.}
+#'     the quantile requested, the survey year, and the dollar year.}
 #'   \item{verbose}{Logical flag indicating whether implicate-level estimates
 #'     should be printed by `print()` or `summary()`.}
 #' }
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()` for actual SCF data
-#' td <- tempfile("percentile_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
+#' }
 #' # Estimate the 75th percentile of net worth
 #' scf_percentile(scf2022, ~networth, q = 0.75)
 #'
 #' # Estimate the median net worth by ownership group
 #' scf_percentile(scf2022, ~networth, q = 0.5, by = ~own)
 #'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
-#' rm(scf2022)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @references
 #' Board of Governors of the Federal Reserve System. SAS macro for SCF
@@ -76,7 +78,7 @@
 scf_percentile <- function(scf, var, q = 0.5, by = NULL,
                            verbose = FALSE,
                            method = c("implicate", "stack"),
-                           variance = getOption("scf.variance", "fed")) {
+                           variance = "fed") {
 
   method <- match.arg(method)
   variance <- .scf_variance_method(variance)
@@ -103,6 +105,7 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
     }
   }
 
+  warns <- .scf_warnings()
   get_quantile_obj <- function(dsgn, vname, qval, i, g = NULL, gname = NULL) {
     if (!is.null(g)) {
       keep <- !is.na(dsgn$variables[[gname]]) & dsgn$variables[[gname]] == g
@@ -127,7 +130,8 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
         invokeRestart("muffleMessage")
       },
       warning = function(w) {
-        warning(sprintf("Implicate %d: %s", i, conditionMessage(w)), call. = FALSE)
+        warns$msg <- c(warns$msg, conditionMessage(w))
+        warns$imp <- c(warns$imp, i)
         invokeRestart("muffleWarning")
       }
     )
@@ -136,9 +140,8 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
   if (method == "stack") {
     all_vars <- do.call(rbind, lapply(designs, function(d) d$variables))
     if (!is.null(byname)) {
-      groups <- levels(factor(all_vars[[byname]]))
       out_df <- do.call(rbind, lapply(groups, function(g) {
-        idx <- all_vars[[byname]] == g
+        idx <- !is.na(all_vars[[byname]]) & all_vars[[byname]] == g
         est <- .scf_wtd_quantile(x = all_vars[[varname]][idx],
                                  w = all_vars$wgt[idx] / M,
                                  probs = q)
@@ -147,6 +150,8 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
                    min = NA_real_, max = NA_real_,
                    stringsAsFactors = FALSE)
       }))
+      out_df$n <- .scf_group_n(designs, byname, groups)
+      .scf_warn_small(out_df$n, groups)
     } else {
       est <- .scf_wtd_quantile(x = all_vars[[varname]],
                                w = all_vars$wgt / M,
@@ -154,12 +159,14 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
       out_df <- data.frame(variable = varname, quantile = q,
                            estimate = est, se = NA_real_,
                            min = NA_real_, max = NA_real_,
+                           n = .scf_group_n(designs),
                            stringsAsFactors = FALSE)
+      .scf_warn_small(out_df$n)
     }
     return(structure(
       list(results = out_df, imps = NULL,
            aux = list(varname = varname, byname = byname, quantile = q,
-                          year = scf$year),
+                          year = scf$year, dollar_year = scf$dollar_year),
            verbose = verbose),
       class = "scf_percentile"
     ))
@@ -196,8 +203,10 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
       se = se_pooled,
       min = min(point_vec),
       max = max(point_vec),
+      n = .scf_group_n(designs),
       stringsAsFactors = FALSE
     )
+    .scf_warn_small(out_df$n)
 
   } else {
 
@@ -251,8 +260,11 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
 
     out_df <- out_df[, c("group", "variable", "quantile",
                          "estimate", "se", "min", "max")]
+    out_df$n <- .scf_group_n(designs, byname, groups)
+    .scf_warn_small(out_df$n, groups)
   }
 
+  .scf_report_warnings(warns)
   names(imp_estimates) <- paste0("imp", seq_len(M))
 
   structure(
@@ -263,7 +275,8 @@ scf_percentile <- function(scf, var, q = 0.5, by = NULL,
         varname = varname,
         byname = byname,
         quantile = q,
-        year = scf$year
+        year = scf$year,
+        dollar_year = scf$dollar_year
       ),
       verbose = verbose
     ),
@@ -277,9 +290,9 @@ print.scf_percentile <- function(x, ...) {
     sprintf(" (nominal %d dollars)", x$aux$year) else ""
   cat(sprintf("SCF Percentile Estimate%s\n\n", dollar_label))
 
-  print(x$results, row.names = FALSE, ...)
-  if (all(is.na(x$results$se))) {
-    cat("\nNote: Standard error not available for stack method.\n")
+  print(.scf_shown_results(x$results), row.names = FALSE, ...)
+  if (is.null(x$imps)) {
+    cat("\nStack method: one weighted percentile from the stacked implicates; no standard error.\n")
   }
   if (isTRUE(x$verbose) && !is.null(x$imps)) {
     cat("\nImplicate-Level Estimates:\n\n")
@@ -293,14 +306,14 @@ print.scf_percentile <- function(x, ...) {
 summary.scf_percentile <- function(object, ...) {
   cat("Summary of SCF Percentile Estimate\n\n")
   cat("Pooled Estimates:\n")
-  print(format(object$results, digits = 4, nsmall = 2),
+  print(format(.scf_shown_results(object$results), digits = 4, nsmall = 2),
         row.names = FALSE, ...)
   if (!is.null(object$imps)) {
     cat("\nImplicate-Level Estimates:\n")
     imp_df <- do.call(rbind, object$imps)
     print(format(imp_df, digits = 4, nsmall = 2), row.names = FALSE)
   } else {
-    cat("\nImplicate-level estimates not available for stack method.\n")
+    cat("\nStack method: one weighted percentile from the stacked implicates; no standard error.\n")
   }
   invisible(object)
 }

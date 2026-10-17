@@ -13,7 +13,7 @@ scf_quantreg(
 )
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}.}
+\item{object}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{formula}{A model formula specifying the outcome and predictors,
 e.g., \code{networth ~ age + factor(edcl)}. The outcome should be numeric.}
@@ -82,27 +82,23 @@ adjustment, not derived from Koenker and Machado.}
 }
 }
 \examples{
-\dontrun{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("qreg_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: median regression of net worth on age and education
+}
+\dontrun{
+# Median regression of net worth on age and education
 m_med <- scf_quantreg(scf2022, networth ~ age + factor(edcl), tau = 0.5)
 summary(m_med)
 
 # Access goodness-of-fit statistics
 m_med$fit$r1
 m_med$fit$r1_adj
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
 }
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \references{

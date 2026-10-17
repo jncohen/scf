@@ -83,22 +83,16 @@
 #'   rarely matters.
 #'
 #' @section How to set it:
-#' Set it for one call with the `variance` argument:
+#' Set it with the `variance` argument:
 #'
 #' \preformatted{
 #' scf_mean(scf2022, ~networth, variance = "rubin")
 #' }
 #'
-#' Or set it for the whole session:
-#'
-#' \preformatted{
-#' options(scf.variance = "rubin")
-#' }
-#'
 #' The `variance` argument is available in [scf_mean()], [scf_median()],
 #' [scf_percentile()], [scf_freq()], [scf_xtab()], [scf_corr()], [scf_ttest()],
 #' [scf_prop_test()], and [scf_ratio()]. Functions that call these, such as
-#' [scf_pctile_sum()] and the plot functions, follow the session setting.
+#' [scf_pctile_sum()] and the plot functions, use `"fed"`.
 #'
 #' @references
 #' Rubin DB. Multiple Imputation for Nonresponse in Surveys. Wiley, 1987.

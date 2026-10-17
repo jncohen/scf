@@ -2,6 +2,10 @@
 
 S3method(AIC,scf_model_result)
 S3method(SE,scf_MIresult)
+S3method(SE,scf_mean)
+S3method(SE,scf_model_result)
+S3method(SE,scf_percentile)
+S3method(SE,scf_ratio)
 S3method(coef,scf_MIresult)
 S3method(coef,scf_model_result)
 S3method(confint,scf_MIresult)

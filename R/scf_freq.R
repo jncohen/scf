@@ -11,17 +11,26 @@
 #' reported. For two-way tables, use [scf_xtab()].
 #'
 #' Proportions are estimated in each implicate with `survey::svymean()` and
-#' pooled across implicates (see [scf_variance]).
+#' pooled across implicates (see [scf_variance]). Numeric variables with more
+#' than 25 distinct values are treated as continuous and give an error.
 #'
-#' @param scf A `scf_mi_survey` object created by [scf_load()]. Must contain five replicate-weighted implicates.
+#' @param scf A `scf_mi_survey` object from [scf_load()].
 #' @param var A one-sided formula specifying a categorical variable (e.g., `~racecl`).
 #' @param by Optional one-sided formula specifying a discrete grouping variable (e.g., `~own`).
 #' @param percent Logical. If `TRUE` (default), scales results and standard errors to percentages.
-#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
+#' @param variance `"fed"` (default) or `"rubin"`: how the sampling variance
+#'   is combined across implicates. See [scf_variance]. Most users can leave
+#'   this alone.
 #'
 #' @return A list of class `"scf_freq"` with:
 #' \describe{
-#'   \item{results}{Pooled category proportions and standard errors, by group if specified.}
+#'   \item{results}{Pooled category proportions and standard errors, with
+#'   columns `group`, `category`, `proportion`, `se_proportion`, and `n`. Without
+#'   `by`, `group` is `"All"`. With `percent = TRUE` (the default),
+#'   `proportion` and `se_proportion` are percentages.
+#'   `n` is the number of sample households (unweighted) in each row,
+#'   averaged over implicates.
+#'   Groups of 10 or fewer households give a warning.}
 #'   \item{imps}{A named list of implicate-level proportion estimates.}
 #'   \item{aux}{Metadata about the variable and grouping structure.}
 #' }
@@ -30,27 +39,23 @@
 #' @seealso [scf_xtab()], [scf_plot_dist()]
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("freq_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Proportions of homeownership
+#' }
+#' # Proportions of homeownership
 #' scf_freq(scf2022, ~own)
 #'
-#' # Example for real analysis: Homeownership proportions by education
+#' # Homeownership proportions by education
 #' scf_freq(scf2022, ~own, by = ~edcl)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @export
 scf_freq <- function(scf, var, by = NULL, percent = TRUE,
-                     variance = getOption("scf.variance", "fed")) {
+                     variance = "fed") {
   variance <- .scf_variance_method(variance)
   if (!inherits(scf, "scf_mi_survey") ||
       !is.list(scf$mi_design) ||
@@ -76,6 +81,7 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE,
   by_levels <- if (!is.null(byname)) .scf_group_levels(designs, byname) else NULL
   imp_out <- vector("list", length(designs))
   names(imp_out) <- paste0("imp", seq_along(designs))
+  warns <- .scf_warnings()
 
   for (i in seq_along(designs)) {
     d <- designs[[i]]
@@ -83,11 +89,12 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE,
     if (!is.null(byname)) d$variables[[byname]] <- factor(d$variables[[byname]], levels = by_levels)
 
     if (is.null(byname)) {
-      est <- survey::svymean(as.formula(paste0("~", varname)), d)
+      est <- .scf_catch_warnings(survey::svymean(as.formula(paste0("~", varname)), d),
+                                 i, warns)
       labs <- gsub(paste0("^", varname), "", names(coef(est)))
       df <- data.frame(
         implicate = i,
-        group = NA,
+        group = "All",
         category = labs,
         est = as.numeric(coef(est)),
         var = diag(vcov(est)),
@@ -97,7 +104,8 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE,
       df <- do.call(rbind, lapply(by_levels, function(g) {
         keep <- !is.na(d$variables[[byname]]) & d$variables[[byname]] == g
         if (!any(keep)) return(NULL)
-        est <- survey::svymean(as.formula(paste0("~", varname)), d[keep, ])
+        est <- .scf_catch_warnings(
+          survey::svymean(as.formula(paste0("~", varname)), d[keep, ]), i, warns)
         labs <- gsub(paste0("^", varname), "", names(coef(est)))
         data.frame(
           implicate = i,
@@ -117,11 +125,7 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE,
   pooled <- lapply(seq_len(nrow(combos)), function(k) {
     g <- combos$group[k]
     cat_k <- combos$category[k]
-    if (is.na(g)) {
-      in_group <- is.na(long$group)
-    } else {
-      in_group <- !is.na(long$group) & long$group == g
-    }
+    in_group <- long$group == g
     subdf <- long[in_group & long$category == cat_k, ]
     subdf <- subdf[order(subdf$implicate), ]
     pooled_k <- .scf_pool(subdf$est, subdf$var, variance)
@@ -139,12 +143,14 @@ scf_freq <- function(scf, var, by = NULL, percent = TRUE,
 
   results <- do.call(rbind, pooled)
   if (is.null(byname)) {
-    results$group <- NULL
-    imp_out <- lapply(imp_out, function(df) {
-      df$group <- NULL
-      df
-    })
+    results$n <- .scf_group_n(designs)
+    .scf_warn_small(results$n[1])
+  } else {
+    group_n <- .scf_group_n(designs, byname, by_levels)
+    results$n <- group_n[match(as.character(results$group), by_levels)]
+    .scf_warn_small(group_n, by_levels)
   }
+  .scf_report_warnings(warns)
 
   out <- list(
     results = results,

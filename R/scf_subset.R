@@ -15,28 +15,23 @@
 #' meet the condition in an implicate. `n_households` is the weighted count,
 #' averaged across implicates.
 #'
-#' @param scf A `scf_mi_survey` object, typically created by [scf_load()].
+#' @param scf A `scf_mi_survey` object from [scf_load()].
 #' @param expr A logical expression used to filter rows, evaluated separately in each implicate's variable frame (e.g., `age < 65 & own == 1`). It can also use variables from the calling environment.
 #'
 #' @return A new `scf_mi_survey` object (see [scf_design()])
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("subset_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Filter for working-age households with positive net worth
+#' }
+#' # Filter for working-age households with positive net worth
 #' scf_sub <- scf_subset(scf2022, age < 65 & networth > 0)
 #' scf_mean(scf_sub, ~income)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
-#'
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_load()], [scf_update()]
 #'
@@ -67,7 +62,8 @@ scf_subset <- function(scf, expr) {
     list(
       mi_design = new_designs,
       year = scf$year,
-      n_households = mean(sapply(new_designs, function(d) sum(weights(d, "sampling"))))
+      n_households = mean(sapply(new_designs, function(d) sum(weights(d, "sampling")))),
+      dollar_year = scf$dollar_year
     ),
     class = "scf_mi_survey"
   )

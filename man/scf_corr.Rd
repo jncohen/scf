@@ -5,18 +5,20 @@
 \alias{summary.scf_corr}
 \title{Estimate Correlation Between Two Continuous Variables in SCF Microdata}
 \usage{
-scf_corr(scf, var1, var2, variance = getOption("scf.variance", "fed"))
+scf_corr(scf, var1, var2, variance = "fed")
 
 \method{summary}{scf_corr}(object, ...)
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object, created by \code{\link[=scf_load]{scf_load()}}}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var1}{One-sided formula specifying the first variable}
 
 \item{var2}{One-sided formula specifying the second variable}
 
-\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 
 \item{object}{A \code{scf_corr} object returned by \code{\link[=scf_corr]{scf_corr()}}.}
 
@@ -53,22 +55,18 @@ weights (see \link{scf_variance}). The five estimates are pooled (see
 \link{scf_MIcombine}). The t-statistic is \eqn{r} divided by its standard error.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("corr_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Correlate income and net worth
+}
+# Correlate income and net worth
 corr <- scf_corr(scf2022, ~income, ~networth)
 print(corr)
 summary(corr)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

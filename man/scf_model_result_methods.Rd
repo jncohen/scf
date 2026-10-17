@@ -65,5 +65,8 @@ models fit to the same outcome and data; lower is better.}
 \item{\code{residuals()}}{Residuals from the first implicate model (diagnostic use only).}
 \item{\code{predict()}}{Mean predictions pooled across all five implicate models.}
 \item{\code{formula()}}{The model formula.}
+\item{\code{SE()}}{Pooled standard errors, the square roots of the
+diagonal of \code{vcov()}. For \code{scf_logit} they are on the log-odds scale,
+unlike \code{std.error} in \code{results}, which is on the odds-ratio scale.}
 }
 }

@@ -7,7 +7,7 @@
 scf_logit(object, formula, odds = TRUE)
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}.}
+\item{object}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{formula}{A model formula specifying a binary outcome and predictors, e.g., \code{rich ~ age + factor(edcl)}.}
 
@@ -38,23 +38,19 @@ odds-ratio scale. \code{vcov()} stays on the log-odds scale; \code{confint()} co
 intervals on that scale and exponentiates them.
 }
 \examples{
-\donttest{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("logit_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Run logistic regression
+}
+\donttest{
+# Run logistic regression
 model <- scf_logit(scf2022, own ~ hhsex)
 summary(model)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
 }
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

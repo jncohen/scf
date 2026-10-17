@@ -49,7 +49,7 @@ test_that("stored fits drop the survey design and stay small", {
   models <- list(
     scf_ols(scf2022, f_ols),
     scf_logit(scf2022, f_glm),
-    scf_glm(scf2022, f_glm)
+    scf_glm(scf2022, f_glm, family = binomial())
   )
   nd <- data.frame(age = c(30, 50), hhsex = c(1, 2), income = c(5e4, 1e5))
 

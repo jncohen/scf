@@ -4,7 +4,7 @@
 \alias{scf_deflate}
 \title{Deprecated: use scf_nominal()}
 \usage{
-scf_deflate(x, from_year = 2022)
+scf_deflate(x, from_year = NULL)
 }
 \arguments{
 \item{x}{A result from \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}}, \code{\link[=scf_percentile]{scf_percentile()}},

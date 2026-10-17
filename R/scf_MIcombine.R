@@ -68,9 +68,11 @@
 #' rather than combined with Rubin's rules. Each model's help page says how.
 #'
 #' @section Groups missing from some implicates:
-#' A group can be empty in some implicates, for example when a subset uses an
-#' imputed variable. Its estimate then combines only the implicates that have
-#' it, and \eqn{m} is the number of those implicates.
+#' In the descriptive functions, such as [scf_mean()], a group can be empty
+#' in some implicates, for example when a subset uses an imputed variable.
+#' Its estimate then combines only the implicates that have it, and \eqn{m}
+#' is the number of those implicates. `scf_MIcombine()` itself stops if any
+#' implicate result is `NA`.
 #'
 #' @param results A list of implicate-level results. Each element is an object with `coef()` and
 #' `vcov()` methods, or a named numeric vector when `variances` is given.
@@ -95,21 +97,18 @@
 #' degrees of freedom), and [SE()].
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("MIcombine_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Pool simple survey mean for mock data
+#' }
+#' # Pool simple survey mean for mock data
 #' outlist <- lapply(scf2022$mi_design, function(d) survey::svymean(~I(age >= 65), d))
 #' pooled  <- scf_MIcombine(outlist)     # vcov/coef extracted automatically
 #' SE(pooled); coef(pooled)
-#'
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @references
 #'
@@ -117,7 +116,7 @@
 #'   imputation. \emph{Biometrika}. 1999;86(4):948--955.
 #'   \doi{10.1093/biomet/86.4.948}
 #'
-#' Board of Governors of the Federal Reserve System. Codebook for the 2022
+#' Board of Governors of the Federal Reserve System. Codebook for the 2025
 #'   Survey of Consumer Finances.
 #'   <https://www.federalreserve.gov/econres/scfindex.htm>
 #'

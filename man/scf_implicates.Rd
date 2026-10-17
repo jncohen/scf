@@ -10,8 +10,9 @@ scf_implicates(x, long = FALSE)
 \item{x}{A result object containing implicate-level estimates. Three types are supported:
 \describe{
 \item{Descriptive results}{Objects from \code{\link[=scf_freq]{scf_freq()}}, \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}},
-and \code{\link[=scf_percentile]{scf_percentile()}}. Also \code{\link[=scf_corr]{scf_corr()}} (one correlation per implicate) and
-\code{\link[=scf_xtab]{scf_xtab()}} (weighted cell counts per implicate).}
+\code{\link[=scf_percentile]{scf_percentile()}} (not \code{method = "stack"}), and \code{\link[=scf_ratio]{scf_ratio()}}. Also
+\code{\link[=scf_corr]{scf_corr()}} (one correlation per implicate) and \code{\link[=scf_xtab]{scf_xtab()}} (weighted
+cell counts per implicate).}
 \item{Survey statistic results}{Objects whose \verb{$imps} slot contains \code{svystat}
 objects (e.g., raw outputs from \code{survey::svymean()}).}
 \item{Model results}{Objects from \code{\link[=scf_ols]{scf_ols()}}, \code{\link[=scf_glm]{scf_glm()}}, \code{\link[=scf_logit]{scf_logit()}}, and
@@ -33,20 +34,16 @@ mean the result depends on imputed values, and its standard error is
 larger. Works on results from the descriptive functions and the models.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("implicates_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Extract implicate-level results
+}
+# Extract implicate-level results
 out <- scf_freq(scf2022, ~own)
 scf_implicates(out, long = TRUE)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }

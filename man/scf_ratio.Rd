@@ -4,16 +4,10 @@
 \alias{scf_ratio}
 \title{Estimate a Ratio of Totals in SCF Microdata}
 \usage{
-scf_ratio(
-  scf,
-  num,
-  den,
-  by = NULL,
-  variance = getOption("scf.variance", "fed")
-)
+scf_ratio(scf, num, den, by = NULL, variance = "fed")
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{num}{A one-sided formula for the numerator (e.g., \code{~wageinc}).}
 
@@ -21,12 +15,15 @@ scf_ratio(
 
 \item{by}{Optional one-sided formula for a grouping variable.}
 
-\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
 An object of class \code{"scf_ratio"} with:
 \describe{
-\item{results}{Pooled ratio, standard error, and range across implicates, one row per group.}
+\item{results}{Pooled ratio, standard error, range across implicates, and
+\code{group} (\code{"All"} without \code{by}), one row per group.}
 \item{imps}{Implicate-level estimates.}
 \item{aux}{Variable names and survey year.}
 }
@@ -44,21 +41,17 @@ The ratio is \code{sum(w * num) / sum(w * den)}, estimated in each implicate
 with \code{\link[survey:svyratio]{survey::svyratio()}} and pooled (see \link{scf_variance}).
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("ratio_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: share of all income received by homeowners
+}
+# Share of all income received by homeowners
 scf2022 <- scf_update(scf2022, owner_income = income * (own == 1))
 scf_ratio(scf2022, ~owner_income, ~income)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

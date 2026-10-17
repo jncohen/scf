@@ -45,7 +45,8 @@ imp <- readRDS("scf2022.rds")        # list of 5 data.frames
 rep_cols <- paste0("wt1b", 1:999)
 keep_vars <- c("y1", "Y1", "x1", "X1",
                "wgt", rep_cols, 
-               "age","income","networth","own","hhsex","edcl")  
+               "age","income","networth","own","hhsex","edcl",
+               "x5702","x3915")
 
 imp_small <- lapply(imp, function(df) {
   df <- df[ , intersect(keep_vars, names(df))]
@@ -53,6 +54,7 @@ imp_small <- lapply(imp, function(df) {
 })
 
 attr(imp_small, "mock") <- TRUE
+attr(imp_small, "dollar_year") <- attr(imp, "dollar_year")
 saveRDS(imp_small, "scf2022_mock_raw.rds", compress = "xz")
 
 file.copy(

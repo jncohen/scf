@@ -4,10 +4,12 @@
 \alias{scf_download}
 \title{Download and Prepare SCF Microdata for Local Analysis}
 \usage{
-scf_download(years = seq(1989, 2022, 3), overwrite = FALSE, verbose = TRUE)
+scf_download(years = seq(1989, 2025, 3), overwrite = FALSE, verbose = TRUE)
 }
 \arguments{
-\item{years}{Integer vector of SCF years to download (e.g., \code{c(2016, 2019)}). Must be triennial from 1989 to 2022.}
+\item{years}{Integer vector of SCF years to download (e.g., \code{c(2016, 2019)}).
+Defaults to all 13 waves, 1989 to 2025. Years that are not survey years
+are ignored.}
 
 \item{overwrite}{Logical. If \code{TRUE}, re-download and overwrite existing \code{.rds} files. Default is \code{FALSE}.}
 
@@ -30,29 +32,24 @@ For each year, the function downloads the full public data, the summary
 extract, and the replicate weights; merges them by household; multiplies
 each replicate weight by its multiplicity factor; and saves the five
 implicates as a list.
+
+The Fed puts the summary variables of every year, such as \code{income} and
+\code{networth}, in dollars of its latest survey: 2025 for files downloaded
+since October 2026, 2022 before that. Each file records this as its
+dollar year, which \code{\link[=scf_load]{scf_load()}} reads.
 }
 \examples{
-if (FALSE) {
-  # Download and prepare SCF data for 2022
-  td <- tempfile("download_")
-  dir.create(td)
-
-  old <- getwd()
-  setwd(td)
-  scf_download(2022)
-
-  # Load into a survey design object
-  scf2022 <- scf_load(2022, data_directory = td)
-
-  # Cleanup for package check
-  unlink(td, recursive = TRUE, force = TRUE)
-  setwd(old)
+if (interactive()) {
+  # Download the 2025 survey into the working directory, then load it
+  scf_download(2025)
+  scf2025 <- scf_load(2025)
 }
 
 }
 \references{
-U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
-https://www.federalreserve.gov/econres/scfindex.htm
+Board of Governors of the Federal Reserve System. Codebook for the 2025
+Survey of Consumer Finances.
+\url{https://www.federalreserve.gov/econres/files/codebk2025.txt}
 }
 \seealso{
 \code{\link[=scf_load]{scf_load()}}, \code{\link[=scf_design]{scf_design()}}, \code{\link[=scf_update]{scf_update()}}

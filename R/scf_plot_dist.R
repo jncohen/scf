@@ -8,7 +8,7 @@
 #' [scf_freq()]. Continuous variables are binned with the same breaks in every
 #' implicate and pooled.
 #'
-#' @param design A `scf_mi_survey` object created by [scf_load()].
+#' @param design A `scf_mi_survey` object from [scf_load()].
 #' @param variable A one-sided formula specifying the variable to plot.
 #' @param bins Approximate number of bins for continuous variables; the
 #'   breaks are set by [pretty()]. Default is 30.
@@ -24,23 +24,19 @@
 #' @seealso [scf_theme()]
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("plot_dist_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Distribution of homeownership
+#' }
+#' # Distribution of homeownership
 #' scf_plot_dist(scf2022, ~own)
 #'
-#' # Example for real analysis: Distribution of age
+#' # Distribution of age
 #' scf_plot_dist(scf2022, ~age, bins = 10)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @export
 scf_plot_dist <- function(design, variable, bins = 30,

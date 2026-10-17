@@ -2,12 +2,12 @@
 % Please edit documentation in R/scf_real.R
 \name{scf_real}
 \alias{scf_real}
-\title{Convert Raw SCF Dollar Variables to 2022 Dollars}
+\title{Convert Raw SCF Dollar Variables to Real Dollars}
 \usage{
 scf_real(scf, vars, income = NULL, suffix = "_real", force = FALSE)
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{vars}{A one-sided formula naming raw dollar variables, such as
 \code{~x5729 + x3915}.}
@@ -25,11 +25,14 @@ The \code{scf_mi_survey} object with the converted variables added.
 Assign it back to keep them.
 }
 \description{
-Adds 2022-dollar versions of raw \code{x} dollar variables to every implicate.
+Adds versions of raw \code{x} dollar variables in the dollars of the summary
+variables to every implicate.
 }
 \details{
 Follows the Fed's SCF Bulletin SAS macro. Amounts are multiplied by the
-September CPI-U-RS for 2022 divided by that for the survey year. Income
+September CPI-U-RS for the data's dollar year (2025 for files downloaded
+since October 2026; see \code{\link[=scf_download]{scf_download()}}) divided by that for the survey
+year. Income
 items, reported for the prior year, are first multiplied by the ratio of
 annual CPI-U-RS in the survey year to the prior year; name them in
 \code{income}. In other amounts, the codes -1 and -2 are left unchanged. A
@@ -42,23 +45,18 @@ exists. It cannot tell which variables are income items; check the SCF
 codebook.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("real_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: wages (an income item) in 2022 dollars
-\dontrun{
-scf2016 <- scf_load(2016)
-scf2016 <- scf_real(scf2016, ~x5702, income = ~x5702)
-scf_median(scf2016, ~x5702_real)
 }
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+# Wages (x5702, an income item) and the market
+# value of directly held stock (x3915) in the data's dollars
+scf2022 <- scf_real(scf2022, ~x5702 + x3915, income = ~x5702)
+scf_median(scf2022, ~x5702_real)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \references{

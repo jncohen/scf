@@ -4,7 +4,7 @@
 \alias{scf_design}
 \title{Construct an SCF Multiply-Imputed Survey Object}
 \usage{
-scf_design(design, year, n_households)
+scf_design(design, year, n_households, dollar_year = NULL)
 }
 \arguments{
 \item{design}{A list of five \code{\link[survey:svrepdesign]{survey::svrepdesign()}} objects (one per implicate).}
@@ -12,6 +12,10 @@ scf_design(design, year, n_households)
 \item{year}{Numeric SCF survey year (e.g., 2022).}
 
 \item{n_households}{Numeric total U.S. households represented in \code{year}.}
+
+\item{dollar_year}{Year whose dollars the Fed's summary variables, such as
+\code{income} and \code{networth}, are in. If \code{NULL}, it is found from the data by
+comparing \code{wageinc} with \code{x5702}.}
 }
 \value{
 An object of class "scf_mi_survey" with:
@@ -19,6 +23,8 @@ An object of class "scf_mi_survey" with:
 \item{mi_design}{List of replicate-weighted designs (one per implicate).}
 \item{year}{SCF survey year.}
 \item{n_households}{Estimated number of U.S. households.}
+\item{dollar_year}{Year whose dollars the summary variables are in, or
+\code{NA} if unknown.}
 }
 }
 \description{
@@ -30,16 +36,14 @@ implicate designs outside the download-and-load workflow. Each element of
 \code{design} must be a \code{\link[survey:svrepdesign]{survey::svrepdesign()}} object.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("design_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Construct scf_mi_survey object
+}
+# Construct scf_mi_survey object
 obj <- scf_design(
   design = scf2022$mi_design,
   year = 2022,
@@ -47,9 +51,7 @@ obj <- scf_design(
 )
 class(obj)
 length(obj$mi_design)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

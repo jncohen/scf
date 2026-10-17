@@ -7,7 +7,7 @@
 scf_ols(object, formula)
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}.}
+\item{object}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{formula}{A model formula specifying a continuous outcome and predictor variables (e.g., \code{networth ~ income + age}).}
 }
@@ -37,21 +37,17 @@ models of the same outcome (lower is better); both are averaged across
 implicates. Pooling is described in \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("ols_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Run OLS model
+}
+# Run OLS model
 model <- scf_ols(scf2022, networth ~ income + age)
 summary(model)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

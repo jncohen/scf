@@ -17,7 +17,7 @@ scf_plot_dist(
 )
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{variable}{A one-sided formula specifying the variable to plot.}
 
@@ -49,23 +49,19 @@ with 25 or fewer values are treated as discrete and plotted with
 implicate and pooled.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("plot_dist_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Distribution of homeownership
+}
+# Distribution of homeownership
 scf_plot_dist(scf2022, ~own)
 
-# Example for real analysis: Distribution of age
+# Distribution of age
 scf_plot_dist(scf2022, ~age, bins = 10)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

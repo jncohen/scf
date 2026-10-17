@@ -4,10 +4,12 @@
 #' and pools the results with Rubin's rules.
 #'
 #' @details
-#' Use it for outcomes that are not continuous, such as binary outcomes or
-#' counts. `family` sets the link and error distribution: `binomial()` for
-#' binary outcomes, `poisson()` for counts, `gaussian()` for linear
-#' regression. For odds ratios, use [scf_logit()].
+#' Use it for models that [scf_ols()] and [scf_logit()] do not cover: counts
+#' with `poisson()`, shares between 0 and 1 with `quasibinomial()`, or
+#' positive, skewed amounts with `Gamma(link = "log")`. For linear
+#' regression use [scf_ols()]; for logistic regression with odds ratios use
+#' [scf_logit()]. `family` sets the link and error distribution and must be
+#' given.
 #'
 #' Coefficients are on the link scale (log-odds for `binomial()`, log counts
 #' for `poisson()`). A positive coefficient means the outcome rises with the
@@ -22,9 +24,10 @@
 #' weights always produce, is dropped. The function stops if the model fails
 #' in any implicate.
 #'
-#' @param object A `scf_mi_survey` object, created with [scf_load()].
+#' @param object A `scf_mi_survey` object from [scf_load()].
 #' @param formula A valid model formula, e.g., `rich ~ age + factor(edcl)`.
-#' @param family A GLM family object such as [binomial()], [poisson()], or [gaussian()]. Defaults to `binomial()`.
+#' @param family A GLM family object such as [poisson()], [quasibinomial()],
+#'   or [Gamma()]. Required; there is no default.
 #'
 #' @return An object of class `"scf_glm"` and `"scf_model_result"` with:
 #' \describe{
@@ -35,32 +38,32 @@
 #' }
 #'
 #' @examples
-#' \donttest{
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("glm_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Run logistic regression
+#' }
+#' \donttest{
+#' # Run logistic regression
 #' model <- scf_glm(scf2022, own ~ hhsex, family = binomial())
 #' summary(model)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
 #' }
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_ols()], [scf_logit()], [scf_regtable()]
 #'
 #' @export
-scf_glm <- function(object, formula, family = binomial()) {
+scf_glm <- function(object, formula, family) {
   if (!inherits(object, "scf_mi_survey"))
     stop("Input must be of class 'scf_mi_survey'")
   if (!inherits(formula, "formula"))
     stop("Model must be specified as a formula")
+  if (missing(family))
+    stop(paste0("`family` is required, for example `family = poisson()`. For ",
+                "linear or logistic regression, use scf_ols() or scf_logit()."),
+         call. = FALSE)
   if (!inherits(family, "family"))
     stop("Family must be a valid GLM family object (e.g., binomial())")
 

@@ -39,7 +39,7 @@
 #'   \item{`nobs`, `nobs_mean`}{Observations per implicate and their mean.}
 #' }
 #'
-#' @param object A `scf_mi_survey` object created with [scf_load()].
+#' @param object A `scf_mi_survey` object from [scf_load()].
 #' @param formula A model formula specifying the outcome and predictors,
 #'   e.g., `networth ~ age + factor(edcl)`. The outcome should be numeric.
 #' @param tau Quantile to estimate, between 0 and 1. Default 0.5 (median).
@@ -63,27 +63,23 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("qreg_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: median regression of net worth on age and education
+#' }
+#' \dontrun{
+#' # Median regression of net worth on age and education
 #' m_med <- scf_quantreg(scf2022, networth ~ age + factor(edcl), tau = 0.5)
 #' summary(m_med)
 #'
 #' # Access goodness-of-fit statistics
 #' m_med$fit$r1
 #' m_med$fit$r1_adj
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
 #' }
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_ols()], [scf_glm()], [scf_MIcombine()], [quantreg::rq()]
 #'

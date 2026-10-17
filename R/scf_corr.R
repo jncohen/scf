@@ -20,10 +20,12 @@
 #' weights (see [scf_variance]). The five estimates are pooled (see
 #' [scf_MIcombine]). The t-statistic is \eqn{r} divided by its standard error.
 #'
-#' @param scf A `scf_mi_survey` object, created by [scf_load()]
+#' @param scf A `scf_mi_survey` object from [scf_load()].
 #' @param var1 One-sided formula specifying the first variable
 #' @param var2 One-sided formula specifying the second variable
-#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
+#' @param variance `"fed"` (default) or `"rubin"`: how the sampling variance
+#'   is combined across implicates. See [scf_variance]. Most users can leave
+#'   this alone.
 #'
 #' @seealso [scf_plot_hex()], [scf_ols()]
 #'
@@ -36,25 +38,21 @@
 #' }
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("corr_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Correlate income and net worth
+#' }
+#' # Correlate income and net worth
 #' corr <- scf_corr(scf2022, ~income, ~networth)
 #' print(corr)
 #' summary(corr)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @export
-scf_corr <- function(scf, var1, var2, variance = getOption("scf.variance", "fed")) {
+scf_corr <- function(scf, var1, var2, variance = "fed") {
   if (!inherits(scf, "scf_mi_survey") ||
       !is.list(scf$mi_design) ||
       !all(sapply(scf$mi_design, inherits, "svyrep.design"))) {

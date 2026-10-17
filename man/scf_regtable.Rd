@@ -53,22 +53,18 @@ quantile regression. Compare AIC only across models of the same type on the
 same data.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("regtable_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Wrangle data for example:  Perform OLS regression
+}
+#  Perform OLS regression
 m1 <- scf_ols(scf2022, income ~ age)
 
-# Example for real analysis: Print regression results as a console table
+# Print regression results as a console table
 scf_regtable(m1, digits = 2)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }

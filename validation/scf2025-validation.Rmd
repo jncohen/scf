@@ -1,0 +1,552 @@
+---
+title: "Reproducing the Federal Reserve's SCF Tables with the scf Package"
+author: "Joseph N. Cohen"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+abstract: |
+  This analysis attempts to validate the R package `scf` by reproducing official
+  statistics. Below, I reproduce Tables 1 to 4 of the Federal Reserve's historical
+  tables, derived from the public-use Survey of Consumer Finances, for every wave 
+  from 1989 to 2025. The R Markdown file that produces this report 
+  can be reviewed and downloaded at
+  <https://github.com/jncohen/scf/blob/main/validation/scf2025-validation.Rmd>.
+output:
+  docdesigner::pdf:
+    style: methods
+bibliography: scf2025-validation.bib
+params:
+  data_dir: "D:/Dropbox/Data/scf"
+  docs_dir: "D:/Dropbox/Data/scf/documentation"
+  recompute: false
+---
+
+```{r setup, include = FALSE}
+# Hide code, messages, and warnings in the PDF
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# Load scf and check that it is version 1.2.0 or later
+library(scf)
+stopifnot(packageVersion("scf") >= "1.2.0")
+
+# Folder for cached estimates, downloaded workbooks, and the comparison file
+dir.create("out", showWarnings = FALSE)
+```
+
+# Purpose
+
+The R package `scf` [@Cohen2026a] facilitates the correct analysis of the public-use microdata release of the U.S. Federal Reserve Board's (FRB) *Survey of Consumer Finances* (SCF) [@Fed2026a]. To ensure that this package produces quality estimates, this report uses the package's functions to reproduce official FRB statistics. In general, the FRB uses a proprietary version of the data set to produce official statistics. The public-use data set is built to ensure respondent anonymity, and that set renders slightly different estimates from the proprietary set [@Fed2026d]. Fortunately, the FRB also publishes a version of its historical statistical tables using the public-use data set. If the procedures in the `scf` package are correct, then they should replicate the FRB's public data set-derived estimates. I find that the package's estimates are generally in agreement with the FRB's published estimates, with some exceptions that are generally very close (often to the second or third decimal place). The report offers a detailed comparison of the two sets of estimates. I maintain that the `scf` package produces correct univariate point estimates. I did not test the regression methods in this analysis.
+
+
+
+These tables are:
+
+- Table 1: Median and mean income by demographic characteristics
+- Table 2: Pretax income by source, by net worth percentile
+- Table 3: Reasons for saving by type of reason
+- Table 4: Family net worth by selected demographic characteristics
+
+I reproduce both the nominal [@Fed2026b] and real dollar [@Fed2026c] estimates, converting to nominal dollars with `scf_nominal()`. An earlier version of this validation exercise led to the development of `scf_pctile_sum()`, introduced in version 1.0.6 [@Cohen2026b]. For further information on the package, see @Cohen2026c and @Cohen2026d.
+
+**AI Use.** The analysis used Claude in devising strategies for coding these analyses efficiently. The AI came up with good strategies quickly, which I vetted and tried to explain in the R Markdown file used to produce this report, linked above.
+
+```{r workbooks, include = F}
+
+# Function to download the workbooks from the Fed website
+get_workbook <- function(file) {
+  
+  # Define path
+  local_copy <- file.path(params$docs_dir, file)
+  
+  # Check if local version exists
+  if (file.exists(local_copy)) {
+    return(local_copy)
+  }
+  download_copy <- file.path("out", file)
+  if (!file.exists(download_copy)) {
+    url <- paste0("https://www.federalreserve.gov/econres/files/", file)
+    download.file(url, download_copy, mode = "wb", quiet = TRUE)
+  }
+  download_copy
+}
+
+# Download address for official statistics generated from public data
+nominal_workbook <- get_workbook("scf2025_tables_public_nominal_historical.xlsx")
+real_workbook <- get_workbook("scf2025_tables_public_real_historical.xlsx")
+
+# Read a given workbook sheet as a data frame without column names and with minimal repair
+read_sheet <- function(workbook, sheet) {
+  as.data.frame(readxl::read_excel(workbook, sheet = sheet,
+                                   col_names = FALSE,
+                                   .name_repair = "minimal"))
+}
+
+# Turn workbook cells into numbers; text such as "n.a." becomes NA
+as_number <- function(x) suppressWarnings(as.numeric(unlist(x)))
+
+# Rows of Table 1 that hold all families and each group, in code order;
+# Table 4 has the same rows, one higher
+table1_rows <- c(7, 11:16, 19:24, 27:31, 34:37, 40:43, 46:49, 52:55,
+                 58:59, 62:66)
+table4_rows <- table1_rows - 1
+
+# Naming the 10 groups in Tables 1 and 4, in code order
+group_keys <- c("all",
+                paste("inccat", 1:6), paste("agecl", 1:6),
+                paste("famstruct", 1:5), paste("edcl", 1:4),
+                paste("racecl4", 1:4), paste("occat1", 1:4),
+                paste("occat2", 1:4), paste("housecl", 1:2),
+                paste("nwcat", 1:5))
+
+# Table 2 columns: the five net worth groups, then all families
+table2_columns <- c(paste("net worth group", 1:5), "all families")
+
+# Table 3 rows for the nine reasons; the "do not save" value is on row 13,
+# below its two-line label
+table3_rows <- c(4:11, 13)
+table3_labels <- c("Education", "For the family", "Buying own home",
+                   "Purchases", "Retirement", "Liquidity", "Investments",
+                   "No particular reason", "Do not save")
+
+# Estimates from a list of scf results, in 2025 dollars
+estimates <- function(results) {
+  unlist(lapply(results, function(x) x$results$estimate))
+}
+
+# The same estimates in nominal dollars of the survey year
+nominal_estimates <- function(results) {
+  unlist(lapply(results, function(x) scf_nominal(x)$results$estimate))
+}
+
+# One row per published cell: the Fed's value beside the scf estimate
+compare <- function(table, labels, keys, year, stat, workbook, fed, scf,
+                    unit) {
+  data.frame(table = table, row = trimws(as.character(unlist(labels))),
+             key = keys, year = year, stat = stat, workbook = workbook,
+             fed = as_number(fed), scf = scf, unit = unit)
+}
+```
+
+```{r check-year, echo = FALSE}
+
+# Function to estimate all tables for one wave, and compare with the Fed's published values 
+check_year <- function(year) {
+  # Reuse saved results unless recompute = TRUE
+  cache <- file.path("out", paste0("check-", year, ".rds"))
+  if (file.exists(cache) && !params$recompute) {
+    return(readRDS(cache))
+  }
+
+  # Load the wave, and add the sum of the six income sources for Table 2
+  scf_data <- scf_load(year, data_directory = params$data_dir)
+  scf_data <- scf_update(scf_data,
+                         all_sources = wageinc + intdivinc + bussefarminc +
+                           kginc + ssretinc + transfothinc)
+
+  # Table 1: median income for all families and by each characteristic,
+  # using the Fed's stacked-implicate median
+  median_income <- list(
+    scf_median(scf_data, ~income, method = "stack"),
+    scf_median(scf_data, ~income, by = ~inccat, method = "stack"),
+    scf_median(scf_data, ~income, by = ~agecl, method = "stack"),
+    scf_median(scf_data, ~income, by = ~famstruct, method = "stack"),
+    scf_median(scf_data, ~income, by = ~edcl, method = "stack"),
+    scf_median(scf_data, ~income, by = ~racecl4, method = "stack"),
+    scf_median(scf_data, ~income, by = ~occat1, method = "stack"),
+    scf_median(scf_data, ~income, by = ~occat2, method = "stack"),
+    scf_median(scf_data, ~income, by = ~housecl, method = "stack"),
+    scf_median(scf_data, ~income, by = ~nwcat, method = "stack"))
+
+  # Table 1: mean income for all families and by each characteristic
+  mean_income <- list(
+    scf_mean(scf_data, ~income),
+    scf_mean(scf_data, ~income, by = ~inccat),
+    scf_mean(scf_data, ~income, by = ~agecl),
+    scf_mean(scf_data, ~income, by = ~famstruct),
+    scf_mean(scf_data, ~income, by = ~edcl),
+    scf_mean(scf_data, ~income, by = ~racecl4),
+    scf_mean(scf_data, ~income, by = ~occat1),
+    scf_mean(scf_data, ~income, by = ~occat2),
+    scf_mean(scf_data, ~income, by = ~housecl),
+    scf_mean(scf_data, ~income, by = ~nwcat))
+
+  # Table 4: median net worth, stacked-implicate method
+  median_net_worth <- list(
+    scf_median(scf_data, ~networth, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~inccat, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~agecl, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~famstruct, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~edcl, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~racecl4, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~occat1, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~occat2, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~housecl, method = "stack"),
+    scf_median(scf_data, ~networth, by = ~nwcat, method = "stack"))
+
+  # Table 4: mean net worth
+  mean_net_worth <- list(
+    scf_mean(scf_data, ~networth),
+    scf_mean(scf_data, ~networth, by = ~inccat),
+    scf_mean(scf_data, ~networth, by = ~agecl),
+    scf_mean(scf_data, ~networth, by = ~famstruct),
+    scf_mean(scf_data, ~networth, by = ~edcl),
+    scf_mean(scf_data, ~networth, by = ~racecl4),
+    scf_mean(scf_data, ~networth, by = ~occat1),
+    scf_mean(scf_data, ~networth, by = ~occat2),
+    scf_mean(scf_data, ~networth, by = ~housecl),
+    scf_mean(scf_data, ~networth, by = ~nwcat))
+
+  # Table 1: percent of families in each group
+  pct_families <- c(
+    scf_freq(scf_data, ~inccat)$results$proportion,
+    scf_freq(scf_data, ~agecl)$results$proportion,
+    scf_freq(scf_data, ~famstruct)$results$proportion,
+    scf_freq(scf_data, ~edcl)$results$proportion,
+    scf_freq(scf_data, ~racecl4)$results$proportion,
+    scf_freq(scf_data, ~occat1)$results$proportion,
+    scf_freq(scf_data, ~occat2)$results$proportion,
+    scf_freq(scf_data, ~housecl)$results$proportion,
+    scf_freq(scf_data, ~nwcat)$results$proportion)
+
+  # Table 2: each income source as a percent of the six sources combined,
+  # by net worth group and then for all families
+  wages <- 100 * c(
+    scf_ratio(scf_data, ~wageinc, ~all_sources, by = ~nwcat)$results$estimate,
+    scf_ratio(scf_data, ~wageinc, ~all_sources)$results$estimate)
+  interest <- 100 * c(
+    scf_ratio(scf_data, ~intdivinc, ~all_sources, by = ~nwcat)$results$estimate,
+    scf_ratio(scf_data, ~intdivinc, ~all_sources)$results$estimate)
+  business <- 100 * c(
+    scf_ratio(scf_data, ~bussefarminc, ~all_sources,
+              by = ~nwcat)$results$estimate,
+    scf_ratio(scf_data, ~bussefarminc, ~all_sources)$results$estimate)
+  capital_gains <- 100 * c(
+    scf_ratio(scf_data, ~kginc, ~all_sources, by = ~nwcat)$results$estimate,
+    scf_ratio(scf_data, ~kginc, ~all_sources)$results$estimate)
+  social_security <- 100 * c(
+    scf_ratio(scf_data, ~ssretinc, ~all_sources, by = ~nwcat)$results$estimate,
+    scf_ratio(scf_data, ~ssretinc, ~all_sources)$results$estimate)
+  transfers <- 100 * c(
+    scf_ratio(scf_data, ~transfothinc, ~all_sources,
+              by = ~nwcat)$results$estimate,
+    scf_ratio(scf_data, ~transfothinc, ~all_sources)$results$estimate)
+
+  # Table 3: percent giving each reason as most important for saving
+  saving_reasons <- 100 * c(
+    scf_mean(scf_data, ~savres2)$results$estimate,
+    scf_mean(scf_data, ~savres3)$results$estimate,
+    scf_mean(scf_data, ~savres4)$results$estimate,
+    scf_mean(scf_data, ~savres5)$results$estimate,
+    scf_mean(scf_data, ~savres6)$results$estimate,
+    scf_mean(scf_data, ~savres7)$results$estimate,
+    scf_mean(scf_data, ~savres8)$results$estimate,
+    scf_mean(scf_data, ~savres9)$results$estimate,
+    scf_mean(scf_data, ~savres1)$results$estimate)
+
+  # Read the Fed's sheets; Table 1 is split into 1989-1998 and 2001-2025
+  table1_sheet <- if (year <= 1998) "Table 1 89-98" else "Table 1 01-25"
+  nominal1 <- read_sheet(nominal_workbook, table1_sheet)
+  real1 <- read_sheet(real_workbook, table1_sheet)
+  nominal4 <- read_sheet(nominal_workbook, "Table 4")
+  real4 <- read_sheet(real_workbook, "Table 4")
+  table2 <- read_sheet(nominal_workbook, "Table 2")
+  table3 <- read_sheet(nominal_workbook, "Table 3")
+
+  # Find this year's columns, and the start of its block in Table 2
+  col1 <- which(nominal1[3, ] == as.character(year))
+  col4 <- which(nominal4[3, ] == as.character(year))
+  col3 <- which(table3[3, ] == as.character(year))
+  start2 <- which(table2[[1]] == paste(year, "Survey of Consumer Finances"))
+
+  # Row labels, as printed by the Fed
+  labels1 <- nominal1[table1_rows, 1]
+  labels4 <- nominal4[table4_rows, 1]
+
+  # Set every estimate beside the Fed's value. Dollar figures are in
+  # thousands in the workbook. Tables 1 and 4 are checked in both workbooks;
+  # percentages, the same in both, are checked once.
+  result <- rbind(
+    compare("1", labels1, group_keys, year, "median income", "nominal",
+            nominal1[table1_rows, col1],
+            nominal_estimates(median_income) / 1000, "dollars"),
+    compare("1", labels1, group_keys, year, "median income", "real",
+            real1[table1_rows, col1],
+            estimates(median_income) / 1000, "dollars"),
+    compare("1", labels1, group_keys, year, "mean income", "nominal",
+            nominal1[table1_rows, col1 + 1],
+            nominal_estimates(mean_income) / 1000, "dollars"),
+    compare("1", labels1, group_keys, year, "mean income", "real",
+            real1[table1_rows, col1 + 1],
+            estimates(mean_income) / 1000, "dollars"),
+    compare("1", labels1[-1], group_keys[-1], year, "pct families",
+            "nominal", nominal1[table1_rows[-1], col1 + 3],
+            pct_families, "percent"),
+    compare("4", labels4, group_keys, year, "median net worth", "nominal",
+            nominal4[table4_rows, col4],
+            nominal_estimates(median_net_worth) / 1000, "dollars"),
+    compare("4", labels4, group_keys, year, "median net worth", "real",
+            real4[table4_rows, col4],
+            estimates(median_net_worth) / 1000, "dollars"),
+    compare("4", labels4, group_keys, year, "mean net worth", "nominal",
+            nominal4[table4_rows, col4 + 1],
+            nominal_estimates(mean_net_worth) / 1000, "dollars"),
+    compare("4", labels4, group_keys, year, "mean net worth", "real",
+            real4[table4_rows, col4 + 1],
+            estimates(mean_net_worth) / 1000, "dollars"),
+    compare("2", paste("Wages,", table2_columns), "Wages", year,
+            "pct of income", "nominal", table2[start2 + 1, 2:7], wages,
+            "percent"),
+    compare("2", paste("Interest or dividends,", table2_columns),
+            "Interest or dividends", year, "pct of income", "nominal",
+            table2[start2 + 2, 2:7], interest, "percent"),
+    compare("2", paste("Business, farm, self-employment,", table2_columns),
+            "Business, farm, self-employment", year, "pct of income",
+            "nominal", table2[start2 + 3, 2:7], business, "percent"),
+    compare("2", paste("Capital gains,", table2_columns), "Capital gains",
+            year, "pct of income", "nominal", table2[start2 + 4, 2:7],
+            capital_gains, "percent"),
+    compare("2", paste("Social Security or retirement,", table2_columns),
+            "Social Security or retirement", year, "pct of income",
+            "nominal", table2[start2 + 5, 2:7], social_security, "percent"),
+    compare("2", paste("Transfers or other,", table2_columns),
+            "Transfers or other", year, "pct of income", "nominal",
+            table2[start2 + 6, 2:7], transfers, "percent"),
+    compare("3", table3_labels, table3_labels, year, "pct", "nominal",
+            table3[table3_rows, col3], saving_reasons, "percent"))
+
+  # Table 1: percent that saved; the 1989 survey did not ask
+  if (year != 1989) {
+    pct_saved <- 100 * estimates(list(
+      scf_mean(scf_data, ~saved),
+      scf_mean(scf_data, ~saved, by = ~inccat),
+      scf_mean(scf_data, ~saved, by = ~agecl),
+      scf_mean(scf_data, ~saved, by = ~famstruct),
+      scf_mean(scf_data, ~saved, by = ~edcl),
+      scf_mean(scf_data, ~saved, by = ~racecl4),
+      scf_mean(scf_data, ~saved, by = ~occat1),
+      scf_mean(scf_data, ~saved, by = ~occat2),
+      scf_mean(scf_data, ~saved, by = ~housecl),
+      scf_mean(scf_data, ~saved, by = ~nwcat)))
+    result <- rbind(result,
+                    compare("1", labels1, group_keys, year, "pct saved",
+                            "nominal", nominal1[table1_rows, col1 + 2],
+                            pct_saved, "percent"))
+  }
+
+  # Save the results for this wave
+  saveRDS(result, cache)
+  result
+}
+```
+
+```{r all-waves, echo = FALSE}
+# Check every wave and stack the results
+cells <- rbind(
+  check_year(1989),
+  check_year(1992),
+  check_year(1995),
+  check_year(1998),
+  check_year(2001),
+  check_year(2004),
+  check_year(2007),
+  check_year(2010),
+  check_year(2013),
+  check_year(2016),
+  check_year(2019),
+  check_year(2022),
+  check_year(2025))
+```
+
+# Methods
+
+My strategy was to quantify the discrepancy between official statistics and those produced with the `scf` package. I quantify the percentage of cells within tolerance, and note the frequency and size of any discrepancies. I identify cells outside a tolerance of 0.1 percent for dollar figures and 0.05 points for percentages, which allows for rounding in the Fed's workbooks: dollar figures are rounded to the nearest \$10 or \$1, and percentages to two or three decimals. I also identify the largest discrepancies by table, statistic, and year.
+
+The data are the files made by `scf_download()`, which hold the SCF's summary variables in 2025 dollars. The Fed's two workbooks are read from the folder named by the `docs_dir` parameter, or downloaded from the Federal Reserve if they are not there.
+
+Each estimate comes from an `scf` function:
+
+- Medians: `scf_median(method = "stack")`. The Fed stacks the five implicates and takes one weighted median. The default, `method = "implicate"`, averages the five implicate medians instead, which can differ in small groups [@Cohen2026b].
+- Means: `scf_mean()`.
+- Nominal dollars: `scf_nominal()`, applied to the median and mean results, which are in 2025 dollars.
+- Percent of families in each group: `scf_freq()`.
+- Percent that saved and reasons for saving: `scf_mean()` of the 0/1 indicators, times 100. The 1989 survey did not ask whether the family saved.
+- Table 2's shares: `scf_ratio()` of each income source to the sum of the six sources. The Fed's `income` differs from that sum for many families, so dividing by `income` does not reproduce the table for the top net worth group.
+
+Tables 1 and 4 report each statistic for all families and by nine characteristics, each a summary variable in the SCF: income percentile (`inccat`), age (`agecl`), family structure (`famstruct`), education (`edcl`), race or ethnicity (`racecl4`), work status (`occat1`), occupation (`occat2`), housing status (`housecl`), and net worth percentile (`nwcat`). The income and net worth percentile groups are the Fed's own variables. In the Fed's sheets, the rows for each group sit at fixed places, in the order of the variable's codes, and the code reads them from those places. Each wave's estimates are saved, so later runs of the file reuse them.
+
+```{r gaps, echo = FALSE}
+# Gap between scf and the Fed: percent for dollars, points for percentages
+cells$diff <- ifelse(cells$unit == "dollars",
+                     100 * (cells$scf / cells$fed - 1),
+                     cells$scf - cells$fed)
+# Within tolerance: 0.1 percent for dollars, 0.05 points for percentages
+cells$tolerance <- ifelse(cells$unit == "dollars", 0.1, 0.05)
+cells$within <- abs(cells$diff) <= cells$tolerance
+# Save every cell, then keep the cells that both the Fed and scf report
+write.csv(cells, file.path("out", "comparison.csv"), row.names = FALSE)
+checked <- cells[!is.na(cells$fed) & !is.na(cells$scf), ]
+checked$gap <- abs(checked$diff)
+```
+
+```{r table-helpers, echo = FALSE}
+# Format a gap with its unit
+gap_text <- function(d, unit) {
+  ifelse(unit == "dollars", sprintf("%.3f%%", d), sprintf("%.3f pt", d))
+}
+
+# Prefix percentile groups with "Income:" or "Net worth:", since their labels
+# repeat
+group_label <- function(row, key) {
+  first_lower <- paste0(tolower(substr(row, 1, 1)), substring(row, 2))
+  ifelse(grepl("^inccat", key), paste0("Income: ", first_lower),
+         ifelse(grepl("^nwcat", key), paste0("Net worth: ", first_lower),
+                row))
+}
+
+# Print a table in a form that stays on one page
+simple_table <- function(df, caption, align) {
+  paste(knitr::kable(df, format = "simple", row.names = FALSE,
+                     caption = caption, align = align), collapse = "\n")
+}
+
+# Split a table longer than 24 rows into parts, so no part crosses a page
+split_table <- function(df, caption, align) {
+  if (nrow(df) == 0) {
+    return("")
+  }
+  if (nrow(df) <= 24) {
+    return(simple_table(df, caption, align))
+  }
+  paste(simple_table(df[1:24, ], caption, align),
+        split_table(df[-(1:24), ], paste(caption, "(continued)"), align),
+        sep = "\n\n")
+}
+```
+
+# Results
+
+Table 1 summarizes agreement rates and largest gaps by the variable studied. Income and saving statistics, in the Fed's Tables 1 and 3, were above 99\% in agreement; the income shares in the Fed's Table 2 were at 96\%. Net worth estimates were 98\% in agreement, but with considerable larger dollar discrepancies (maximum about 4\%). The offending cells are listed below.
+
+```{r summary-table, echo = FALSE}
+# Agreement by table, statistic, and workbook
+by_stat <- merge(
+  aggregate(cbind(cells = 1, within = within) ~ table + stat + workbook + unit,
+            data = checked, FUN = sum),
+  aggregate(gap ~ table + stat + workbook + unit, data = checked, FUN = max))
+by_stat <- by_stat[order(by_stat$table, by_stat$stat, by_stat$workbook), ]
+summary_table <- data.frame(
+  Table = by_stat$table, Statistic = by_stat$stat,
+  Workbook = by_stat$workbook, Cells = by_stat$cells,
+  `Largest gap` = gap_text(by_stat$gap, by_stat$unit),
+  Within = sprintf("%.1f%%", 100 * by_stat$within / by_stat$cells),
+  check.names = FALSE)
+knitr::asis_output(simple_table(summary_table,
+                                "Agreement by table and statistic",
+                                "lllrrr"))
+```
+
+By survey year (Table 2 below), there was 99\% agreement in all years since 1995. In 1989 and 1992, around 3.5\% of cells were discrepant.
+
+```{r by-year, echo = FALSE}
+# Agreement by survey year
+by_year <- aggregate(cbind(cells = 1, within = within) ~ year,
+                     data = checked, FUN = sum)
+dollar_gap <- aggregate(gap ~ year, data = checked[checked$unit == "dollars", ],
+                        FUN = max)
+percent_gap <- aggregate(gap ~ year,
+                         data = checked[checked$unit == "percent", ],
+                         FUN = max)
+year_table <- data.frame(
+  Year = by_year$year, Cells = by_year$cells,
+  `Largest dollar gap` = sprintf("%.3f%%", dollar_gap$gap),
+  `Largest percent gap` = sprintf("%.3f pt", percent_gap$gap),
+  Within = sprintf("%.1f%%", 100 * by_year$within / by_year$cells),
+  check.names = FALSE)
+knitr::asis_output(simple_table(year_table, "Agreement by survey year",
+                                "rrrrr"))
+```
+
+\clearpage
+
+## Cells outside tolerance
+
+Most cells outside tolerance are medians and means of the bottom quarter of net worth. These are near zero, so the Fed's rounding to the nearest \$10 is a large share of the value. Income shares by source in 1989 and 1992 are the other main group.
+
+```{r misses, echo = FALSE}
+# Cells outside tolerance, largest gaps first, with shorter labels
+miss <- checked[!checked$within, ]
+miss <- miss[order(miss$table, -miss$gap), ]
+miss$label <- group_label(miss$row, miss$key)
+miss$label <- sub("Interest or dividends", "Interest, dividends", miss$label)
+miss$label <- sub("Business, farm, self-employment", "Business", miss$label)
+miss$label <- sub("Social Security or retirement", "Social Security",
+                  miss$label)
+miss$label <- sub("Transfers or other", "Transfers", miss$label)
+miss$label <- sub("net worth group ", "NW group ", miss$label)
+miss_table <- data.frame(
+  Table = miss$table, Row = miss$label, Year = miss$year,
+  Statistic = sub("net worth", "NW", sub("pct", "%", miss$stat)),
+  Workbook = miss$workbook, Fed = sprintf("%.3f", miss$fed),
+  scf = sprintf("%.3f", miss$scf), Gap = gap_text(miss$diff, miss$unit))
+# One table of misses for each Fed table
+knitr::asis_output(paste(
+  split_table(miss_table[miss_table$Table == "1", -1],
+              "Cells outside tolerance, Fed Table 1", "lrllrrr"),
+  split_table(miss_table[miss_table$Table == "2", -1],
+              "Cells outside tolerance, Fed Table 2", "lrllrrr"),
+  split_table(miss_table[miss_table$Table == "3", -1],
+              "Cells outside tolerance, Fed Table 3", "lrllrrr"),
+  "\\clearpage",
+  simple_table(miss_table[miss_table$Table == "4", -1],
+               "Cells outside tolerance, Fed Table 4", "lrllrrr"),
+  sep = "\n\n"))
+```
+
+## The 2025 survey
+
+The tables below set the 2025 estimates beside the Fed's, in thousands of 2025 dollars. They show that measures of central tendency for income and net worth largely agree, and discrepancies are minor (generally to second decimal place).
+
+```{r t2025, echo = FALSE}
+# The 2025 medians and means beside the Fed's, in thousands of 2025 dollars
+nominal_2025 <- checked[checked$year == 2025 & checked$workbook == "nominal", ]
+med_inc <- nominal_2025[nominal_2025$stat == "median income", ]
+mean_inc <- nominal_2025[nominal_2025$stat == "mean income", ]
+med_nw <- nominal_2025[nominal_2025$stat == "median net worth", ]
+mean_nw <- nominal_2025[nominal_2025$stat == "mean net worth", ]
+two <- function(v) sprintf("%.2f", v)
+income_2025 <- data.frame(Group = group_label(med_inc$row, med_inc$key),
+                          `Median, Fed` = two(med_inc$fed),
+                          `Median, scf` = two(med_inc$scf),
+                          `Mean, Fed` = two(mean_inc$fed),
+                          `Mean, scf` = two(mean_inc$scf),
+                          check.names = FALSE)
+net_worth_2025 <- data.frame(Group = group_label(med_nw$row, med_nw$key),
+                             `Median, Fed` = two(med_nw$fed),
+                             `Median, scf` = two(med_nw$scf),
+                             `Mean, Fed` = two(mean_nw$fed),
+                             `Mean, scf` = two(mean_nw$scf),
+                             check.names = FALSE)
+# Each table on a page of its own, so its 41 rows stay together
+knitr::asis_output(paste(
+  "\\clearpage",
+  simple_table(income_2025, "Family income, 2025", "lrrrr"),
+  "\\clearpage",
+  simple_table(net_worth_2025, "Family net worth, 2025", "lrrrr"),
+  sep = "\n\n"))
+```
+
+\clearpage
+
+# Reproducing this report
+
+Download the R Markdown file from <https://github.com/jncohen/scf/tree/main/validation> and install `scf` 1.2.0 or later. Download the data into a folder with `scf_download(seq(1989, 2025, 3))`, then knit the file with `rmarkdown::render("scf2025-validation.Rmd", params = list(data_dir = "path/to/data"))`, giving the folder that holds the data.
+
+```{r reproduce, eval = FALSE, echo = FALSE}
+# Download every wave into a folder, then knit this file
+setwd("path/to/data")
+scf::scf_download(seq(1989, 2025, 3))
+rmarkdown::render("scf2025-validation.Rmd",
+                  params = list(data_dir = "path/to/data"))
+```
+
+The first run estimates every wave and takes about an hour. Every cell, with the Fed's value, the `scf` estimate, and the difference, is written to `out/comparison.csv`.
+
+# References

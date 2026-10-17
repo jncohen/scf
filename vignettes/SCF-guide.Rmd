@@ -83,7 +83,7 @@ scf2022 <- scf_update_by_implicate(scf2022, function(df) {
 
 ### Dollar values
 
-Summary variables made by the Fed, such as `income`, `networth`, and `asset`, are in 2022 dollars in every survey year. Raw survey variables, named `x` followed by a number, are in dollars of the survey year. Before comparing a raw variable across years, or combining it with summary variables, convert it with `scf_real()`. List income items, which are reported for the year before the survey, in `income`:
+Summary variables made by the Fed, such as `income`, `networth`, and `asset`, are in the dollars of one year in every survey year: 2025 for files downloaded since October 2026, 2022 before that. `scf_load()` records this as `dollar_year`. Raw survey variables, named `x` followed by a number, are in dollars of the survey year. Before comparing a raw variable across years, or combining it with summary variables, convert it with `scf_real()`. List income items, which are reported for the year before the survey, in `income`:
 
 ```{r, eval = FALSE}
 scf2016 <- scf_real(scf2016, ~x5702 + x3915, income = ~x5702)

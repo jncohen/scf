@@ -18,13 +18,14 @@ scf_plot_smooth(
 )
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{variable}{A one-sided formula specifying a continuous variable (e.g., \code{~networth}).}
 
 \item{binwidth}{Optional bin width. Default uses Freedman-Diaconis rule.}
 
-\item{xlim}{Optional numeric vector of length 2 to truncate axis.}
+\item{xlim}{Optional numeric vector of length 2. Limits the plotted range;
+shares are still computed over all households.}
 
 \item{method}{Character. Smoothing method: \code{"loess"} (default) or \code{"lm"}.}
 
@@ -51,30 +52,24 @@ stacked with weights divided by five and binned (by default with the
 Freedman-Diaconis width), and a smoothing curve is fit to the bin shares.
 }
 \examples{
+\dontshow{
+td <- tempfile()
+dir.create(td)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
+scf2022 <- scf_load(2022, data_directory = td)
+}
 \donttest{
-if (interactive()) {
-  # Do not implement these lines in real analysis:
-  # Use functions `scf_download()` and `scf_load()`
-  td <- tempfile("plot_smooth_")
-  dir.create(td)
-
-  src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-  file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-  scf2022 <- scf_load(2022, data_directory = td)
-
-  # Example for real analysis: Plot smoothed distribution
-  scf_plot_smooth(
-    scf2022,
-    ~networth,
-    xlim = c(0, 2e6),
-    method = "loess",
-    span = 0.25
-  )
-
-  # Do not implement these lines in real analysis: Cleanup for package check
-  unlink(td, recursive = TRUE, force = TRUE)
+# Plot smoothed distribution
+scf_plot_smooth(
+  scf2022,
+  ~networth,
+  xlim = c(0, 2e6),
+  method = "loess",
+  span = 0.25
+)
 }
-}
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

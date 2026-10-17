@@ -12,39 +12,45 @@
 #' `wgt * 5`, because the Fed divides `wgt` by 5 so the five implicates sum to
 #' the population. The `wgt` column is not changed.
 #'
-#' @param min_year Integer. First SCF year to load (1989 to 2022).
+#' The object records the dollar year of the summary variables, which
+#' [scf_real()] and [scf_nominal()] use. Files made by older versions of the
+#' package do not store it, so it is found from the data. Loading years in
+#' different dollar years gives a warning.
+#'
+#' @param min_year Integer. First SCF year to load (1989 to 2025).
 #' @param max_year Integer. Last SCF year to load. Defaults to `min_year`.
 #' @param data_directory Character. Directory containing the `.rds` files.
 #'   Defaults to the current working directory `"."`.
 #'   For examples and tests, use `tempdir()` to avoid leaving files behind.
 #'
 #' @return Invisibly, a `scf_mi_survey` object (or a named list of them if several years
-#' are loaded), with elements `mi_design`, `year`, and `n_households`, and a
+#' are loaded), with elements `mi_design`, `year`, `n_households`, and
+#' `dollar_year`, and a
 #' logical `mock` attribute.
 #'
 #' @seealso [scf_download()], [scf_design()], [scf_update()], [survey::svrepdesign()]
 #'
 #' @examples
-#' # Using with CRAN-compliant mock data:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("load_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-#' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
+#' old <- setwd(td)
+#' }
+#' scf2022 <- scf_load(2022)
+#' scf2022
+#' \dontshow{
+#' setwd(old)
 #' unlink(td, recursive = TRUE, force = TRUE)
+#' }
 #'
 #' @export
 scf_load <- function(min_year,
                      max_year = min_year,
                      data_directory = ".") {
 
-  valid_years <- seq(1989, 2022, by = 3)
-
-  years <- valid_years[valid_years >= min_year & valid_years <= max_year]
+  years <- .scf_years[.scf_years >= min_year & .scf_years <= max_year]
   if (length(years) == 0) stop("No valid SCF years selected.")
 
   results <- list()
@@ -58,6 +64,7 @@ scf_load <- function(min_year,
 
     imp_list <- readRDS(file_path)
     is_mock <- isTRUE(attr(imp_list, "mock"))
+    dollar_year <- attr(imp_list, "dollar_year")
 
     if (!is.list(imp_list) || length(imp_list) != 5) {
       warning("File does not contain 5 implicates: ", file_path)
@@ -75,7 +82,8 @@ scf_load <- function(min_year,
     mi_obj <- scf_design(
       design = imp_designs,
       year = as.integer(year),
-      n_households = sum(imp_list[[1]]$wgt) * 5
+      n_households = sum(imp_list[[1]]$wgt) * 5,
+      dollar_year = dollar_year
     )
 
     attr(mi_obj, "mock") <- is_mock
@@ -88,6 +96,16 @@ scf_load <- function(min_year,
   }
 
   if (length(results) == 0L) stop("No valid SCF files loaded.")
+  dollar_years <- unique(sapply(results, function(r) r$dollar_year))
+  if (length(dollar_years) > 1L) {
+    warning(sprintf(paste0(
+      "The loaded files are in different dollar years (%s), so their summary ",
+      "dollar variables cannot be compared. Download all years again with ",
+      "scf_download(overwrite = TRUE)."),
+      paste(sprintf("%s: %s", names(results),
+                    sapply(results, function(r) r$dollar_year)), collapse = ", ")),
+      call. = FALSE)
+  }
   if (length(results) == 1L) {
     invisible(results[[1]])
   } else {

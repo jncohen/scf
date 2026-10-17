@@ -4,16 +4,10 @@
 \alias{scf_xtab}
 \title{Cross-Tabulate Two Discrete Variables in Multiply-Imputed SCF Data}
 \usage{
-scf_xtab(
-  scf,
-  rowvar,
-  colvar,
-  scale = "cell",
-  variance = getOption("scf.variance", "fed")
-)
+scf_xtab(scf, rowvar, colvar, scale = "cell", variance = "fed")
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object, typically created by \code{\link[=scf_load]{scf_load()}}. Must include five implicates with replicate weights.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{rowvar}{A one-sided formula specifying the row variable (e.g., \code{~edcl}).}
 
@@ -21,7 +15,9 @@ scf_xtab(
 
 \item{scale}{Character. Proportion basis: "cell" (default), "row", or "col".}
 
-\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
 A list of class \code{"scf_xtab"} with:
@@ -29,7 +25,7 @@ A list of class \code{"scf_xtab"} with:
 \item{results}{One row per cell: \code{row}, \code{col}, \code{rowvar}, \code{colvar}, \code{prop} and \code{se} (share of all households), \code{row_share}, \code{col_share}, \code{row_share_se}, and \code{col_share_se}.}
 \item{matrices}{Matrices of \code{cell}, \code{row}, and \code{col} shares, and their standard errors \code{se}, \code{se_row}, and \code{se_col}.}
 \item{imps}{Weighted cell counts for each implicate.}
-\item{aux}{List with \code{rowvar} and \code{colvar} names.}
+\item{aux}{List with \code{rowvar} and \code{colvar}, their labels, and the \code{scale} shown by \code{print()}.}
 }
 }
 \description{
@@ -45,21 +41,15 @@ Shares are estimated in each implicate with the replicate weights and
 pooled (see \link{scf_variance}). Counts come from \code{survey::svytable()}.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("xtab_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Cross-tabulate ownership by sex
-if (interactive()) {
-  scf_xtab(scf2022, ~own, ~hhsex, scale = "row")
 }
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+# Cross-tabulate ownership by sex
+scf_xtab(scf2022, ~own, ~hhsex, scale = "row")
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }

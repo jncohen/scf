@@ -22,6 +22,9 @@ NULL
 #'   \item{\code{residuals()}}{Residuals from the first implicate model (diagnostic use only).}
 #'   \item{\code{predict()}}{Mean predictions pooled across all five implicate models.}
 #'   \item{\code{formula()}}{The model formula.}
+#'   \item{\code{SE()}}{Pooled standard errors, the square roots of the
+#'     diagonal of `vcov()`. For `scf_logit` they are on the log-odds scale,
+#'     unlike `std.error` in `results`, which is on the odds-ratio scale.}
 #' }
 #'
 #' @param object An object of class `"scf_model_result"`.

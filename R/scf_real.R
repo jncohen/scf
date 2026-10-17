@@ -1,10 +1,13 @@
-#' Convert Raw SCF Dollar Variables to 2022 Dollars
+#' Convert Raw SCF Dollar Variables to Real Dollars
 #'
-#' Adds 2022-dollar versions of raw `x` dollar variables to every implicate.
+#' Adds versions of raw `x` dollar variables in the dollars of the summary
+#' variables to every implicate.
 #'
 #' @details
 #' Follows the Fed's SCF Bulletin SAS macro. Amounts are multiplied by the
-#' September CPI-U-RS for 2022 divided by that for the survey year. Income
+#' September CPI-U-RS for the data's dollar year (2025 for files downloaded
+#' since October 2026; see [scf_download()]) divided by that for the survey
+#' year. Income
 #' items, reported for the prior year, are first multiplied by the ratio of
 #' annual CPI-U-RS in the survey year to the prior year; name them in
 #' `income`. In other amounts, the codes -1 and -2 are left unchanged. A
@@ -16,7 +19,7 @@
 #' exists. It cannot tell which variables are income items; check the SCF
 #' codebook.
 #'
-#' @param scf A `scf_mi_survey` object created by [scf_load()].
+#' @param scf A `scf_mi_survey` object from [scf_load()].
 #' @param vars A one-sided formula naming raw dollar variables, such as
 #'   `~x5729 + x3915`.
 #' @param income Optional one-sided formula naming the variables in `vars`
@@ -29,23 +32,18 @@
 #'   Assign it back to keep them.
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("real_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: wages (an income item) in 2022 dollars
-#' \dontrun{
-#' scf2016 <- scf_load(2016)
-#' scf2016 <- scf_real(scf2016, ~x5702, income = ~x5702)
-#' scf_median(scf2016, ~x5702_real)
 #' }
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' # Wages (x5702, an income item) and the market
+#' # value of directly held stock (x3915) in the data's dollars
+#' scf2022 <- scf_real(scf2022, ~x5702 + x3915, income = ~x5702)
+#' scf_median(scf2022, ~x5702_real)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_nominal()], [scf_update()]
 #'
@@ -71,6 +69,7 @@ scf_real <- function(scf, vars, income = NULL, suffix = "_real", force = FALSE) 
   }
 
   .scf_check_year(scf$year)
+  base <- .scf_dollar_year(scf)
   var_names <- all.vars(vars)
   income_names <- if (is.null(income)) character(0) else all.vars(income)
 
@@ -92,8 +91,8 @@ scf_real <- function(scf, vars, income = NULL, suffix = "_real", force = FALSE) 
     if (!.scf_is_raw(v)) {
       stop(sprintf(paste0(
         "`%s` is not a raw x variable. Summary variables such as income and ",
-        "networth are already in 2022 dollars. Use force = TRUE to convert it anyway."), v),
-        call. = FALSE)
+        "networth are already in %d dollars. Use force = TRUE to convert it anyway."),
+        v, base), call. = FALSE)
     }
     n_values <- length(unique(first[[v]]))
     if (n_values < 25) {
@@ -109,7 +108,7 @@ scf_real <- function(scf, vars, income = NULL, suffix = "_real", force = FALSE) 
   }
 
   year <- as.character(scf$year)
-  factor_balance <- .scf_cpi_urs[["2022"]] / .scf_cpi_urs[[year]]
+  factor_balance <- .scf_cpi_urs[[as.character(base)]] / .scf_cpi_urs[[year]]
   factor_income <- factor_balance * .scf_cpi_lag[[year]]
 
   scf_update_by_implicate(scf, function(df) {

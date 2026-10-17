@@ -7,7 +7,7 @@
 scf_load(min_year, max_year = min_year, data_directory = ".")
 }
 \arguments{
-\item{min_year}{Integer. First SCF year to load (1989 to 2022).}
+\item{min_year}{Integer. First SCF year to load (1989 to 2025).}
 
 \item{max_year}{Integer. Last SCF year to load. Defaults to \code{min_year}.}
 
@@ -17,7 +17,8 @@ For examples and tests, use \code{tempdir()} to avoid leaving files behind.}
 }
 \value{
 Invisibly, a \code{scf_mi_survey} object (or a named list of them if several years
-are loaded), with elements \code{mi_design}, \code{year}, and \code{n_households}, and a
+are loaded), with elements \code{mi_design}, \code{year}, \code{n_households}, and
+\code{dollar_year}, and a
 logical \code{mock} attribute.
 }
 \description{
@@ -32,19 +33,26 @@ Each file holds five implicate data frames with the weight \code{wgt} and
 replicate weights \code{wt1b1} to \code{wt1b999}. Each implicate's design uses
 \code{wgt * 5}, because the Fed divides \code{wgt} by 5 so the five implicates sum to
 the population. The \code{wgt} column is not changed.
+
+The object records the dollar year of the summary variables, which
+\code{\link[=scf_real]{scf_real()}} and \code{\link[=scf_nominal]{scf_nominal()}} use. Files made by older versions of the
+package do not store it, so it is found from the data. Loading years in
+different dollar years gives a warning.
 }
 \examples{
-# Using with CRAN-compliant mock data:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("load_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-scf2022 <- scf_load(2022, data_directory = td)
-
-# Do not implement these lines in real analysis: Cleanup for package check
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
+old <- setwd(td)
+}
+scf2022 <- scf_load(2022)
+scf2022
+\dontshow{
+setwd(old)
 unlink(td, recursive = TRUE, force = TRUE)
+}
 
 }
 \seealso{

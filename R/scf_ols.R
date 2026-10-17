@@ -15,7 +15,7 @@
 #' models of the same outcome (lower is better); both are averaged across
 #' implicates. Pooling is described in [scf_MIcombine()].
 #'
-#' @param object A `scf_mi_survey` object created with [scf_load()].
+#' @param object A `scf_mi_survey` object from [scf_load()].
 #' @param formula A model formula specifying a continuous outcome and predictor variables (e.g., `networth ~ income + age`).
 #'
 #' @return An object of class `"scf_ols"` and `"scf_model_result"` with:
@@ -27,21 +27,17 @@
 #' }
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("ols_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Run OLS model
+#' }
+#' # Run OLS model
 #' model <- scf_ols(scf2022, networth ~ income + age)
 #' summary(model)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_glm()], [scf_logit()], [scf_MIcombine()]
 #' @importFrom stats coef vcov pt sd AIC deviance nobs

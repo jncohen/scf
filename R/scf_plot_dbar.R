@@ -6,7 +6,7 @@
 #' Use it to show how households divide across categories, such as education
 #' levels. Estimates come from [scf_freq()].
 #'
-#' @param design A `scf_mi_survey` object created by [scf_load()]. Must contain valid implicates.
+#' @param design A `scf_mi_survey` object from [scf_load()].
 #' @param variable A one-sided formula specifying a categorical variable (e.g., `~racecl`).
 #' @param title Optional character string for the plot title. Default: `"Distribution of <variable>"`.
 #' @param xlab Optional x-axis label. Default: variable name.
@@ -20,20 +20,16 @@
 #' @seealso [scf_freq()], [scf_plot_bbar()], [scf_xtab()]
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("plot_dbar_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Bar chart of education categories
+#' }
+#' # Bar chart of education categories
 #' scf_plot_dbar(scf2022, ~edcl)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @export
 scf_plot_dbar <- function(design, variable,

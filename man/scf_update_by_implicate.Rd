@@ -27,35 +27,35 @@ function must return a data frame with the same number of rows. The result
 is a new object; assign it back to keep the changes.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("update_by_implicate_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: flag households in the top 10\% of net worth,
-# using the unweighted implicate-specific 90th percentile as the threshold.
+}
+# Flag households in the top 10\% of net worth,
+# using each implicate's weighted 90th percentile as the threshold.
 scf2022 <- scf_update_by_implicate(scf2022, function(df) {
-  threshold <- stats::quantile(df$networth, probs = 0.90, na.rm = TRUE)
+  o <- order(df$networth)
+  share <- cumsum(df$wgt[o]) / sum(df$wgt)
+  threshold <- df$networth[o][which(share >= 0.90)[1]]
   df$top10nw <- df$networth >= threshold
   df
 })
 
-# Example for real analysis: compute implicate-specific z-scores of income
+# Compute implicate-specific z-scores of income,
+# using the weighted mean and standard deviation
 scf2022 <- scf_update_by_implicate(scf2022, function(df) {
-  mu <- mean(df$income, na.rm = TRUE)
-  sigma <- stats::sd(df$income, na.rm = TRUE)
+  mu <- stats::weighted.mean(df$income, df$wgt)
+  sigma <- sqrt(stats::weighted.mean((df$income - mu)^2, df$wgt))
   df$z_income <- (df$income - mu) / sigma
   df
 })
 
 # Verify new variable exists
 head(scf2022$mi_design[[1]]$variables$z_income)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

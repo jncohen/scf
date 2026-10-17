@@ -9,7 +9,7 @@
 #' (`percent_by`), or estimated counts (`scale = "count"`). Estimates come
 #' from [scf_xtab()].
 #'
-#' @param design A `scf_mi_survey` object created by [scf_load()]. Must contain five implicates with replicate weights.
+#' @param design A `scf_mi_survey` object from [scf_load()].
 #' @param rowvar A one-sided formula for the x-axis grouping variable (e.g., `~edcl`).
 #' @param colvar A one-sided formula for the stacked fill variable (e.g., `~racecl`).
 #' @param scale Character. One of `"percent"` (default) or `"count"`.
@@ -24,28 +24,24 @@
 #' @return A `ggplot2` object.
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("plot_bbar_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Stacked bar chart: education by ownership
+#' }
+#' # Stacked bar chart: education by ownership
 #' scf_plot_bbar(scf2022, ~own, ~edcl)
 #'
 #' \donttest{
-#' # Example for real analysis: Column percentages instead of total percent
+#' # Column percentages instead of total percent
 #' scf_plot_bbar(scf2022, ~own, ~edcl, percent_by = "col")
 #'
-#' # Example for real analysis: Raw counts (estimated number of households)
+#' # Raw counts (estimated number of households)
 #' scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
 #' }
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @export
 scf_plot_bbar <- function(design, rowvar, colvar,

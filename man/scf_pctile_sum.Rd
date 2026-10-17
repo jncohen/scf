@@ -16,7 +16,7 @@ scf_pctile_sum(
 )
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula naming the continuous variable to cut
 (e.g., \code{~networth}).}
@@ -73,15 +73,14 @@ figures. With \code{stat = "none"}, the data are returned with the group
 variable added.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("pctile_sum_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Mean net worth, top vs bottom 90 percent, stack method (fast)
+}
+# Mean net worth, top 10 vs bottom 90 percent, stack method (fast)
 scf_pctile_sum(scf2022, ~networth,
                probs  = c(0, 0.9, 1),
                labels = c("bottom90", "top10"),
@@ -97,9 +96,7 @@ scf2022 <- scf_pctile_sum(scf2022, ~networth,
                            labels = c("bottom90", "top10"),
                            stat   = "none")
 }
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \references{

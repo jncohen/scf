@@ -19,7 +19,7 @@ scf_plot_bbar(
 )
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must contain five implicates with replicate weights.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{rowvar}{A one-sided formula for the x-axis grouping variable (e.g., \code{~edcl}).}
 
@@ -55,27 +55,23 @@ are percentages of all households, or of each row or column
 from \code{\link[=scf_xtab]{scf_xtab()}}.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("plot_bbar_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Stacked bar chart: education by ownership
+}
+# Stacked bar chart: education by ownership
 scf_plot_bbar(scf2022, ~own, ~edcl)
 
 \donttest{
-# Example for real analysis: Column percentages instead of total percent
+# Column percentages instead of total percent
 scf_plot_bbar(scf2022, ~own, ~edcl, percent_by = "col")
 
-# Example for real analysis: Raw counts (estimated number of households)
+# Raw counts (estimated number of households)
 scf_plot_bbar(scf2022, ~own, ~edcl, scale = "count")
 }
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }

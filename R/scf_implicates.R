@@ -11,8 +11,9 @@
 #' @param x A result object containing implicate-level estimates. Three types are supported:
 #'   \describe{
 #'     \item{Descriptive results}{Objects from [scf_freq()], [scf_mean()], [scf_median()],
-#'       and [scf_percentile()]. Also [scf_corr()] (one correlation per implicate) and
-#'       [scf_xtab()] (weighted cell counts per implicate).}
+#'       [scf_percentile()] (not `method = "stack"`), and [scf_ratio()]. Also
+#'       [scf_corr()] (one correlation per implicate) and [scf_xtab()] (weighted
+#'       cell counts per implicate).}
 #'     \item{Survey statistic results}{Objects whose `$imps` slot contains `svystat`
 #'       objects (e.g., raw outputs from `survey::svymean()`).}
 #'     \item{Model results}{Objects from [scf_ols()], [scf_glm()], [scf_logit()], and
@@ -23,21 +24,17 @@
 #' @return A list of implicate-level data frames, or a single stacked data frame if `long = TRUE`.
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("implicates_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Extract implicate-level results
+#' }
+#' # Extract implicate-level results
 #' out <- scf_freq(scf2022, ~own)
 #' scf_implicates(out, long = TRUE)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @importFrom stats coef vcov confint
 #' @importFrom survey SE cv

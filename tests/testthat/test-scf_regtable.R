@@ -9,7 +9,7 @@ test_that("scf_regtable handles mixed model types", {
 
   o <- scf_ols(scf2022, networth ~ age + log_income)
   l <- scf_logit(scf2022, own ~ age + log_income)
-  g <- scf_glm(scf2022, own ~ age + log_income)
+  g <- scf_glm(scf2022, own ~ age + log_income, family = binomial())
   q <- scf_quantreg(scf2022, networth ~ age + log_income, se = "nid")
 
   invisible(capture.output(tab <- scf_regtable(o, l, g, q)))

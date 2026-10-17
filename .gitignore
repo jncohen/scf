@@ -34,3 +34,7 @@ scf2019.rds
 scf2010.rds
 
 /archive/
+
+# Validation report caches
+validation/out/*.rds
+validation/out/*.xlsx

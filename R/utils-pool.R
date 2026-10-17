@@ -27,7 +27,7 @@
 }
 
 .scf_variance_method <- function(variance) {
-  if (is.null(variance)) variance <- getOption("scf.variance", "fed")
+  if (is.null(variance)) variance <- "fed"
   match.arg(variance, c("fed", "rubin"))
 }
 

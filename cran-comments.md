@@ -1,6 +1,7 @@
 ## Release summary
-This is a minor release (1.0.10 to 1.1.1). It corrects standard errors and
-other results across the package and adds new features.
+This is a minor release (1.0.10 to 1.2.0). It adds the 2025 survey,
+corrects standard errors and other results across the package, and adds new
+features.
 
 Corrections:
 * Standard errors now follow the Fed's replicate-weight method. Earlier
@@ -17,13 +18,22 @@ Corrections:
   saved.
 
 New features:
+* `scf_download()` and `scf_load()` support the 2025 survey.
+* Data files and survey objects record the dollar year of the Fed's summary
+  variables, which the Fed moved to 2025 dollars for all years in October
+  2026. `scf_real()` and `scf_nominal()` use it.
 * `scf_ratio()` estimates ratios of totals.
-* `scf_real()` converts raw SCF dollar variables to 2022 dollars, following
+* `scf_real()` converts raw SCF dollar variables to real dollars, following
   the Fed's SAS macro.
 * A `variance` option chooses the Fed's method (default) or Rubin's rules;
   see `?scf_variance`.
 
 Changes that may affect user code:
+* Files downloaded since October 2026 are in 2025 dollars, so dollar
+  estimates from new downloads are about 9 percent higher than from files
+  downloaded earlier. `scf_load()` warns when loaded years differ.
+* `scf_nominal()` converts from the data's dollar year by default instead
+  of 2022.
 * The first argument of `scf_update()` is renamed `.object`.
 * `scf_deflate()` is renamed `scf_nominal()`; `scf_deflate()` still works
   with a deprecation warning.

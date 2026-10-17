@@ -18,11 +18,6 @@ test_that("fed and rubin methods pool sampling variance as documented", {
   expect_equal(fed$results$se, sqrt(v[1] + 1.2 * b))
   expect_equal(rubin$results$se, sqrt(mean(v) + 1.2 * b))
 
-  old <- options(scf.variance = "rubin")
-  on.exit(options(old), add = TRUE)
-  expect_equal(scf_mean(scf2022, ~networth)$results$se,
-               rubin$results$se)
-  options(old)
   expect_equal(scf_mean(scf2022, ~networth)$results$se,
                fed$results$se)
 

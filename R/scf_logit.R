@@ -14,7 +14,7 @@
 #' odds-ratio scale. `vcov()` stays on the log-odds scale; `confint()` computes
 #' intervals on that scale and exponentiates them.
 #'
-#' @param object A `scf_mi_survey` object created with [scf_load()].
+#' @param object A `scf_mi_survey` object from [scf_load()].
 #' @param formula A model formula specifying a binary outcome and predictors, e.g., `rich ~ age + factor(edcl)`.
 #' @param odds Logical. If `TRUE` (default), exponentiates coefficient estimates to produce odds ratios.
 #'
@@ -27,23 +27,19 @@
 #' }
 #'
 #' @examples
-#' \donttest{
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("logit_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Run logistic regression
+#' }
+#' \donttest{
+#' # Run logistic regression
 #' model <- scf_logit(scf2022, own ~ hhsex)
 #' summary(model)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
 #' }
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_glm()], [scf_ols()], [scf_MIcombine()]
 #'

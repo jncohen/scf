@@ -11,13 +11,11 @@ scf_percentile(
   by = NULL,
   verbose = FALSE,
   method = c("implicate", "stack"),
-  variance = getOption("scf.variance", "fed")
+  variance = "fed"
 )
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object created with \code{\link[=scf_load]{scf_load()}}. Must
-contain the list of replicate-weighted designs for each implicate in
-\code{scf$mi_design}.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula naming the continuous variable to
 summarize (for example \code{~networth}).}
@@ -33,17 +31,23 @@ Default FALSE.}
 
 \item{method}{\code{"implicate"} (default) or \code{"stack"}. See Details.}
 
-\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
 An object of class \code{"scf_percentile"} containing:
 \describe{
 \item{results}{A data frame containing pooled percentile estimates, pooled
 standard errors, and implicate min/max values. One row per group (if
-\code{by} is supplied) or one row otherwise.}
+\code{by} is supplied) or one row otherwise. With \code{method = "stack"},
+\code{se}, \code{min}, and \code{max} are \code{NA} and \code{imps} is \code{NULL}.
+\code{n} is the number of sample households (unweighted) in each row,
+averaged over implicates.
+Groups of 10 or fewer households give a warning.}
 \item{imps}{A list of implicate-level percentile estimates and standard errors.}
 \item{aux}{A list containing the variable name, optional group variable name,
-and the quantile requested.}
+the quantile requested, the survey year, and the dollar year.}
 \item{verbose}{Logical flag indicating whether implicate-level estimates
 should be printed by \code{print()} or \code{summary()}.}
 }
@@ -55,7 +59,9 @@ group.
 \details{
 Use it for points of a distribution other than the middle, such as the
 90th percentile of net worth. With \code{q = 0.9}, 90 percent of households are
-below the estimate. Dollar amounts are in 2022 dollars.
+below the estimate. Summary dollar variables, such as
+\code{networth}, are in the data's dollar year (see \code{\link[=scf_load]{scf_load()}}); raw \code{x}
+variables are in nominal dollars (see \code{\link[=scf_real]{scf_real()}}).
 
 \code{method = "implicate"} estimates the percentile in each implicate with
 \code{\link[survey:svyquantile]{survey::svyquantile()}} and pools the estimates (see \link{scf_variance}).
@@ -69,24 +75,20 @@ errors for quantiles", is dropped; it concerns jackknife weights, and the
 SCF's are bootstrap weights.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()` for actual SCF data
-td <- tempfile("percentile_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
+}
 # Estimate the 75th percentile of net worth
 scf_percentile(scf2022, ~networth, q = 0.75)
 
 # Estimate the median net worth by ownership group
 scf_percentile(scf2022, ~networth, q = 0.5, by = ~own)
 
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
-rm(scf2022)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \references{

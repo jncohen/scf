@@ -45,9 +45,11 @@
 #'    [scf_quantreg()], and tabulate them with [scf_regtable()].
 #' 7. Plot with [scf_plot_dist()], [scf_plot_hist()], [scf_plot_dbar()],
 #'    [scf_plot_cbar()], [scf_plot_bbar()], [scf_plot_smooth()], and
-#'    [scf_plot_hex()].
-#' 8. Convert raw `x` dollar variables to 2022 dollars with [scf_real()],
+#'    [scf_plot_hex()]. Change the look of the plots with [scf_theme()].
+#' 8. Convert raw `x` dollar variables to real dollars with [scf_real()],
 #'    and dollar results to nominal survey-year dollars with [scf_nominal()].
+#' 9. See the estimate from each implicate with [scf_implicates()], and pool
+#'    your own estimates with [scf_MIcombine()].
 #'
 #' @section Households:
 #' The SCF's unit is the primary economic unit: the person or couple at the
@@ -57,19 +59,27 @@
 #'
 #' @section Dollars:
 #' Summary variables made by the Fed, such as `income`, `networth`, and
-#' `asset`, are in 2022 dollars in every survey year, so they can be compared
-#' across years as they are. Raw survey variables, named `x` followed by a
-#' number, are in dollars of the survey year. Convert them with [scf_real()]
-#' before comparing years or combining them with summary variables.
+#' `asset`, are in the dollars of one year in every survey year, so they can
+#' be compared across years as they are. That year is the Fed's latest
+#' survey: 2025 for files downloaded since October 2026, 2022 before that.
+#' [scf_load()] records it as `dollar_year`.
+#'
+#' Raw survey variables, named `x` followed by a number, are in nominal
+#' dollars: dollars of the year the survey asked about. They are not adjusted
+#' for inflation. Convert them with [scf_real()] before comparing years or
+#' combining them with summary variables. To report a summary variable in
+#' nominal dollars, use [scf_nominal()] on the result.
 #'
 #' @section Data Object:
 #'
 #' Functions work on a `scf_mi_survey` object, made by [scf_design()] via
+#' [scf_load()]. Use [scf_design()] directly only for designs built outside
 #' [scf_load()]. It is a list with:
 #'
 #' - `mi_design`: five [survey::svrepdesign()] objects, one per implicate
 #' - `year`: the survey year
 #' - `n_households`: the weighted number of households
+#' - `dollar_year`: the year whose dollars the summary variables are in
 #'
 #' @section Imputed Missing Data:
 #'
@@ -81,10 +91,11 @@
 #'
 #' @section Mock Data for Testing:
 #'
-#' A mock SCF data set (`scf2022_mock_raw.rds`) in `inst/extdata/` is used in
-#' examples and tests. It keeps the first 200 rows of each implicate and only
-#' the variables the examples use. It is not suitable for analysis or
-#' inference.
+#' CRAN limits a package to 5 MB, and one wave of the SCF is over 100 MB, so
+#' the package cannot include the data. Examples and tests use a small mock
+#' data set (`scf2022_mock_raw.rds` in `inst/extdata/`): the first 200
+#' households of each 2022 implicate, with the variables the examples use.
+#' It is not suitable for analysis or inference.
 #'
 #' @section Plot Theme:
 #' All plots use [scf_theme()]. See its help page to change the theme.
@@ -109,7 +120,7 @@
 #'   imputation. \emph{Biometrika}. 1999;86(4):948--955.
 #'   \doi{10.1093/biomet/86.4.948}
 #'
-#' Board of Governors of the Federal Reserve System. Codebook for the 2022
+#' Board of Governors of the Federal Reserve System. Codebook for the 2025
 #'   Survey of Consumer Finances.
 #'   <https://www.federalreserve.gov/econres/scfindex.htm>
 #'

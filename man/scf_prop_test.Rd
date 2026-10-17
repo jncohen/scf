@@ -11,11 +11,11 @@ scf_prop_test(
   p = NULL,
   alternative = c("two.sided", "less", "greater"),
   conf.level = 0.95,
-  variance = getOption("scf.variance", "fed")
+  variance = "fed"
 )
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must contain replicate-weighted implicates.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula indicating a binary variable (e.g., \code{~rich}).}
 
@@ -27,7 +27,9 @@ scf_prop_test(
 
 \item{conf.level}{Confidence level for the confidence interval. Default is \code{0.95}.}
 
-\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
 An object of class \code{"scf_prop_test"} with:
@@ -54,15 +56,13 @@ each implicate with the replicate weights and pooled (see \link{scf_variance}).
 The two-sample test accounts for the covariance between groups.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("proptest_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
+}
 # Wrangle data for example
 scf2022 <- scf_update(scf2022,
   rich   = networth > 1e6,
@@ -70,15 +70,12 @@ scf2022 <- scf_update(scf2022,
   over50 = age > 50
 )
 
-# Example for real analysis: One-sample test
+# One-sample test
 scf_prop_test(scf2022, ~rich, p = 0.10)
 
-# Example for real analysis: Two-sample test
+# Two-sample test
 scf_prop_test(scf2022, ~rich, ~female, alternative = "less")
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
-
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

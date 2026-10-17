@@ -52,9 +52,11 @@ keep a subset of households with \code{\link[=scf_subset]{scf_subset()}}.
 \code{\link[=scf_quantreg]{scf_quantreg()}}, and tabulate them with \code{\link[=scf_regtable]{scf_regtable()}}.
 \item Plot with \code{\link[=scf_plot_dist]{scf_plot_dist()}}, \code{\link[=scf_plot_hist]{scf_plot_hist()}}, \code{\link[=scf_plot_dbar]{scf_plot_dbar()}},
 \code{\link[=scf_plot_cbar]{scf_plot_cbar()}}, \code{\link[=scf_plot_bbar]{scf_plot_bbar()}}, \code{\link[=scf_plot_smooth]{scf_plot_smooth()}}, and
-\code{\link[=scf_plot_hex]{scf_plot_hex()}}.
-\item Convert raw \code{x} dollar variables to 2022 dollars with \code{\link[=scf_real]{scf_real()}},
+\code{\link[=scf_plot_hex]{scf_plot_hex()}}. Change the look of the plots with \code{\link[=scf_theme]{scf_theme()}}.
+\item Convert raw \code{x} dollar variables to real dollars with \code{\link[=scf_real]{scf_real()}},
 and dollar results to nominal survey-year dollars with \code{\link[=scf_nominal]{scf_nominal()}}.
+\item See the estimate from each implicate with \code{\link[=scf_implicates]{scf_implicates()}}, and pool
+your own estimates with \code{\link[=scf_MIcombine]{scf_MIcombine()}}.
 }
 }
 
@@ -69,21 +71,29 @@ household.
 \section{Dollars}{
 
 Summary variables made by the Fed, such as \code{income}, \code{networth}, and
-\code{asset}, are in 2022 dollars in every survey year, so they can be compared
-across years as they are. Raw survey variables, named \code{x} followed by a
-number, are in dollars of the survey year. Convert them with \code{\link[=scf_real]{scf_real()}}
-before comparing years or combining them with summary variables.
+\code{asset}, are in the dollars of one year in every survey year, so they can
+be compared across years as they are. That year is the Fed's latest
+survey: 2025 for files downloaded since October 2026, 2022 before that.
+\code{\link[=scf_load]{scf_load()}} records it as \code{dollar_year}.
+
+Raw survey variables, named \code{x} followed by a number, are in nominal
+dollars: dollars of the year the survey asked about. They are not adjusted
+for inflation. Convert them with \code{\link[=scf_real]{scf_real()}} before comparing years or
+combining them with summary variables. To report a summary variable in
+nominal dollars, use \code{\link[=scf_nominal]{scf_nominal()}} on the result.
 }
 
 \section{Data Object}{
 
 
 Functions work on a \code{scf_mi_survey} object, made by \code{\link[=scf_design]{scf_design()}} via
+\code{\link[=scf_load]{scf_load()}}. Use \code{\link[=scf_design]{scf_design()}} directly only for designs built outside
 \code{\link[=scf_load]{scf_load()}}. It is a list with:
 \itemize{
 \item \code{mi_design}: five \code{\link[survey:svrepdesign]{survey::svrepdesign()}} objects, one per implicate
 \item \code{year}: the survey year
 \item \code{n_households}: the weighted number of households
+\item \code{dollar_year}: the year whose dollars the summary variables are in
 }
 }
 
@@ -100,10 +110,11 @@ spread across implicates shows how uncertain the filled-in values are. See
 \section{Mock Data for Testing}{
 
 
-A mock SCF data set (\code{scf2022_mock_raw.rds}) in \verb{inst/extdata/} is used in
-examples and tests. It keeps the first 200 rows of each implicate and only
-the variables the examples use. It is not suitable for analysis or
-inference.
+CRAN limits a package to 5 MB, and one wave of the SCF is over 100 MB, so
+the package cannot include the data. Examples and tests use a small mock
+data set (\code{scf2022_mock_raw.rds} in \verb{inst/extdata/}): the first 200
+households of each 2022 implicate, with the variables the examples use.
+It is not suitable for analysis or inference.
 }
 
 \section{Plot Theme}{
@@ -134,7 +145,7 @@ Barnard J, Rubin DB. Small-sample degrees of freedom with multiple
 imputation. \emph{Biometrika}. 1999;86(4):948--955.
 \doi{10.1093/biomet/86.4.948}
 
-Board of Governors of the Federal Reserve System. Codebook for the 2022
+Board of Governors of the Federal Reserve System. Codebook for the 2025
 Survey of Consumer Finances.
 \url{https://www.federalreserve.gov/econres/scfindex.htm}
 

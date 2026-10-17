@@ -32,7 +32,7 @@ test_that("scf_nominal stops on variables not in 2022 dollars unless forced", {
   expect_error(scf_nominal(scf_mean(scf2022, ~x3915)),
                "already in nominal dollars")
   expect_error(scf_nominal(scf_median(scf2022, ~nw_k)),
-               "may not be in 2022 dollars")
+               "may not be in real dollars")
   expect_error(scf_nominal(scf_ttest(scf2022, ~x3915)),
                "already in nominal dollars")
 

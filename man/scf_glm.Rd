@@ -4,14 +4,15 @@
 \alias{scf_glm}
 \title{Estimate Generalized Linear Model from SCF Microdata}
 \usage{
-scf_glm(object, formula, family = binomial())
+scf_glm(object, formula, family)
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object, created with \code{\link[=scf_load]{scf_load()}}.}
+\item{object}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{formula}{A valid model formula, e.g., \code{rich ~ age + factor(edcl)}.}
 
-\item{family}{A GLM family object such as \code{\link[=binomial]{binomial()}}, \code{\link[=poisson]{poisson()}}, or \code{\link[=gaussian]{gaussian()}}. Defaults to \code{binomial()}.}
+\item{family}{A GLM family object such as \code{\link[=poisson]{poisson()}}, \code{\link[=quasibinomial]{quasibinomial()}},
+or \code{\link[=Gamma]{Gamma()}}. Required; there is no default.}
 }
 \value{
 An object of class \code{"scf_glm"} and \code{"scf_model_result"} with:
@@ -27,10 +28,12 @@ Fits a generalized linear model to each implicate with \code{survey::svyglm()}
 and pools the results with Rubin's rules.
 }
 \details{
-Use it for outcomes that are not continuous, such as binary outcomes or
-counts. \code{family} sets the link and error distribution: \code{binomial()} for
-binary outcomes, \code{poisson()} for counts, \code{gaussian()} for linear
-regression. For odds ratios, use \code{\link[=scf_logit]{scf_logit()}}.
+Use it for models that \code{\link[=scf_ols]{scf_ols()}} and \code{\link[=scf_logit]{scf_logit()}} do not cover: counts
+with \code{poisson()}, shares between 0 and 1 with \code{quasibinomial()}, or
+positive, skewed amounts with \code{Gamma(link = "log")}. For linear
+regression use \code{\link[=scf_ols]{scf_ols()}}; for logistic regression with odds ratios use
+\code{\link[=scf_logit]{scf_logit()}}. \code{family} sets the link and error distribution and must be
+given.
 
 Coefficients are on the link scale (log-odds for \code{binomial()}, log counts
 for \code{poisson()}). A positive coefficient means the outcome rises with the
@@ -46,23 +49,19 @@ weights always produce, is dropped. The function stops if the model fails
 in any implicate.
 }
 \examples{
-\donttest{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("glm_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Run logistic regression
+}
+\donttest{
+# Run logistic regression
 model <- scf_glm(scf2022, own ~ hhsex, family = binomial())
 summary(model)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
 }
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

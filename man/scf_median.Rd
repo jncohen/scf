@@ -9,11 +9,12 @@ scf_median(
   var,
   by = NULL,
   verbose = FALSE,
-  variance = getOption("scf.variance", "fed")
+  method = c("implicate", "stack"),
+  variance = "fed"
 )
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must contain five implicates.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula specifying the continuous variable of interest (e.g., \code{~networth}).}
 
@@ -21,12 +22,21 @@ scf_median(
 
 \item{verbose}{Logical; if TRUE, show implicate-level results.}
 
-\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
+\item{method}{\code{"implicate"} (default) or \code{"stack"}. See Details.}
+
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
-A list of class \code{"scf_median"} with:
+A list of class \code{c("scf_median", "scf_percentile")} with:
 \describe{
-\item{results}{A data frame with pooled medians, standard errors, and range across implicates.}
+\item{results}{A data frame with pooled medians (\code{quantile} is 0.5),
+standard errors, and range across implicates. With \code{method = "stack"},
+\code{se}, \code{min}, and \code{max} are \code{NA} and \code{imps} is \code{NULL}.
+\code{n} is the number of sample households (unweighted) in each row,
+averaged over implicates.
+Groups of 10 or fewer households give a warning.}
 \item{imps}{A list of implicate-level results.}
 \item{aux}{Variable and grouping metadata.}
 }
@@ -37,28 +47,30 @@ Estimates the weighted median of a continuous variable, overall or by group.
 \details{
 Use it for skewed variables such as wealth and income, where it describes
 the typical household better than the mean. Half of households are below
-the estimate and half above. Dollar amounts are in 2022 dollars.
+the estimate and half above. Summary dollar variables, such as
+\code{networth}, are in the data's dollar year (see \code{\link[=scf_load]{scf_load()}}); raw \code{x}
+variables are in nominal dollars (see \code{\link[=scf_real]{scf_real()}}).
 
-Calls \code{\link[=scf_percentile]{scf_percentile()}} with \code{q = 0.5}. The estimate is the mean of the
-five implicate medians; the standard error combines sampling and imputation
-variance (see \link{scf_variance}).
+Calls \code{\link[=scf_percentile]{scf_percentile()}} with \code{q = 0.5}. With \code{method = "implicate"}, the
+estimate is the mean of the five implicate medians; the standard error
+combines sampling and imputation variance (see \link{scf_variance}). With
+\code{method = "stack"}, the five implicates are stacked and one weighted median
+is taken, as in the Fed's published tables; no standard error is given.
+The two can differ in small groups.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("median_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Estimate medians
+}
+# Estimate medians
 scf_median(scf2022, ~networth)
 scf_median(scf2022, ~networth, by = ~edcl)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+scf_median(scf2022, ~networth, method = "stack")
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

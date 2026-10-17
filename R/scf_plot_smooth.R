@@ -8,10 +8,11 @@
 #' stacked with weights divided by five and binned (by default with the
 #' Freedman-Diaconis width), and a smoothing curve is fit to the bin shares.
 #'
-#' @param design A `scf_mi_survey` object created by [scf_load()].
+#' @param design A `scf_mi_survey` object from [scf_load()].
 #' @param variable A one-sided formula specifying a continuous variable (e.g., `~networth`).
 #' @param binwidth Optional bin width. Default uses Freedman-Diaconis rule.
-#' @param xlim Optional numeric vector of length 2 to truncate axis.
+#' @param xlim Optional numeric vector of length 2. Limits the plotted range;
+#'   shares are still computed over all households.
 #' @param method Character. Smoothing method: `"loess"` (default) or `"lm"`.
 #' @param span Numeric LOESS span. Default is `0.2`. Ignored if `method = "lm"`.
 #' @param color Line color. Default is `"blue"`.
@@ -24,30 +25,24 @@
 #' @seealso [scf_plot_hist()], [scf_plot_dist()], [scf_theme()]
 #'
 #' @examples
+#' \dontshow{
+#' td <- tempfile()
+#' dir.create(td)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
+#' scf2022 <- scf_load(2022, data_directory = td)
+#' }
 #' \donttest{
-#' if (interactive()) {
-#'   # Do not implement these lines in real analysis:
-#'   # Use functions `scf_download()` and `scf_load()`
-#'   td <- tempfile("plot_smooth_")
-#'   dir.create(td)
-#'
-#'   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#'   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-#'   scf2022 <- scf_load(2022, data_directory = td)
-#'
-#'   # Example for real analysis: Plot smoothed distribution
-#'   scf_plot_smooth(
-#'     scf2022,
-#'     ~networth,
-#'     xlim = c(0, 2e6),
-#'     method = "loess",
-#'     span = 0.25
-#'   )
-#'
-#'   # Do not implement these lines in real analysis: Cleanup for package check
-#'   unlink(td, recursive = TRUE, force = TRUE)
+#' # Plot smoothed distribution
+#' scf_plot_smooth(
+#'   scf2022,
+#'   ~networth,
+#'   xlim = c(0, 2e6),
+#'   method = "loess",
+#'   span = 0.25
+#' )
 #' }
-#' }
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @export
 scf_plot_smooth <- function(design,
@@ -78,6 +73,7 @@ scf_plot_smooth <- function(design,
   })
   df <- do.call(rbind, stacked)
   df <- df[!is.na(df$x) & !is.na(df$wgt), ]
+  total_wgt <- sum(df$wgt)
 
   if (!is.null(xlim)) {
     df <- df[df$x >= xlim[1] & df$x <= xlim[2], ]
@@ -102,13 +98,14 @@ scf_plot_smooth <- function(design,
 
   agg <- aggregate(wgt ~ bin_center, data = df, sum)
   names(agg)[1] <- "x"
-  agg$percent <- 100 * agg$wgt / sum(agg$wgt)
+  agg$percent <- 100 * agg$wgt / total_wgt
 
   if (is.null(xlab)) xlab <- varname
 
   ggplot2::ggplot(agg, ggplot2::aes(x = x, y = percent)) +
     ggplot2::geom_smooth(
       method = method,
+      formula = y ~ x,
       span = if (method == "loess") span else NULL,
       se = FALSE,
       color = color

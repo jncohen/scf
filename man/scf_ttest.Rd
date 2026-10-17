@@ -11,11 +11,11 @@ scf_ttest(
   mu = 0,
   alternative = c("two.sided", "less", "greater"),
   conf.level = 0.95,
-  variance = getOption("scf.variance", "fed")
+  variance = "fed"
 )
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula specifying a numeric variable (e.g., \code{~income}).}
 
@@ -27,14 +27,17 @@ scf_ttest(
 
 \item{conf.level}{Confidence level for the confidence interval. Default is \code{0.95}.}
 
-\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
 An object of class \code{scf_ttest} with:
 \describe{
-\item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, and confidence interval. For two-sample tests, the estimate is the first group minus the second.}
+\item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, significance stars, and confidence interval. For two-sample tests, the estimate is the first group minus the second.}
 \item{means}{Group-specific means (for two-sample tests only).}
 \item{fit}{List describing the test type, null hypothesis, confidence level, and alternative.}
+\item{aux}{Survey year, variable name, and dollar year, used by \code{\link[=scf_nominal]{scf_nominal()}}.}
 }
 }
 \description{
@@ -55,33 +58,27 @@ Means are estimated in each implicate with \code{survey::svymean()} and pooled
 between groups.
 }
 \examples{
+\dontshow{
+td <- tempfile()
+dir.create(td)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
+scf2022 <- scf_load(2022, data_directory = td)
+}
 \donttest{
-if (interactive()) {
-  # Do not implement these lines in real analysis:
-  # Use functions `scf_download()` and `scf_load()`
-  td <- tempfile("ttest_")
-  dir.create(td)
+# Derive analysis vars
+scf2022 <- scf_update(scf2022,
+  female = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
+  over50 = age > 50
+)
 
-  src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-  file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-  scf2022 <- scf_load(2022, data_directory = td)
+# One-sample t-test
+scf_ttest(scf2022, ~income, mu = 75000)
 
-  # Wrangle data for example: Derive analysis vars
-  scf2022 <- scf_update(scf2022,
-    female = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
-    over50 = age > 50
-  )
-
-  # Example for real analysis: One-sample t-test
-  scf_ttest(scf2022, ~income, mu = 75000)
-
-  # Example for real analysis: Two-sample t-test
-  scf_ttest(scf2022, ~income, group = ~female)
-
-  # Do not implement these lines in real analysis: Cleanup for package check
-  unlink(td, recursive = TRUE, force = TRUE)
+# Two-sample t-test
+scf_ttest(scf2022, ~income, group = ~female)
 }
-}
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

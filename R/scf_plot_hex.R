@@ -9,10 +9,10 @@
 #' implicates are stacked with weights divided by five. Requires the
 #' \pkg{hexbin} package.
 #'
-#' @param design A `scf_mi_survey` object created by [scf_load()].
+#' @param design A `scf_mi_survey` object from [scf_load()].
 #' @param x A one-sided formula for the x-axis variable (e.g., `~income`).
 #' @param y A one-sided formula for the y-axis variable (e.g., `~networth`).
-#' @param bins Integer. Number of hexagonal bins along the x-axis. Default is `50`.
+#' @param bins Integer. Number of hexagonal bins in each direction. Default is `50`.
 #' @param title Optional character string for the plot title.
 #' @param xlab Optional x-axis label. Defaults to the variable name.
 #' @param ylab Optional y-axis label. Defaults to the variable name.
@@ -20,24 +20,20 @@
 #' @return A `ggplot2` object.
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("plot_hex_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Plot hexbin of income vs. net worth
+#' }
+#' # Plot hexbin of income vs. net worth
 #' # Note: mock data has 200 rows per implicate; hexbin output will be sparse.
 #' # Results on full SCF data will show a meaningful joint density.
 #' if (requireNamespace("hexbin", quietly = TRUE)) {
 #'   scf_plot_hex(scf2022, ~income, ~networth)
 #' }
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_corr()], [scf_plot_smooth()], [scf_theme()]
 #'

@@ -10,26 +10,25 @@
 #' on the distribution within each implicate, such as ranks or percentile
 #' cutoffs, use [scf_update_by_implicate()].
 #'
-#' @param .object A `scf_mi_survey` object, typically created by [scf_load()].
+#' @param .object A `scf_mi_survey` object from [scf_load()].
 #' @param ... Named expressions assigning new or modified variables using `=` syntax.
 #'   Each must return one value or one value per row. Set a variable to `NULL`
 #'   to remove it.
 #'
 #' @return The input `scf_mi_survey` object with `mi_design` updated to reflect
-#' the new or modified variables. All other attributes (`year`, `n_households`,
-#' `mock`) are preserved unchanged.
+#' the new or modified variables. Other elements (`year`, `n_households`,
+#' `dollar_year`) and the `mock` attribute are kept. `n_households` is not
+#' recomputed.
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("update_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Create a binary indicator for being over age 50
+#' }
+#' # Create a binary indicator for being over age 50
 #' scf2022 <- scf_update(scf2022,
 #'   over50 = age > 50
 #' )
@@ -38,9 +37,7 @@
 #' scf2022 <- scf_update(scf2022,
 #'   log_income = log(income + 1)
 #' )
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_load()], [scf_update_by_implicate()], [survey::svrepdesign()]
 #'
@@ -51,6 +48,7 @@ scf_update <- function(.object, ...) {
   }
 
   exprs <- as.list(substitute(list(...)))[-1]
+  exprs <- exprs[!vapply(exprs, function(e) identical(e, quote(expr = )), logical(1))]
   env <- parent.frame()
 
   if (is.null(.object$mi_design) || length(.object$mi_design) == 0)

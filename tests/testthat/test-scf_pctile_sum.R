@@ -15,7 +15,8 @@ test_that("scf_pctile_sum handles tied values at group boundaries", {
     expect_true(all(abs(share - c(0.1, 0.1, 0.8)) < 0.05))
   }
 
-  res <- scf_pctile_sum(scf2022, ~own, probs = c(0, 0.05, 0.1, 1))
+  expect_warning(res <- scf_pctile_sum(scf2022, ~own, probs = c(0, 0.05, 0.1, 1)),
+                 "10 or fewer households")
   expect_equal(nrow(res$results), 3)
 
   unlink(file.path(td, "scf2022.rds"), force = TRUE)

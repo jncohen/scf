@@ -4,16 +4,10 @@
 \alias{scf_freq}
 \title{Estimate the Frequencies of a Discrete Variable from SCF Microdata}
 \usage{
-scf_freq(
-  scf,
-  var,
-  by = NULL,
-  percent = TRUE,
-  variance = getOption("scf.variance", "fed")
-)
+scf_freq(scf, var, by = NULL, percent = TRUE, variance = "fed")
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must contain five replicate-weighted implicates.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula specifying a categorical variable (e.g., \code{~racecl}).}
 
@@ -21,12 +15,20 @@ scf_freq(
 
 \item{percent}{Logical. If \code{TRUE} (default), scales results and standard errors to percentages.}
 
-\item{variance}{Variance method: \code{"fed"} (default) or \code{"rubin"}. See \link{scf_variance}.}
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
 A list of class \code{"scf_freq"} with:
 \describe{
-\item{results}{Pooled category proportions and standard errors, by group if specified.}
+\item{results}{Pooled category proportions and standard errors, with
+columns \code{group}, \code{category}, \code{proportion}, \code{se_proportion}, and \code{n}. Without
+\code{by}, \code{group} is \code{"All"}. With \code{percent = TRUE} (the default),
+\code{proportion} and \code{se_proportion} are percentages.
+\code{n} is the number of sample households (unweighted) in each row,
+averaged over implicates.
+Groups of 10 or fewer households give a warning.}
 \item{imps}{A named list of implicate-level proportion estimates.}
 \item{aux}{Metadata about the variable and grouping structure.}
 }
@@ -43,26 +45,23 @@ minus two standard errors gives a rough 95 percent range. No tests are
 reported. For two-way tables, use \code{\link[=scf_xtab]{scf_xtab()}}.
 
 Proportions are estimated in each implicate with \code{survey::svymean()} and
-pooled across implicates (see \link{scf_variance}).
+pooled across implicates (see \link{scf_variance}). Numeric variables with more
+than 25 distinct values are treated as continuous and give an error.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("freq_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Proportions of homeownership
+}
+# Proportions of homeownership
 scf_freq(scf2022, ~own)
 
-# Example for real analysis: Homeownership proportions by education
+# Homeownership proportions by education
 scf_freq(scf2022, ~own, by = ~edcl)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

@@ -4,50 +4,52 @@
 #'
 #' @details
 #' Use it for the average value of a variable in the population or a group.
-#' The estimate is in the variable's units; dollar amounts are in 2022
-#' dollars. `min` and `max` give the range of the implicate estimates.
+#' The estimate is in the variable's units. Summary dollar variables, such as
+#' `networth`, are in the data's dollar year (see [scf_load()]); raw `x`
+#' variables are in nominal dollars (see [scf_real()]).
+#' `min` and `max` give the range of the implicate estimates.
 #' Wealth and income are right-skewed, so a few very wealthy households pull
 #' their means well above their medians; report [scf_median()] as well.
 #'
 #' The mean is estimated in each implicate with `survey::svymean()` and pooled
 #' across implicates (see [scf_variance]).
 #'
-#' @param scf A scf_mi_survey object created with [scf_load()]. Must contain five replicate-weighted implicates.
+#' @param scf A `scf_mi_survey` object from [scf_load()].
 #' @param var A one-sided formula identifying the continuous variable to summarize (e.g., ~networth).
 #' @param by Optional one-sided formula specifying a discrete grouping variable for stratified means.
 #' @param verbose Logical. If TRUE, include implicate-level results in print output. Default is FALSE.
-#' @param variance Variance method: `"fed"` (default) or `"rubin"`. See [scf_variance].
+#' @param variance `"fed"` (default) or `"rubin"`: how the sampling variance
+#'   is combined across implicates. See [scf_variance]. Most users can leave
+#'   this alone.
 #'
 #' @return A list of class "scf_mean" with:
 #' \describe{
-#'   \item{results}{Pooled estimates with standard errors and range across implicates. One row per group, or one row total.}
+#'   \item{results}{Pooled estimates with standard errors and range across implicates. One row per group, or one row total.
+#'   `n` is the number of sample households (unweighted) in each row,
+#'   averaged over implicates.
+#'   Groups of 10 or fewer households give a warning.}
 #'   \item{imps}{A named list of implicate-level estimates.}
 #'   \item{aux}{Variable and group metadata.}
 #' }
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("mean_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
-#' # Example for real analysis: Estimate means
+#' }
+#' # Estimate means
 #' scf_mean(scf2022, ~networth)
 #' scf_mean(scf2022, ~networth, by = ~edcl)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
-#'
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_median()], [scf_percentile()], [scf_xtab()], [scf_plot_dist()]
 #'
 #' @export
 scf_mean <- function(scf, var, by = NULL, verbose = FALSE,
-                     variance = getOption("scf.variance", "fed")) {
+                     variance = "fed") {
   variance <- .scf_variance_method(variance)
 
   if (!inherits(scf, "scf_mi_survey") ||
@@ -64,12 +66,12 @@ scf_mean <- function(scf, var, by = NULL, verbose = FALSE,
   }
   designs <- scf$mi_design
   nimp <- length(designs)
+  warns <- .scf_warnings()
 
   if (is.null(byname)) {
 
     imp_results <- lapply(seq_len(nimp), function(i) {
-      d <- designs[[i]]
-      survey::svymean(var, d)
+      .scf_catch_warnings(survey::svymean(var, designs[[i]]), i, warns)
     })
 
     imp_estimates <- lapply(seq_len(nimp), function(i) {
@@ -94,8 +96,10 @@ scf_mean <- function(scf, var, by = NULL, verbose = FALSE,
       se = pooled$se,
       min = apply(x_all, 2, min),
       max = apply(x_all, 2, max),
+      n = .scf_group_n(designs),
       stringsAsFactors = FALSE
     )
+    .scf_warn_small(out$n[1])
 
   } else {
 
@@ -110,7 +114,7 @@ scf_mean <- function(scf, var, by = NULL, verbose = FALSE,
       lapply(groups, function(g) {
         keep <- !is.na(d$variables[[byname]]) & d$variables[[byname]] == g
         if (!any(keep)) return(NULL)
-        survey::svymean(var, d[keep, ])
+        .scf_catch_warnings(survey::svymean(var, d[keep, ]), i, warns)
       })
     })
 
@@ -154,14 +158,19 @@ scf_mean <- function(scf, var, by = NULL, verbose = FALSE,
     }))
 
     out <- out[, c("group", "variable", "estimate", "se", "min", "max")]
+    out$n <- .scf_group_n(designs, byname, groups)
+    .scf_warn_small(out$n, groups)
   }
+
+  .scf_report_warnings(warns)
 
   names(imp_estimates) <- paste0("imp", seq_len(nimp))
 
   out_obj <- list(
     results = out,
     imps = imp_estimates,
-    aux = list(varname = varname, byname = byname, year = scf$year),
+    aux = list(varname = varname, byname = byname, year = scf$year,
+               dollar_year = scf$dollar_year),
     verbose = verbose
   )
   class(out_obj) <- "scf_mean"

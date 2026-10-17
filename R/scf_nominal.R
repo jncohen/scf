@@ -1,6 +1,6 @@
 #' Convert SCF Dollar Estimates to Nominal Survey-Year Dollars
 #'
-#' Converts dollar estimates from 2022 dollars to dollars of the survey year.
+#' Converts dollar estimates from real dollars to dollars of the survey year.
 #'
 #' @details
 #' Estimates, standard errors, and confidence limits are multiplied by the
@@ -8,21 +8,25 @@
 #' results from [scf_mean()], [scf_median()], [scf_percentile()], and
 #' [scf_ttest()].
 #'
-#' The Fed's summary variables, such as `income` and `networth`, are in 2022
-#' dollars. Raw `x` variables are already nominal. Income in the summary
+#' The Fed's summary variables, such as `income` and `networth`, are in the
+#' dollars of the Fed's latest survey: 2025 for files downloaded since
+#' October 2026, 2022 before that (see [scf_download()]). Raw `x` variables
+#' are already nominal. Income in the summary
 #' extract is first moved to survey-year dollars, so converted income is in
 #' survey-year dollars, as in the Fed's nominal tables. Medians in Tables 1
-#' and 4 match the Fed within 0.05 percent for 1989 to 2022.
+#' and 4 match the Fed within 0.05 percent for 1989 to 2025, except a few
+#' medians near zero, where the Fed's rounding is larger than that.
 #'
 #' The function stops, unless `force = TRUE`, if the result is for a raw `x`
-#' variable or for a variable not known to be in 2022 dollars (the Fed's
+#' variable or for a variable not known to be in real dollars (the Fed's
 #' dollar summary variables and names ending in `"_real"`). Converting twice
 #' gives a warning.
 #'
 #' @param x An object of class `scf_mean`, `scf_median`,
 #'   `scf_percentile`, or `scf_ttest`.
 #' @param from_year Integer. Year whose real-dollar units are assumed for the
-#'   input estimate. Defaults to `2022`.
+#'   input estimate. Defaults to the dollar year of the data, as recorded by
+#'   [scf_load()].
 #' @param force Logical. If `TRUE`, skip the check on the variable.
 #'
 #' @return The input object with dollar estimates, standard errors, and
@@ -30,15 +34,13 @@
 #'   `"nominal"` and `"from_year"` are set on the returned object.
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td <- tempfile("nominal_")
+#' \dontshow{
+#' td <- tempfile()
 #' dir.create(td)
-#'
-#' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-#' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+#' file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+#'           file.path(td, "scf2022.rds"))
 #' scf2022 <- scf_load(2022, data_directory = td)
-#'
+#' }
 #' # Convert a mean estimate to nominal survey-year dollars
 #' result <- scf_mean(scf2022, ~networth)
 #' result_nominal <- scf_nominal(result)
@@ -46,9 +48,7 @@
 #' # Works with median and percentile results
 #' med <- scf_median(scf2022, ~networth)
 #' med_nominal <- scf_nominal(med)
-#'
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(td, recursive = TRUE, force = TRUE)
+#' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_real()], [scf_mean()], [scf_median()], [scf_percentile()],
 #'   [scf_ttest()]
@@ -63,12 +63,12 @@
 #'   <https://www.bls.gov/cpi/research-series/r-cpi-u-rs-home.htm>
 #'
 #' @export
-scf_nominal <- function(x, from_year = 2022, force = FALSE) {
+scf_nominal <- function(x, from_year = NULL, force = FALSE) {
   UseMethod("scf_nominal")
 }
 
 #' @export
-scf_nominal.default <- function(x, from_year = 2022, force = FALSE) {
+scf_nominal.default <- function(x, from_year = NULL, force = FALSE) {
   stop(sprintf(
     paste0(
       "scf_nominal() does not support objects of class '%s'.\n",
@@ -79,23 +79,25 @@ scf_nominal.default <- function(x, from_year = 2022, force = FALSE) {
 }
 
 #' @export
-scf_nominal.scf_mean <- function(x, from_year = 2022, force = FALSE) {
+scf_nominal.scf_mean <- function(x, from_year = NULL, force = FALSE) {
   .scf_nominal_estimate(x, from_year, force, "scf_mean")
 }
 
 #' @export
-scf_nominal.scf_percentile <- function(x, from_year = 2022, force = FALSE) {
+scf_nominal.scf_percentile <- function(x, from_year = NULL, force = FALSE) {
   .scf_nominal_estimate(x, from_year, force, "scf_percentile")
 }
 
 #' @export
-scf_nominal.scf_median <- function(x, from_year = 2022, force = FALSE) {
+scf_nominal.scf_median <- function(x, from_year = NULL, force = FALSE) {
   .scf_nominal_estimate(x, from_year, force, "scf_median")
 }
 
 #' @export
-scf_nominal.scf_ttest <- function(x, from_year = 2022, force = FALSE) {
+scf_nominal.scf_ttest <- function(x, from_year = NULL, force = FALSE) {
   f <- .scf_nominal_setup(x, from_year, force, "scf_ttest")
+  from_year <- attr(f, "from_year")
+  f <- as.numeric(f)
 
   for (col in c("estimate", "std.error", "conf.low", "conf.high")) {
     if (col %in% names(x$results)) {
@@ -125,7 +127,7 @@ scf_nominal.scf_ttest <- function(x, from_year = 2022, force = FALSE) {
 #' @return The result of [scf_nominal()].
 #' @keywords internal
 #' @export
-scf_deflate <- function(x, from_year = 2022) {
+scf_deflate <- function(x, from_year = NULL) {
   .Deprecated("scf_nominal")
   scf_nominal(x, from_year = from_year)
 }
@@ -158,14 +160,19 @@ scf_deflate <- function(x, from_year = 2022) {
     stop(sprintf(paste0(
       "`%s` is not one of the Fed's summary dollar variables, such as income ",
       "or networth, or a variable made by scf_real(), so it may not be in ",
-      "2022 dollars. Use force = TRUE if it is."), v), call. = FALSE)
+      "real dollars. Use force = TRUE if it is."), v), call. = FALSE)
   }
 
-  .scf_deflation_factor(x$aux$year, from_year)
+  if (is.null(from_year)) {
+    from_year <- .scf_dollar_year(x$aux, "this result")
+  }
+  structure(.scf_deflation_factor(x$aux$year, from_year), from_year = from_year)
 }
 
 .scf_nominal_estimate <- function(x, from_year, force, rerun_function) {
   f <- .scf_nominal_setup(x, from_year, force, rerun_function)
+  from_year <- attr(f, "from_year")
+  f <- as.numeric(f)
 
   for (col in c("estimate", "se", "min", "max")) {
     if (col %in% names(x$results)) {
