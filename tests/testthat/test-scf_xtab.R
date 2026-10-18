@@ -1,6 +1,7 @@
 # tests/testthat/test-scf_xtab.R
 
 test_that("scf_xtab standard errors include sampling and imputation variance", {
+  skip_on_cran()
   skip_if_not_installed("mitools")
 
   td <- tempdir()

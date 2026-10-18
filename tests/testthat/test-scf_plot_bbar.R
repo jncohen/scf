@@ -1,6 +1,7 @@
 # tests/testthat/test-scf_plot_bbar.R
 
 test_that("scf_plot_bbar plots shares that match scf_xtab", {
+  skip_on_cran()
   td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)

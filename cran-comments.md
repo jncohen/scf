@@ -1,70 +1,7 @@
-## Release summary
-This is a minor release (1.0.10 to 1.2.0). It adds the 2025 survey,
-corrects standard errors and other results across the package, and adds new
-features.
-
-Corrections:
-* Standard errors now follow the Fed's replicate-weight method. Earlier
-  versions put the main and replicate weights on different scales and
-  overstated standard errors.
-* Fixes to `scf_xtab`, `scf_corr`, `scf_prop_test`, `scf_ttest`,
-  `scf_quantreg`, `scf_regtable`, `scf_pctile_sum`, `scf_deflate`, several
-  plots, `confint()`, and AIC reporting.
-* Functions stop with a clear error when a variable has missing values, or
-  when a model or estimate fails in any implicate, instead of pooling the
-  rest.
-* Model results from `scf_glm()`, `scf_logit()`, and `scf_ols()` no longer
-  carry a copy of the survey design, which made them gigabytes in size when
-  saved.
-
-New features:
-* `scf_download()` and `scf_load()` support the 2025 survey.
-* Data files and survey objects record the dollar year of the Fed's summary
-  variables, which the Fed moved to 2025 dollars for all years in October
-  2026. `scf_real()` and `scf_nominal()` use it.
-* `scf_ratio()` estimates ratios of totals.
-* `scf_real()` converts raw SCF dollar variables to real dollars, following
-  the Fed's SAS macro.
-* A `variance` option chooses the Fed's method (default) or Rubin's rules;
-  see `?scf_variance`.
-
-Changes that may affect user code:
-* Files downloaded since October 2026 are in 2025 dollars, so dollar
-  estimates from new downloads are about 9 percent higher than from files
-  downloaded earlier. `scf_load()` warns when loaded years differ.
-* `scf_nominal()` converts from the data's dollar year by default instead
-  of 2022.
-* The first argument of `scf_update()` is renamed `.object`.
-* `scf_deflate()` is renamed `scf_nominal()`; `scf_deflate()` still works
-  with a deprecation warning.
-* `scf_prop_test()`, `scf_glm()`, and `scf_logit()` report t and Rubin's
-  degrees of freedom instead of z; the `z.value` column is now `t.value`.
-* `scf_quantreg()` uses replicate-weight standard errors by default and no
-  longer reports AIC.
-* `scf_regtable()` chooses decimal places by size unless `digits` is given.
-* `scf_pctile_cut()`, renamed `scf_pctile_sum()` in 1.0.7, now gives a
-  deprecation warning.
-* The `rlang` dependency is dropped.
-
-## Test environments
-* Local: R 4.5.1 on Windows 11 x86_64
-* Win-builder: R-devel (2026-09-30 r90605)
-* Win-builder: R-release (R 4.6.1)
+## Resubmission
+The first submission passed both pretests with no NOTEs but was not
+accepted automatically. In case check time was the cause, this version skips
+the slowest tests on CRAN and removes the remaining `\dontrun{}` examples.
 
 ## R CMD check results
 0 errors | 0 warnings | 0 notes
-
-## Reverse dependencies
-There are no reverse dependencies on CRAN.
-
-## Mock data
-This package includes a small mock data set (`inst/extdata/scf2022_mock_raw.rds`)
-for examples and tests. The full data are too large for CRAN's 5 MB limit.
-The mock set is a 200-row subset of each of the five implicates of the 2022
-SCF public-use data, with all 999 replicate weights. It has the same
-structure as the full data, so the functions run as intended.
-
-Because the mock data are small, some model examples may produce
-convergence warnings. This does not reflect problems with the full SCF data.
-Tests that refit models with all 999 replicate weights are skipped on CRAN
-to keep check time down.

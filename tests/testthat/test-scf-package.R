@@ -35,6 +35,7 @@ test_that("Descriptive functions return expected structure", {
 })
 
 test_that("Regression functions return valid model objects", {
+  skip_on_cran()
   td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)

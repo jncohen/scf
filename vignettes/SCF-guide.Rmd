@@ -151,8 +151,9 @@ print(m_med)
 ```
 
 ```{r}
-# 75th percentile
-m_75 <- scf_quantreg(scf2022, log_networth ~ age + senior, tau = 0.75)
+# 75th percentile, with fast standard errors (see below)
+m_75 <- scf_quantreg(scf2022, log_networth ~ age + senior, tau = 0.75,
+                     se = "nid")
 summary(m_75)
 ```
 

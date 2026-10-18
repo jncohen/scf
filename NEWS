@@ -1,5 +1,7 @@
 # scf 1.2.0
 
+A major update.  Version 1.1.0 was about to be released, and then the Fed released the 2025 data.  Version 1.2.0 focused on updating for the 2025 data and validating that update against Fed official statistics.  Version updates since 1.0.10 added several features and fixes (listed below).
+
 ## New features
 
 * Add the 2025 survey to `scf_download()` and `scf_load()`

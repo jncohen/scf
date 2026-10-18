@@ -1,6 +1,7 @@
 # tests/testthat/test-scf_implicates.R
 
 test_that("scf_implicates returns implicate-level results for every model type", {
+  skip_on_cran()
   td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)

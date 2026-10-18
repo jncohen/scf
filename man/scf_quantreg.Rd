@@ -89,15 +89,15 @@ file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
           file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
 }
-\dontrun{
-# Median regression of net worth on age and education
-m_med <- scf_quantreg(scf2022, networth ~ age + factor(edcl), tau = 0.5)
+# Median regression of net worth on age and education, with fast standard
+# errors; the default, se = "replicate", uses the SCF's design but is slower
+m_med <- scf_quantreg(scf2022, networth ~ age + factor(edcl), tau = 0.5,
+                      se = "nid")
 summary(m_med)
 
 # Access goodness-of-fit statistics
 m_med$fit$r1
 m_med$fit$r1_adj
-}
 \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }

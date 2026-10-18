@@ -34,6 +34,7 @@ test_that("predict works with and without newdata", {
 })
 
 test_that("stored fits drop the survey design and stay small", {
+  skip_on_cran()
   td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)

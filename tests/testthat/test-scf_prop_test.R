@@ -20,6 +20,7 @@ test_that("scf_prop_test defaults the null to 0.5 one-sample and 0 two-sample", 
 })
 
 test_that("scf_prop_test uses replicate-weight standard errors and Rubin pooling", {
+  skip_on_cran()
   skip_if_not_installed("mitools")
 
   td <- tempdir()

@@ -1,6 +1,7 @@
 # tests/testthat/test-scf_pctile_sum.R
 
 test_that("scf_pctile_sum handles tied values at group boundaries", {
+  skip_on_cran()
   td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)

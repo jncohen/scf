@@ -61,16 +61,16 @@
 #'                labels = c("bottom90", "top10"),
 #'                method = "stack")
 #'
-#' \dontrun{
-#' # Implicate method (default): requires full SCF data; unreliable on mock data
-#' scf_pctile_sum(scf2022, ~networth)
+#' # Implicate method (default)
+#' scf_pctile_sum(scf2022, ~networth,
+#'                probs  = c(0, 0.9, 1),
+#'                labels = c("bottom90", "top10"))
 #'
 #' # Return grouping variable only, no summary statistic (implicate method)
 #' scf2022 <- scf_pctile_sum(scf2022, ~networth,
 #'                            probs  = c(0, 0.9, 1),
 #'                            labels = c("bottom90", "top10"),
 #'                            stat   = "none")
-#' }
 #' \dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 #'
 #' @seealso [scf_mean()], [scf_median()],

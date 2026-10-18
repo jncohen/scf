@@ -41,6 +41,7 @@ test_that("scf_logit runs and returns expected structure (with known warning)", 
 })
 
 test_that("summary works for scf_logit with odds = FALSE", {
+  skip_on_cran()
   td <- tempdir()
   src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
   file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
