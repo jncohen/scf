@@ -27,3 +27,4 @@
 ^vignettes/scf_pctile_cut\.(Rmd|pdf|bib)$
 ^validation$
 ^CRAN-SUBMISSION$
+^vignettes/SCF-guide\.(html|pdf)$

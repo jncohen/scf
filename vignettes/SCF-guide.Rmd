@@ -19,18 +19,16 @@ library(scf)
 
 # Introduction
 
-The Survey of Consumer Finances (SCF) is a triennial survey of U.S. household finances conducted by the Federal Reserve Board. It is among the most detailed data sources on U.S. household wealth, income, and financial behavior.
-
-The SCF's unit is the primary economic unit: the person or couple at the economic center of the household and everyone financially dependent on them. The Fed calls this unit a "family"; this package calls it a household.
-
-Valid estimation from the SCF requires handling two design features:
+The Survey of Consumer Finances (SCF) is a triennial survey of U.S. household finances conducted by the Federal Reserve Board. It is among the most detailed data sources on U.S. household wealth, income, and financial behavior. Valid estimation from the SCF requires handling two design features:
 
 1. Survey design: the SCF uses a dual-frame sample with 999 bootstrap replicate weights, which are used to estimate sampling variance.
 2. Multiple imputation: the SCF fills in missing answers five times, giving five implicates. Each is a complete version of the data with different filled-in values.
 
 The `scf` package handles both. It wraps the five implicates in replicate-weighted `survey::svrepdesign()` objects, runs each estimate in every implicate, and pools the results. See `?scf_variance` for how standard errors are computed.
 
-This vignette demonstrates the core workflow. For methodological background, see the package paper listed under Learn More.
+Throughout, the unit of analysis is the SCF's primary economic unit: the person or couple at the economic center of the household and everyone financially dependent on them. The Fed calls this unit a "family"; this package calls it a household.
+
+This vignette demonstrates the core workflow. It runs on the package's mock data, a small sample of the 2022 survey, so the numbers shown are not estimates for the population; the same code runs on the full data. For methodological background, see the package paper listed under Learn More.
 
 
 # Workflow
@@ -52,7 +50,12 @@ scf_download(2022)
 scf2022 <- scf_load(2022)
 ```
 
-The result is a `scf_mi_survey` object containing five `svyrep.design` objects, one per implicate, and survey-year metadata.
+The result is a `scf_mi_survey` object containing five `svyrep.design` objects, one per implicate, and survey-year metadata. The package covers every wave from 1989 to 2025; `scf_download(2025)` fetches the latest. Each object records the dollar year of the Fed's summary variables (see Dollar values below):
+
+```{r}
+scf2022
+scf2022$dollar_year
+```
 
 ## 2. Creating and Transforming Variables
 
@@ -81,6 +84,13 @@ scf2022 <- scf_update_by_implicate(scf2022, function(df) {
 })
 ```
 
+`scf_subset()` keeps the households that meet a condition, in every implicate. Estimates from a subset describe that group alone; to compare groups, use `by` in the estimating functions instead.
+
+```{r}
+seniors <- scf_subset(scf2022, age >= 65)
+scf_median(seniors, ~networth)
+```
+
 ### Dollar values
 
 Summary variables made by the Fed, such as `income`, `networth`, and `asset`, are in the dollars of one year in every survey year: 2025 for files downloaded since October 2026, 2022 before that. `scf_load()` records this as `dollar_year`. Raw survey variables, named `x` followed by a number, are in dollars of the survey year. Before comparing a raw variable across years, or combining it with summary variables, convert it with `scf_real()`. List income items, which are reported for the year before the survey, in `income`:
@@ -102,11 +112,26 @@ scf_percentile(scf2022, ~networth, q = 0.9)
 scf_percentile(scf2022, ~networth, q = 0.75, by = ~female)
 ```
 
+`scf_pctile_sum()` groups households by their position in a variable's distribution and summarizes each group, as the Fed's tables do by income and net worth percentile.
+
+```{r}
+scf_pctile_sum(scf2022, ~networth, probs = c(0, 0.5, 0.9, 1),
+               labels = c("bottom50", "50-90", "top10"),
+               method = "stack", stat = "mean")
+```
+
 Discrete distributions are summarized with `scf_freq()` and cross-tabulated with `scf_xtab()`.
 
 ```{r}
 scf_freq(scf2022, ~senior)
 scf_xtab(scf2022, ~senior, ~female, scale = "col")
+```
+
+`scf_ratio()` estimates the ratio of two totals, which is how the Fed computes shares and ratios such as wealth to income. `scf_corr()` gives the weighted correlation of two variables.
+
+```{r}
+scf_ratio(scf2022, ~networth, ~income, by = ~senior)
+scf_corr(scf2022, ~log_income, ~log_networth)
 ```
 
 ## 4. Hypothesis Tests
@@ -205,6 +230,7 @@ scf_plot_dbar(scf2022, ~senior)
 scf_plot_bbar(scf2022, ~female, ~rich, scale = "percent")
 scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "median")
 scf_plot_dist(scf2022, ~age, bins = 10)
+scf_plot_hist(scf2022, ~networth)
 scf_plot_smooth(scf2022, ~age)
 scf_plot_hex(scf2022, ~income, ~networth)
 ```
@@ -223,6 +249,14 @@ Implicate-level regression model objects are stored directly in the result:
 ```{r, eval = FALSE}
 m <- scf_ols(scf2022, log_networth ~ age)
 summary(m$imps[[1]])   # first implicate svyglm object
+```
+
+The usual model methods work on the pooled result: `coef()`, `SE()`, `vcov()`, `confint()`, `AIC()`, `predict()`, and `residuals()`. `SE()` also returns the standard errors of descriptive results.
+
+```{r}
+SE(m2)
+confint(m2)
+SE(scf_mean(scf2022, ~networth, by = ~senior))
 ```
 
 
