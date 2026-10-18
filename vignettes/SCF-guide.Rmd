@@ -1,5 +1,12 @@
 ---
 title: "Analyzing the Survey of Consumer Finances"
+author:
+  - name: "Joseph N. Cohen"
+    dept: "Department of Sociology"
+    inst: "Queens College, City University of New York"
+    email: "joseph.cohen@qc.cuny.edu"
+    web: "jncohen.commons.gc.cuny.edu"
+date: "October 18, 2026"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Analyzing the Survey of Consumer Finances}
