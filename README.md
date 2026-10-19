@@ -9,6 +9,7 @@ version](https://img.shields.io/badge/R-%3E%3D%203.6-blue.svg)](https://CRAN.R-p
 stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/scf)](https://CRAN.R-project.org/package=scf)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23483032.svg)](https://doi.org/10.5281/zenodo.23483032)
 
 ## Overview
 
@@ -386,14 +387,15 @@ Use `citation("scf")` in R for formatted references.
 
 ## Use of AI Tools
 
-Development of versions 1.1.0 to 1.2.0 used Claude (Anthropic), an AI
-assistant, to help write and revise code, tests, and documentation; to audit
-functions for errors; and to run validation checks. The author directed this
-work, made all methodological decisions, and reviewed the changes. The
-package's results were checked against the Federal Reserve's published SCF
-Bulletin tables (Tables 1-5, 1989-2022, for 1.1.0; Tables 1-4 of the 2025
-historical workbooks for 1.2.0) and against independent calculations with the
-`survey` and `mitools` packages.
+Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google), and Copilot
+(Microsoft) were used as aids in writing, debugging, and auditing code,
+tests, and documentation. Claude was the main tool for versions 1.1.0 to
+1.2.0, including running validation checks. The author directed this work,
+made all methodological decisions, and reviewed all changes. The package's
+results were checked with its automated tests, against independent
+calculations with the `survey` and `mitools` packages, and by reproducing
+Tables 1–4 of the Federal Reserve's historical SCF tables for every wave
+from 1989 to 2025 (see `validation/`).
 
 ## Author
 
